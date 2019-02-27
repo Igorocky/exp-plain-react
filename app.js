@@ -3,13 +3,26 @@
 const re = React.createElement;
 
 const ListItem = props=>re('li',{},props.text)
-const ListComponent = props=>re('ul',{},_.map(props.items, i=>re(ListItem,{text:i})))
 
-// class ListComponent extends React.Component {
-//     render() {
-//         return re('ul',{},_.map(this.props.items, i=>re(ListItem,{text:i})))
-//     }
-// }
+class ListComponent extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state=props
+        props.registerItemAdder(item=>this.addItem(item))
+    }
+
+    render() {
+        return re('ul',{},_.map(this.state.items, i=>re(ListItem,{text:i})))
+    }
+
+    addItem(item) {
+        this.setState((state, props) => {
+            let newItems = state.items.slice()
+            newItems.push(item)
+            return {items:newItems}
+        })
+    }
+}
 
 class LikeButton extends React.Component {
     constructor(props) {
@@ -30,10 +43,12 @@ class LikeButton extends React.Component {
     }
 }
 
+let itemAdder;
+
 ReactDOM.render(
     re('div', {},
-        re('button', {}, 'Add'),
-        re(ListComponent, {items: ["A", "B", "Z"]})
+        re('button', { onClick: ()=>itemAdder("NEW")}, 'Add'),
+        re(ListComponent, {items: ["A", "B", "Z"], registerItemAdder: adder=>itemAdder=adder})
     ),
     document.getElementById('react-container')
 )
