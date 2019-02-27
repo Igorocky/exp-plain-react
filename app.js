@@ -1,6 +1,15 @@
 'use strict';
 
-const e = React.createElement;
+const re = React.createElement;
+
+const ListItem = props=>re('li',{},props.text)
+const ListComponent = props=>re('ul',{},_.map(props.items, i=>re(ListItem,{text:i})))
+
+// class ListComponent extends React.Component {
+//     render() {
+//         return re('ul',{},_.map(this.props.items, i=>re(ListItem,{text:i})))
+//     }
+// }
 
 class LikeButton extends React.Component {
     constructor(props) {
@@ -13,7 +22,7 @@ class LikeButton extends React.Component {
             return 'You liked this.';
         }
 
-        return e(
+        return re(
             'button',
             { onClick: () => this.setState({ liked: true }) },
             'Like'
@@ -21,5 +30,10 @@ class LikeButton extends React.Component {
     }
 }
 
-const domContainer = document.querySelector('#react-container');
-ReactDOM.render(e(LikeButton), domContainer);
+ReactDOM.render(
+    re('div', {},
+        re('button', {}, 'Add'),
+        re(ListComponent, {items: ["A", "B", "Z"]})
+    ),
+    document.getElementById('react-container')
+)
