@@ -2,6 +2,22 @@
 
 const re = React.createElement;
 
+const {
+    Button,
+    colors,
+    createMuiTheme,
+    CssBaseline,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Icon,
+    MuiThemeProvider,
+    Typography,
+    withStyles,
+} = window['material-ui'];
+
 class ListItem extends React.Component {
     constructor(props) {
         console.log("ListItem.constructor. props = " + JSON.stringify(props))
@@ -15,7 +31,7 @@ class ListItem extends React.Component {
         return re('li',{},
             this.props.text,
             " Likes: " + this.state.likes,
-            re('button',{onClick: ()=> this.incLikes()}, "Like")
+            re(Button,{variant:"contained", color:"primary", onClick: ()=> this.incLikes()}, "Like")
         )
     }
 
@@ -46,30 +62,11 @@ class ListComponent extends React.Component {
     }
 }
 
-class LikeButton extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { liked: false };
-    }
-
-    render() {
-        if (this.state.liked) {
-            return 'You liked this.';
-        }
-
-        return re(
-            'button',
-            { onClick: () => this.setState({ liked: true }) },
-            'Like'
-        );
-    }
-}
-
 let itemAdder;
 
 ReactDOM.render(
     re('div', {},
-        re('button', { onClick: ()=>itemAdder("NEW")}, 'Add'),
+        re(Button, {variant:"contained", color:"primary", onClick: ()=>itemAdder("NEW")}, 'Add'),
         re(ListComponent, {items: ["A", "B", "Z"], registerItemAdder: adder=>itemAdder=adder})
     ),
     document.getElementById('react-container')
