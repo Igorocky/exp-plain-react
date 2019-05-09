@@ -33,7 +33,8 @@ class ChessBoardCell extends React.Component {
 
     getContent() {
         if (this.state.isImage) {
-            return re('img', {src:"./chess/chess-board-configs/config1/" + this.props.x + this.props.y + ".png",
+            return re('img', {src:"./chess/chess-board-configs/" + this.props.configName
+                    + "/" + this.props.x + this.props.y + ".png",
                 className: "cell-img"})
         } else {
             return re('div',{className: "cell-text"},this.props.x + this.props.y)
@@ -52,15 +53,30 @@ class ChessBoard extends React.Component {
     }
 
     render() {
-        return re('table',{className: "chessboard"},
-            re('tbody',{className: "chessboard"},
-                _.map(board, (row,ri)=>re('tr',{key:ri},_.map(row, (cell,ci)=>re('td',{key:ci},re(ChessBoardCell,cell)))))
+        return re('table', {className: "chessboard"},
+            re('tbody', {className: "chessboard"},
+                _.map(board, (row, ri) =>
+                    re('tr', {key: ri},
+                        _.map(row, (cell, ci) =>
+                            re('td', {key: ci},
+                                re(ChessBoardCell, {...cell, configName: this.props.configName})
+                            )
+                        )
+                    )
+                )
             )
         )
     }
 }
 
 ReactDOM.render(
-    re(ChessBoard, {}),
+    re('table',{className: "chessboard-container"},
+        re('tbody',{},
+            re('tr',{},
+                re('td',{}, re(ChessBoard, {configName: "config1"})),
+                re('td',{}, re(ChessBoard, {configName: "config2"}))
+            )
+        )
+    ),
     document.getElementById('react-container')
 )

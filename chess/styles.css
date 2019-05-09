@@ -1,3 +1,7 @@
+.chessboard-container td {
+    padding-right: 120px;
+}
+
 .chessboard, .chessboard td {
     border-collapse: collapse;
     border: 1px solid black;
