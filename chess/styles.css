@@ -1,0 +1,30 @@
+.chessboard, .chessboard td {
+    border-collapse: collapse;
+    border: 1px solid black;
+    padding: 0px;
+}
+
+.chess-board-cell {
+    width: 72px;
+    height: 72px;
+}
+
+.cell-text {
+    padding-left: 40%;
+    padding-top: 40%;
+}
+
+.cell-img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.black-cell {
+    color: white;
+    background-color: lightseagreen;
+}
+
+.white-cell {
+    color: black;
+    background-color: white;
+}

@@ -1,23 +1,5 @@
 'use strict';
 
-const re = React.createElement;
-
-const {
-    Button,
-    colors,
-    createMuiTheme,
-    CssBaseline,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Icon,
-    MuiThemeProvider,
-    Typography,
-    withStyles,
-} = window['material-ui'];
-
 class ListItem extends React.Component {
     constructor(props) {
         console.log("ListItem.constructor. props = " + JSON.stringify(props))
