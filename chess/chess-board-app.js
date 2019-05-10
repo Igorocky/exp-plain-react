@@ -73,7 +73,6 @@ ReactDOM.render(
     re('table',{className: "chessboard-container"},
         re('tbody',{},
             re('tr',{},
-                re('td',{}, re(ChessBoard, {configName: "config1"})),
                 re('td',{}, re(ChessBoard, {configName: "config2"}))
             )
         )
