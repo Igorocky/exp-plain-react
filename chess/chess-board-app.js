@@ -13,11 +13,16 @@ const xx = ["a","b","c","d","e","f","g","h"]
 const yy = ["1","2","3","4","5","6","7","8"]
 const board = _.map(revert(yy), (y,yi)=>_.map(xx, (x,xi)=>({x:x, y:y, isWhite:(xi+yi)%2===0})))
 
+const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
+const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
+const HIDE_COORDS_MSG = "HIDE_COORDS_MSG"
+const SHOW_COORDS_MSG = "SHOW_COORDS_MSG"
 
 class ChessBoardCell extends React.Component {
     constructor(props) {
         super(props)
-        this.state={...props, isImage:true}
+        this.cellName = this.props.x + this.props.y
+        this.state={...props, isImage:false, showCoords: false}
     }
 
     render() {
@@ -34,15 +39,39 @@ class ChessBoardCell extends React.Component {
     getContent() {
         if (this.state.isImage) {
             return re('img', {src:"./chess/chess-board-configs/" + this.props.configName
-                    + "/" + this.props.x + this.props.y + ".png",
+                    + "/" + this.cellName + ".png",
                 className: "cell-img"})
+        } else if (this.state.showCoords) {
+            return re('div',{className: "cell-text"},this.cellName)
         } else {
-            return re('div',{className: "cell-text"},this.props.x + this.props.y)
+            return re('div',{className: "cell-text"})
         }
     }
 
     flip() {
         this.setState((state,props)=>({isImage: !state.isImage}))
+    }
+
+    componentDidMount() {
+        addMessageListener({name:this.getMsgListenerName(), callback:msgContent => {
+            if (HIDE_IMAGE_MSG === msgContent) {
+                this.setState((state,props)=>({isImage: false}))
+            } else if (SHOW_IMAGE_MSG === msgContent) {
+                this.setState((state,props)=>({isImage: true}))
+            } else if (HIDE_COORDS_MSG === msgContent) {
+                this.setState((state,props)=>({showCoords: false}))
+            } else if (SHOW_COORDS_MSG === msgContent) {
+                this.setState((state,props)=>({showCoords: true}))
+            }
+        }})
+    }
+
+    componentWillUnmount() {
+        removeMessageListener(this.getMsgListenerName())
+    }
+
+    getMsgListenerName() {
+        return "cell-" + this.cellName
     }
 }
 
@@ -69,11 +98,27 @@ class ChessBoard extends React.Component {
     }
 }
 
+const allCellsPredicate = listenerName => listenerName.startsWith("cell-")
+
 ReactDOM.render(
     re('table',{className: "chessboard-container"},
         re('tbody',{},
             re('tr',{},
-                re('td',{}, re(ChessBoard, {configName: "config2"}))
+                re('td',{}, re(ChessBoard, {configName: "config2"})),
+                re('td',{},
+                    re(Button,{variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(allCellsPredicate, HIDE_IMAGE_MSG)},
+                        "Close all"),
+                    re(Button,{variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(allCellsPredicate, SHOW_IMAGE_MSG)},
+                        "Open all"),
+                    re(Button,{variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(allCellsPredicate, HIDE_COORDS_MSG)},
+                        "Hide coordinates"),
+                    re(Button,{variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(allCellsPredicate, SHOW_COORDS_MSG)},
+                        "Show coordinates")
+                )
             )
         )
     ),
