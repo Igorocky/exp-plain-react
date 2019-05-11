@@ -134,17 +134,17 @@ class ChessBoardTrainer extends React.Component {
 
     renderButtons() {
         return [
-            re(Button,{variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
-            re(Button,{variant:"contained", color:"primary",
+            re(Button,{key:"Close all",variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
+            re(Button,{key:"Open all",variant:"contained", color:"primary",
                     onClick: ()=> sendMessage(allCellsPredicate, SHOW_IMAGE_MSG)},
                 "Open all"),
-            re(Button,{variant:"contained", color:"primary",
+            re(Button,{key:"Hide coordinates",variant:"contained", color:"primary",
                     onClick: ()=> sendMessage(allCellsPredicate, HIDE_COORDS_MSG)},
                 "Hide coordinates"),
-            re(Button,{variant:"contained", color:"primary",
+            re(Button,{key:"Show coordinates",variant:"contained", color:"primary",
                     onClick: ()=> sendMessage(allCellsPredicate, SHOW_COORDS_MSG)},
                 "Show coordinates"),
-            re(Button,{variant:"contained", color:"primary",
+            re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                     onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                 "H/V mode")
         ]
