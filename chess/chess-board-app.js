@@ -96,9 +96,24 @@ class ChessBoard extends React.Component {
             )
         )
     }
+
+    componentDidMount() {
+        window.addEventListener("keyup", this.handleKeyUp);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keyup", this.handleKeyUp);
+    }
+
+    handleKeyUp(event) {
+        if (event.keyCode === 27) {
+            hideAllImages()
+        }
+    }
 }
 
 const allCellsPredicate = listenerName => listenerName.startsWith("cell-")
+const hideAllImages = ()=> sendMessage(allCellsPredicate, HIDE_IMAGE_MSG)
 
 ReactDOM.render(
     re('table',{className: "chessboard-container"},
@@ -106,9 +121,7 @@ ReactDOM.render(
             re('tr',{},
                 re('td',{}, re(ChessBoard, {configName: "config2"})),
                 re('td',{},
-                    re(Button,{variant:"contained", color:"primary",
-                        onClick: ()=> sendMessage(allCellsPredicate, HIDE_IMAGE_MSG)},
-                        "Close all"),
+                    re(Button,{variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
                     re(Button,{variant:"contained", color:"primary",
                         onClick: ()=> sendMessage(allCellsPredicate, SHOW_IMAGE_MSG)},
                         "Open all"),
