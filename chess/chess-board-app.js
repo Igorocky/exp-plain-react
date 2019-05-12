@@ -126,11 +126,26 @@ class MoveTrainer extends React.Component {
     render() {
         let style = {marginLeft:"50px"}
         return re(HContainer,{},
-            re('span', {}, this.getCurrentCellName()),
+            this.renderCurrentCellButton(),
             re(Button,{key:"Next",variant:"contained", color:"primary", onClick: ()=>this.nextCell(), style:style}, "Next"),
             re(Button,{key:"Night",variant:"contained", color:"primary", onClick: ()=>this.openCellsForKnight(), style:style}, "Night"),
             re(Button,{key:"Queen",variant:"contained", color:"primary", onClick: ()=>this.openCellsForQueen(), style:style}, "Queen")
         )
+    }
+
+    renderCurrentCellButton() {
+        return this.state.currentCell
+            ? re(
+                Button,
+                {
+                    key:"currentCellButton",
+                    variant:"contained",
+                    color:"primary",
+                    onClick: ()=>this.openCurrentCell()
+                },
+                this.getCurrentCellName()
+            )
+            : null
     }
 
     getCurrentCellName() {
@@ -151,6 +166,14 @@ class MoveTrainer extends React.Component {
             cellsToAsk = _.shuffle(cellsToAsk)
             return {currentCell: _.first(cellsToAsk), cellsToAsk:_.rest(cellsToAsk)}
         })
+    }
+
+    openCurrentCell() {
+        if (!this.state.currentCell) {
+            return;
+        }
+        hideAllImages()
+        this.openImage(this.state.currentCell,0,0)
     }
 
     openCellsForKnight() {
