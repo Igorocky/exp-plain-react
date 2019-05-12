@@ -124,11 +124,12 @@ class MoveTrainer extends React.Component {
     }
 
     render() {
+        let style = {marginLeft:"50px"}
         return re(HContainer,{},
             re('span', {}, this.getCurrentCellName()),
-            re(Button,{key:"Next",variant:"contained", color:"primary", onClick: ()=>this.nextCell()}, "Next"),
-            re(Button,{key:"Night",variant:"contained", color:"primary", onClick: ()=>this.openCellsForKnight()}, "Night"),
-            re(Button,{key:"Queen",variant:"contained", color:"primary", onClick: ()=>this.openCellsForQueen()}, "Queen")
+            re(Button,{key:"Next",variant:"contained", color:"primary", onClick: ()=>this.nextCell(), style:style}, "Next"),
+            re(Button,{key:"Night",variant:"contained", color:"primary", onClick: ()=>this.openCellsForKnight(), style:style}, "Night"),
+            re(Button,{key:"Queen",variant:"contained", color:"primary", onClick: ()=>this.openCellsForQueen(), style:style}, "Queen")
         )
     }
 
@@ -260,7 +261,7 @@ class ChessBoardTrainer extends React.Component {
                     )
                 ),
                 re('tr',{},
-                    re('td',{},
+                    re('td',{style: {padding:"70px 10px"}},
                         re(MoveTrainer,{})
                     )
                 ),
