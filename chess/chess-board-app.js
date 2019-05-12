@@ -103,14 +103,14 @@ class ChessBoard extends React.Component {
     }
 
     componentDidMount() {
-        window.addEventListener("keyup", this.handleKeyUp);
+        window.addEventListener("keydown", this.handleKeyDown);
     }
 
     componentWillUnmount() {
-        window.removeEventListener("keyup", this.handleKeyUp);
+        window.removeEventListener("keydown", this.handleKeyDown);
     }
 
-    handleKeyUp(event) {
+    handleKeyDown(event) {
         if (event.keyCode === 27) {
             hideAllImages()
         }
@@ -216,6 +216,27 @@ class MoveTrainer extends React.Component {
         }
         const targetCellName = "cell-" + XX[targetCell.x]+YY[targetCell.y]
         sendMessage(name=>name===targetCellName, SHOW_IMAGE_MSG)
+    }
+
+    componentDidMount() {
+        window.addEventListener("keydown", e => this.handleKeyDown(e));
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", e => this.handleKeyDown(e));
+    }
+
+    handleKeyDown(event) {
+        console.log(event.keyCode);
+        if (event.keyCode === 190) {
+            this.nextCell()
+        } else if (event.keyCode === 67) {
+            this.openCurrentCell()
+        } else if (event.keyCode === 78) {
+            this.openCellsForKnight()
+        } else if (event.keyCode === 81) {
+            this.openCellsForQueen()
+        }
     }
 }
 
