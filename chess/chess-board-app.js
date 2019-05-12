@@ -30,6 +30,7 @@ class ChessBoardCell extends React.Component {
             'div',
             {
                 className:"chess-board-cell " + (this.props.isWhite?"white-cell":"black-cell"),
+                style: {width: this.props.size, height: this.props.size},
                 onClick: ()=> this.flip()
             },
             this.getContent()
@@ -88,7 +89,11 @@ class ChessBoard extends React.Component {
                     re('tr', {key: ri},
                         _.map(row, (cell, ci) =>
                             re('td', {key: ci},
-                                re(ChessBoardCell, {...cell, configName: this.props.configName})
+                                re(ChessBoardCell, {
+                                    ...cell,
+                                    configName: this.props.configName,
+                                    size: this.props.cellSize
+                                })
                             )
                         )
                     )
@@ -122,11 +127,11 @@ class ChessBoardTrainer extends React.Component {
         return re('table',{className: "chessboard-container"},
             re('tbody',{},
                 re('tr',{},
-                    re('td',{}, re(ChessBoard, {configName: "config2"})),
-                    this.state.hMode ? re('td',{}, this.renderButtons()) : ""
+                    re('td',{}, re(ChessBoard, {configName: "config2", cellSize: this.state.hMode?"72px":"108px"})),
+                    this.state.hMode ? re('td',{}, this.renderButtons()) : null
                 ),
                 this.state.hMode
-                    ? ""
+                    ? null
                     : re('tr',{}, re('td',{}, this.renderButtons()))
             )
         )
