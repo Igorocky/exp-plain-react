@@ -9,9 +9,9 @@ const revert = list => _.reduceRight(
     []
 )
 
-const xx = ["a","b","c","d","e","f","g","h"]
-const yy = ["1","2","3","4","5","6","7","8"]
-const board = _.map(revert(yy), (y,yi)=>_.map(xx, (x,xi)=>({x:x, y:y, isWhite:(xi+yi)%2===0})))
+const XX = ["a","b","c","d","e","f","g","h"]
+const YY = ["1","2","3","4","5","6","7","8"]
+const BOARD = _.map(revert(YY), (y, yi)=>_.map(XX, (x, xi)=>({x:x, y:y, isWhite:(xi+yi)%2===0})))
 
 const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
 const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
@@ -85,7 +85,7 @@ class ChessBoard extends React.Component {
     render() {
         return re('table', {className: "chessboard"},
             re('tbody', {className: "chessboard"},
-                _.map(board, (row, ri) =>
+                _.map(BOARD, (row, ri) =>
                     re('tr', {key: ri},
                         _.map(row, (cell, ci) =>
                             re('td', {key: ci},
@@ -117,6 +117,84 @@ class ChessBoard extends React.Component {
     }
 }
 
+class MoveTrainer extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={cellsToAsk:[], currentCell:null}
+    }
+
+    render() {
+        return re(HContainer,{},
+            re('span', {}, this.getCurrentCellName()),
+            re(Button,{key:"Next",variant:"contained", color:"primary", onClick: ()=>this.nextCell()}, "Next"),
+            re(Button,{key:"Night",variant:"contained", color:"primary", onClick: ()=>this.openCellsForKnight()}, "Night"),
+            re(Button,{key:"Queen",variant:"contained", color:"primary", onClick: ()=>this.openCellsForQueen()}, "Queen")
+        )
+    }
+
+    getCurrentCellName() {
+        return this.state.currentCell?XX[this.state.currentCell.x]+YY[this.state.currentCell.y]:null
+    }
+
+    nextCell() {
+        hideAllImages()
+        let cellsToAsk = this.state.cellsToAsk
+        if (_.size(cellsToAsk)===0) {
+            for (let x = 0; x < _.size(XX); x++) {
+                for (let y = 0; y < _.size(YY); y++) {
+                    cellsToAsk.push({x:x,y:y})
+                }
+            }
+        }
+        this.setState((state,props)=>{
+            cellsToAsk = _.shuffle(cellsToAsk)
+            return {currentCell: _.first(cellsToAsk), cellsToAsk:_.rest(cellsToAsk)}
+        })
+    }
+
+    openCellsForKnight() {
+        if (!this.state.currentCell) {
+            return;
+        }
+        hideAllImages()
+        this.openImage(this.state.currentCell,0,0)
+        this.openImage(this.state.currentCell,-2,-1)
+        this.openImage(this.state.currentCell,-2,+1)
+        this.openImage(this.state.currentCell,-1,+2)
+        this.openImage(this.state.currentCell,+1,+2)
+        this.openImage(this.state.currentCell,+2,+1)
+        this.openImage(this.state.currentCell,+2,-1)
+        this.openImage(this.state.currentCell,+1,-2)
+        this.openImage(this.state.currentCell,-1,-2)
+    }
+
+    openCellsForQueen() {
+        if (!this.state.currentCell) {
+            return;
+        }
+        hideAllImages()
+        for (let dx = 0; dx<8; dx++) {
+            this.openImage(this.state.currentCell,dx,dx)
+            this.openImage(this.state.currentCell,dx,-dx)
+            this.openImage(this.state.currentCell,-dx,dx)
+            this.openImage(this.state.currentCell,-dx,-dx)
+            this.openImage(this.state.currentCell,dx,0)
+            this.openImage(this.state.currentCell,-dx,0)
+            this.openImage(this.state.currentCell,0,dx)
+            this.openImage(this.state.currentCell,0,-dx)
+        }
+    }
+
+    openImage(baseCell,dx,dy) {
+        const targetCell = {x:baseCell.x+dx, y:baseCell.y+dy}
+        if (targetCell.x < 0 || targetCell.x > _.size(XX) - 1 || targetCell.y < 0 || targetCell.y > _.size(YY) - 1) {
+            return;
+        }
+        const targetCellName = "cell-" + XX[targetCell.x]+YY[targetCell.y]
+        sendMessage(name=>name===targetCellName, SHOW_IMAGE_MSG)
+    }
+}
+
 class ChessBoardTrainer extends React.Component {
     constructor(props) {
         super(props)
@@ -124,40 +202,82 @@ class ChessBoardTrainer extends React.Component {
     }
 
     render() {
-        return re('table',{className: "chessboard-container"},
-            re('tbody',{},
-                re('tr',{},
-                    re('td',{}, re(ChessBoard, {configName: "config2", cellSize: this.state.hMode?"72px":"108px"})),
-                    this.state.hMode ? re('td',{}, this.renderButtons()) : null
-                ),
-                this.state.hMode
-                    ? null
-                    : re('tr',{}, re('td',{}, this.renderButtons()))
+        return re(VContainer,{},
+            re(HContainer,{},
+                re(ChessBoard, {configName: "config2", cellSize: this.state.hMode?"72px":"108px"}),
+                this.state.hMode ? this.renderButtons() : null
+            ),
+            this.state.hMode
+                ? null
+                : this.renderButtons()
+        )
+    }
+
+    renderButtons_new() {
+        return re(VContainer,{},
+            re(HContainer,{},
+                re(Button,{key:"Close all",variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
+                re(Button,{key:"Open all",variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_IMAGE_MSG)},
+                    "Open all"),
+                re(Button,{key:"Hide coordinates",variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, HIDE_COORDS_MSG)},
+                    "Hide coordinates"),
+                re(Button,{key:"Show coordinates",variant:"contained", color:"primary",
+                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_COORDS_MSG)},
+                    "Show coordinates")
+            ),
+            re(MoveTrainer,{}),
+            re(HContainer,{},
+                re(Button,{key:"H/V mode",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
+                    "H/V mode")
             )
         )
     }
 
     renderButtons() {
-        return [
-            re(Button,{key:"Close all",variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
-            re(Button,{key:"Open all",variant:"contained", color:"primary",
-                    onClick: ()=> sendMessage(allCellsPredicate, SHOW_IMAGE_MSG)},
-                "Open all"),
-            re(Button,{key:"Hide coordinates",variant:"contained", color:"primary",
-                    onClick: ()=> sendMessage(allCellsPredicate, HIDE_COORDS_MSG)},
-                "Hide coordinates"),
-            re(Button,{key:"Show coordinates",variant:"contained", color:"primary",
-                    onClick: ()=> sendMessage(allCellsPredicate, SHOW_COORDS_MSG)},
-                "Show coordinates"),
-            re(Button,{key:"H/V mode",variant:"contained", color:"primary",
-                    onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
-                "H/V mode")
-        ]
+        return re('table',{},
+            re('tbody',{},
+                re('tr',{},
+                    re('td',{},
+                        re(Button,{key:"Close all",variant:"contained", color:"primary", onClick: hideAllImages}, "Close all")
+                    ),
+                    re('td',{},
+                        re(Button,{key:"Open all",variant:"contained", color:"primary",
+                                onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_IMAGE_MSG)},
+                            "Open all")
+                    ),
+                    re('td',{},
+                        re(Button,{key:"Hide coordinates",variant:"contained", color:"primary",
+                                onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, HIDE_COORDS_MSG)},
+                            "Hide coordinates")
+                    ),
+                    re('td',{},
+                        re(Button,{key:"Show coordinates",variant:"contained", color:"primary",
+                                onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_COORDS_MSG)},
+                            "Show coordinates")
+                    )
+                ),
+                re('tr',{},
+                    re('td',{},
+                        re(MoveTrainer,{})
+                    )
+                ),
+                re('tr',{},
+                    re('td',{},
+                        re(Button,{key:"H/V mode",variant:"contained", color:"primary",
+                                onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
+                            "H/V mode")
+                    )
+                )
+            )
+        )
     }
 }
 
-const allCellsPredicate = listenerName => listenerName.startsWith("cell-")
-const hideAllImages = ()=> sendMessage(allCellsPredicate, HIDE_IMAGE_MSG)
+const ALL_CELLS_PREDICATE = listenerName => listenerName.startsWith("cell-")
+const hideAllImages = ()=> sendMessage(ALL_CELLS_PREDICATE, HIDE_IMAGE_MSG)
 
 ReactDOM.render(
     re(ChessBoardTrainer,{}),

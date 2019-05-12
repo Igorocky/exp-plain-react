@@ -1,11 +1,3 @@
-.chessboard-container td {
-    padding-right: 120px;
-}
-
-.chessboard-container button  {
-    margin: 15px;
-}
-
 .chessboard, .chessboard td {
     border-collapse: collapse;
     border: 1px solid black;
