@@ -248,12 +248,16 @@ const IMG_TO_CELL = "img-to-cell"
 
 class RandomCellSelector {
     constructor() {
-        this.state = {cellsToAsk: []}
+        this.state = {cellsToAsk: [], iterationNumber:0}
         this.updateStateToNextCell()
     }
 
     getCurrentCell() {
         return this.state.currentCell;
+    }
+
+    getIterationNumber() {
+        return this.state.iterationNumber;
     }
 
     updateStateToNextCell() {
@@ -264,6 +268,7 @@ class RandomCellSelector {
                     cellsToAsk.push({x:x,y:y})
                 }
             }
+            this.state.iterationNumber += 1
         }
         cellsToAsk = _.shuffle(cellsToAsk)
         this.state.currentCell = _.first(cellsToAsk)
@@ -280,8 +285,18 @@ class CellToImgExercise extends React.Component {
     }
 
     render() {
-        return re(ChessBoard, {configName: "config2", cellSize: this.props.hMode?"72px":"108px",
-            onClick:()=>this.next()})
+        return this.renderElems(
+            re(ChessBoard, {configName: "config2", cellSize: this.props.hMode?"72px":"108px", onClick:()=>this.next()}),
+            re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber())
+        )
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
     }
 
     next() {
@@ -317,7 +332,7 @@ class CellToImgExercise extends React.Component {
 class ChessBoardTrainer extends React.Component {
     constructor(props) {
         super(props)
-        this.state={hMode:true, taskType: CELL_TO_IMG}
+        this.state={hMode:true, taskType: ""}
     }
 
     render() {
