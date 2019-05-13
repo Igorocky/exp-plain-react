@@ -11,7 +11,13 @@ const revert = list => _.reduceRight(
 
 const XX = ["a","b","c","d","e","f","g","h"]
 const YY = ["1","2","3","4","5","6","7","8"]
-const BOARD = _.map(revert(YY), (y, yi)=>_.map(XX, (x, xi)=>({x:x, y:y, isWhite:(xi+yi)%2===0})))
+const BOARD = []
+for (let y = _.size(YY)-1; y >= 0; y--) {
+    BOARD.push([])
+    for (let x = 0; x < _.size(XX); x++) {
+        _.last(BOARD).push({x:x,y:y, isWhite:(x+y)%2===1})
+    }
+}
 
 const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
 const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
@@ -23,7 +29,7 @@ const UNCHECK_CELL = "UNCHECK_CELL"
 class ChessBoardCell extends React.Component {
     constructor(props) {
         super(props)
-        this.cellName = this.props.x + this.props.y
+        this.cellName = XX[this.props.x] + YY[this.props.y]
         this.state={...props, isImage:false, showCoords: false, checked: false}
     }
 
@@ -289,7 +295,7 @@ class CellToImgExercise extends React.Component {
 
     render() {
         return this.renderElems(
-            re(ChessBoard, {configName: "config2", cellSize: this.props.hMode?"72px":"108px", onClick:()=>this.next()}),
+            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:()=>this.next()}),
             re(VContainer,{},
                 re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
                 re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
@@ -335,20 +341,77 @@ class CellToImgExercise extends React.Component {
     }
 }
 
+class ImgToCellExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={randomCellSelector: new RandomCellSelector(), error:false}
+    }
+
+    render() {
+        return this.renderElems(
+            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:cell=>this.next(cell)}),
+            re(VContainer,{},
+                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements()),
+                re('div',{style:{width: this.props.cellSize, height: this.props.cellSize, border:this.state.error?"5px red solid":null}},
+                    re('img',
+                        {
+                            src:"./chess/chess-board-configs/"
+                                + this.props.configName + "/" + this.getCurrentCellName() + ".png",
+                            style:{maxHeight: "100%", maxWidth: "100%"}
+                        }
+                    )
+                )
+            )
+        )
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
+    }
+
+    next(clickedCell) {
+        this.setState((state,props)=>{
+            const currentCell = state.randomCellSelector.getCurrentCell()
+            if (clickedCell.x===currentCell.x && clickedCell.y===currentCell.y) {
+                state.randomCellSelector.updateStateToNextCell()
+                return {randomCellSelector: state.randomCellSelector, error:false}
+            } else {
+                return {error:true}
+            }
+        })
+    }
+
+    getCurrentCellName() {
+        const currentCell = this.state.randomCellSelector.getCurrentCell()
+        return XX[currentCell.x] + YY[currentCell.y]
+    }
+}
+
 class ChessBoardTrainer extends React.Component {
     constructor(props) {
         super(props)
         this.state={hMode:true, taskType: ""}
+        this.compGeneralProps = {cellSize: this.getCellSize(), configName: this.props.configName}
     }
 
     render() {
         if (this.state.taskType === CELL_TO_IMG) {
-            return re(CellToImgExercise, {hMode: this.state.hMode})
+            return re(CellToImgExercise, {...this.compGeneralProps, hMode: this.state.hMode})
+        } else if (this.state.taskType === IMG_TO_CELL) {
+            return re(ImgToCellExercise, {...this.compGeneralProps, hMode: this.state.hMode})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: CELL_TO_IMG}))},
                     "Cell to Img"),
+                re(Button,{key:"Img to Cell",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: IMG_TO_CELL}))},
+                    "Img to Cell"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
@@ -356,8 +419,8 @@ class ChessBoardTrainer extends React.Component {
         }
     }
 
-    handleTaskTypeChange(event) {
-        this.setState((state,props)=>({taskType: event.target.value}))
+    getCellSize() {
+        return this.state.hMode?"72px":"108px"
     }
 
     renderButtons() {
@@ -426,6 +489,6 @@ function checkCell(baseCell,dx,dy) {
 
 
 ReactDOM.render(
-    re(ChessBoardTrainer,{}),
+    re(ChessBoardTrainer,{configName: "config2"}),
     document.getElementById('react-container')
 )
