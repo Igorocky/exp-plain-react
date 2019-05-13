@@ -253,11 +253,15 @@ class RandomCellSelector {
     }
 
     getCurrentCell() {
-        return this.state.currentCell;
+        return this.state.currentCell
     }
 
     getIterationNumber() {
-        return this.state.iterationNumber;
+        return this.state.iterationNumber
+    }
+
+    getRemainingElements() {
+        return _.size(this.state.cellsToAsk)
     }
 
     updateStateToNextCell() {
@@ -280,14 +284,16 @@ class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={randomCellSelector: new RandomCellSelector(), checkedCell:true}
-        this.state.randomCellSelector.updateStateToNextCell()
         this.handleKeyDownListener = e => this.handleKeyDown(e)
     }
 
     render() {
         return this.renderElems(
             re(ChessBoard, {configName: "config2", cellSize: this.props.hMode?"72px":"108px", onClick:()=>this.next()}),
-            re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber())
+            re(VContainer,{},
+                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
+            )
         )
     }
 
