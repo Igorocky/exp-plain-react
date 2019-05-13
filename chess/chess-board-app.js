@@ -17,21 +17,28 @@ const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
 const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
 const HIDE_COORDS_MSG = "HIDE_COORDS_MSG"
 const SHOW_COORDS_MSG = "SHOW_COORDS_MSG"
+const CHECK_CELL = "CHECK_CELL"
+const UNCHECK_CELL = "UNCHECK_CELL"
 
 class ChessBoardCell extends React.Component {
     constructor(props) {
         super(props)
         this.cellName = this.props.x + this.props.y
-        this.state={...props, isImage:false, showCoords: false}
+        this.state={...props, isImage:false, showCoords: false, checked: false}
     }
 
     render() {
         return re(
             'div',
             {
-                className:"chess-board-cell " + (this.props.isWhite?"white-cell":"black-cell"),
+                className:"chess-board-cell " + (this.state.checked?"checked-cell":(this.props.isWhite?"white-cell":"black-cell")),
                 style: {width: this.props.size, height: this.props.size},
-                onClick: ()=> this.flip()
+                onClick: ()=> {
+                    if (this.props.onClick) {
+                        this.props.onClick({x:this.props.x, y:this.props.y})
+                    }
+                    // this.flip()
+                }
             },
             this.getContent()
         )
@@ -63,6 +70,10 @@ class ChessBoardCell extends React.Component {
                 this.setState((state,props)=>({showCoords: false}))
             } else if (SHOW_COORDS_MSG === msgContent) {
                 this.setState((state,props)=>({showCoords: true}))
+            } else if (CHECK_CELL === msgContent) {
+                this.setState((state,props)=>({checked: true}))
+            } else if (UNCHECK_CELL === msgContent) {
+                this.setState((state,props)=>({checked: false}))
             }
         }})
     }
@@ -91,6 +102,7 @@ class ChessBoard extends React.Component {
                             re('td', {key: ci},
                                 re(ChessBoardCell, {
                                     ...cell,
+                                    onClick: this.props.onClick,
                                     configName: this.props.configName,
                                     size: this.props.cellSize
                                 })
@@ -172,50 +184,41 @@ class MoveTrainer extends React.Component {
         if (!this.state.currentCell) {
             return;
         }
-        hideAllImages()
-        this.openImage(this.state.currentCell,0,0)
+        resetBoard()
+        openImage(this.state.currentCell,0,0)
     }
 
     openCellsForKnight() {
         if (!this.state.currentCell) {
             return;
         }
-        hideAllImages()
-        this.openImage(this.state.currentCell,0,0)
-        this.openImage(this.state.currentCell,-2,-1)
-        this.openImage(this.state.currentCell,-2,+1)
-        this.openImage(this.state.currentCell,-1,+2)
-        this.openImage(this.state.currentCell,+1,+2)
-        this.openImage(this.state.currentCell,+2,+1)
-        this.openImage(this.state.currentCell,+2,-1)
-        this.openImage(this.state.currentCell,+1,-2)
-        this.openImage(this.state.currentCell,-1,-2)
+        resetBoard()
+        openImage(this.state.currentCell,0,0)
+        openImage(this.state.currentCell,-2,-1)
+        openImage(this.state.currentCell,-2,+1)
+        openImage(this.state.currentCell,-1,+2)
+        openImage(this.state.currentCell,+1,+2)
+        openImage(this.state.currentCell,+2,+1)
+        openImage(this.state.currentCell,+2,-1)
+        openImage(this.state.currentCell,+1,-2)
+        openImage(this.state.currentCell,-1,-2)
     }
 
     openCellsForQueen() {
         if (!this.state.currentCell) {
             return;
         }
-        hideAllImages()
+        resetBoard()
         for (let dx = 0; dx<8; dx++) {
-            this.openImage(this.state.currentCell,dx,dx)
-            this.openImage(this.state.currentCell,dx,-dx)
-            this.openImage(this.state.currentCell,-dx,dx)
-            this.openImage(this.state.currentCell,-dx,-dx)
-            this.openImage(this.state.currentCell,dx,0)
-            this.openImage(this.state.currentCell,-dx,0)
-            this.openImage(this.state.currentCell,0,dx)
-            this.openImage(this.state.currentCell,0,-dx)
+            openImage(this.state.currentCell,dx,dx)
+            openImage(this.state.currentCell,dx,-dx)
+            openImage(this.state.currentCell,-dx,dx)
+            openImage(this.state.currentCell,-dx,-dx)
+            openImage(this.state.currentCell,dx,0)
+            openImage(this.state.currentCell,-dx,0)
+            openImage(this.state.currentCell,0,dx)
+            openImage(this.state.currentCell,0,-dx)
         }
-    }
-
-    openImage(baseCell,dx,dy) {
-        const targetCell = {x:baseCell.x+dx, y:baseCell.y+dy}
-        if (targetCell.x < 0 || targetCell.x > _.size(XX) - 1 || targetCell.y < 0 || targetCell.y > _.size(YY) - 1) {
-            return;
-        }
-        const targetCellName = "cell-" + XX[targetCell.x]+YY[targetCell.y]
-        sendMessage(name=>name===targetCellName, SHOW_IMAGE_MSG)
     }
 
     componentDidMount() {
@@ -240,45 +243,100 @@ class MoveTrainer extends React.Component {
     }
 }
 
-class ChessBoardTrainer extends React.Component {
+const CELL_TO_IMG = "cell-to-img"
+const IMG_TO_CELL = "img-to-cell"
+
+class RandomCellSelector {
+    constructor() {
+        this.state = {cellsToAsk: []}
+        this.updateStateToNextCell()
+    }
+
+    getCurrentCell() {
+        return this.state.currentCell;
+    }
+
+    updateStateToNextCell() {
+        let cellsToAsk = this.state.cellsToAsk
+        if (_.size(cellsToAsk)===0) {
+            for (let x = 0; x < _.size(XX); x++) {
+                for (let y = 0; y < _.size(YY); y++) {
+                    cellsToAsk.push({x:x,y:y})
+                }
+            }
+        }
+        cellsToAsk = _.shuffle(cellsToAsk)
+        this.state.currentCell = _.first(cellsToAsk)
+        this.state.cellsToAsk = _.rest(cellsToAsk)
+    }
+}
+
+class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
-        this.state={hMode:true}
+        this.state={randomCellSelector: new RandomCellSelector(), checkedCell:true}
+        this.state.randomCellSelector.updateStateToNextCell()
+        this.handleKeyDownListener = e => this.handleKeyDown(e)
     }
 
     render() {
-        return re(VContainer,{},
-            re(HContainer,{},
-                re(ChessBoard, {configName: "config2", cellSize: this.state.hMode?"72px":"108px"}),
-                this.state.hMode ? this.renderButtons() : null
-            ),
-            this.state.hMode
-                ? null
-                : this.renderButtons()
-        )
+        return re(ChessBoard, {configName: "config2", cellSize: this.props.hMode?"72px":"108px",
+            onClick:()=>this.next()})
     }
 
-    renderButtons_new() {
-        return re(VContainer,{},
-            re(HContainer,{},
-                re(Button,{key:"Close all",variant:"contained", color:"primary", onClick: hideAllImages}, "Close all"),
-                re(Button,{key:"Open all",variant:"contained", color:"primary",
-                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_IMAGE_MSG)},
-                    "Open all"),
-                re(Button,{key:"Hide coordinates",variant:"contained", color:"primary",
-                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, HIDE_COORDS_MSG)},
-                    "Hide coordinates"),
-                re(Button,{key:"Show coordinates",variant:"contained", color:"primary",
-                        onClick: ()=> sendMessage(ALL_CELLS_PREDICATE, SHOW_COORDS_MSG)},
-                    "Show coordinates")
-            ),
-            re(MoveTrainer,{}),
-            re(HContainer,{},
-                re(Button,{key:"H/V mode",variant:"contained", color:"primary",
+    next() {
+        this.setState((state,props)=>{
+            resetBoard()
+            if (state.checkedCell) {
+                openImage(state.randomCellSelector.getCurrentCell())
+                return {checkedCell:!state.checkedCell}
+            } else {
+                state.randomCellSelector.updateStateToNextCell()
+                checkCell(state.randomCellSelector.getCurrentCell())
+                return {randomCellSelector: state.randomCellSelector, checkedCell:!state.checkedCell}
+            }
+        })
+    }
+
+    componentDidMount() {
+        checkCell(this.state.randomCellSelector.getCurrentCell())
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13) {
+            this.next()
+        }
+    }
+}
+
+class ChessBoardTrainer extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={hMode:true, taskType: CELL_TO_IMG}
+    }
+
+    render() {
+        if (this.state.taskType === CELL_TO_IMG) {
+            return re(CellToImgExercise, {hMode: this.state.hMode})
+        } else {
+            return re(HContainer,{},
+                re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: CELL_TO_IMG}))},
+                    "Cell to Img"),
+                !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
             )
-        )
+        }
+    }
+
+    handleTaskTypeChange(event) {
+        this.setState((state,props)=>({taskType: event.target.value}))
     }
 
     renderButtons() {
@@ -323,6 +381,28 @@ class ChessBoardTrainer extends React.Component {
 
 const ALL_CELLS_PREDICATE = listenerName => listenerName.startsWith("cell-")
 const hideAllImages = ()=> sendMessage(ALL_CELLS_PREDICATE, HIDE_IMAGE_MSG)
+const uncheckAllCells = ()=> sendMessage(ALL_CELLS_PREDICATE, UNCHECK_CELL)
+const resetBoard = ()=> {
+    hideAllImages()
+    uncheckAllCells()
+}
+function sendMessageToCell(msg,baseCell,dx,dy) {
+    dx = dx?dx:0
+    dy = dy?dy:0
+    const targetCell = {x:baseCell.x+dx, y:baseCell.y+dy}
+    if (targetCell.x < 0 || targetCell.x > _.size(XX) - 1 || targetCell.y < 0 || targetCell.y > _.size(YY) - 1) {
+        return;
+    }
+    const targetCellName = "cell-" + XX[targetCell.x]+YY[targetCell.y]
+    sendMessage(name=>name===targetCellName, msg)
+}
+function openImage(baseCell,dx,dy) {
+    sendMessageToCell(SHOW_IMAGE_MSG, baseCell, dx, dy)
+}
+function checkCell(baseCell,dx,dy) {
+    sendMessageToCell(CHECK_CELL, baseCell, dx, dy)
+}
+
 
 ReactDOM.render(
     re(ChessBoardTrainer,{}),

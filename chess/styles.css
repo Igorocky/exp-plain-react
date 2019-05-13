@@ -26,3 +26,8 @@
     color: black;
     background-color: white;
 }
+
+.checked-cell {
+    color: black;
+    background-color: deeppink;
+}
