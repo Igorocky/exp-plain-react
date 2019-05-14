@@ -298,6 +298,18 @@ const listOfAllCellsGenerator = () => {
     return result;
 }
 
+function createListOfCellsGenerator(groups) {
+    return () => {
+        const result = []
+        groups.forEach(i=>{
+            const x = i%4;
+            const y = Math.floor(i/4)
+            result.push(...[{x:x,y:y},{x:x+4,y:y},{x:x,y:y+4},{x:x+4,y:y+4}])
+        })
+        return result
+    }
+}
+
 const PHASE_CHECKED = "PHASE_CHECKED"
 const PHASE_BASE_OPENED = "PHASE_BASE_OPENED"
 const PHASE_NEIGHBOURS_CHECKED = "PHASE_NEIGHBOURS_CHECKED"
@@ -306,7 +318,7 @@ class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={
-            randomCellSelector: new RandomElemSelector({elemsGenerator: listOfAllCellsGenerator}),
+            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfCellsGenerator([0])}),
             randomNeighbourSelector: new RandomElemSelector({elemsGenerator: ()=>[1,2,3,4]}),
             phase:PHASE_CHECKED
         }
