@@ -253,14 +253,14 @@ const CELL_TO_IMG = "CELL_TO_IMG"
 const CELL_TO_IMG_WITH_NEIGHBOURS = "CELL_TO_IMG_WITH_NEIGHBOURS"
 const IMG_TO_CELL = "IMG_TO_CELL"
 
-class RandomCellSelector {
-    constructor() {
-        this.state = {cellsToAsk: [], iterationNumber:0}
-        this.updateStateToNextCell()
+class RandomElemSelector {
+    constructor(params) {
+        this.elemsGenerator = params.elemsGenerator
+        this.reset()
     }
 
-    getCurrentCell() {
-        return this.state.currentCell
+    getCurrentElem() {
+        return this.state.currentElem
     }
 
     getIterationNumber() {
@@ -268,33 +268,48 @@ class RandomCellSelector {
     }
 
     getRemainingElements() {
-        return _.size(this.state.cellsToAsk)
+        return _.size(this.state.elemsToAsk)
     }
 
-    updateStateToNextCell() {
-        let cellsToAsk = this.state.cellsToAsk
-        if (_.size(cellsToAsk)===0) {
-            for (let x = 0; x < _.size(XX); x++) {
-                for (let y = 0; y < _.size(YY); y++) {
-                    cellsToAsk.push({x:x,y:y})
-                }
-            }
+    updateStateToNextElem() {
+        let elemsToAsk = this.state.elemsToAsk
+        if (_.size(elemsToAsk)===0) {
+            elemsToAsk = this.elemsGenerator()
             this.state.iterationNumber += 1
         }
-        cellsToAsk = _.shuffle(cellsToAsk)
-        this.state.currentCell = _.first(cellsToAsk)
-        this.state.cellsToAsk = _.rest(cellsToAsk)
+        elemsToAsk = _.shuffle(elemsToAsk)
+        this.state.currentElem = _.first(elemsToAsk)
+        this.state.elemsToAsk = _.rest(elemsToAsk)
+    }
+
+    reset() {
+        this.state = {elemsToAsk: [], iterationNumber:0}
+        this.updateStateToNextElem()
     }
 }
 
+const listOfAllCellsGenerator = () => {
+    const result = []
+    for (let x = 0; x < _.size(XX); x++) {
+        for (let y = 0; y < _.size(YY); y++) {
+            result.push({x:x,y:y})
+        }
+    }
+    return result;
+}
+
 const PHASE_CHECKED = "PHASE_CHECKED"
-const PHASE_OPEN_ONE = "PHASE_OPEN_ONE"
-const PHASE_OPEN_4 = "PHASE_OPEN_4"
-const PHASE_OPEN_8 = "PHASE_OPEN_8"
+const PHASE_BASE_OPENED = "PHASE_BASE_OPENED"
+const PHASE_NEIGHBOURS_CHECKED = "PHASE_NEIGHBOURS_CHECKED"
+const PHASE_NEIGHBOURS_OPENED = "PHASE_NEIGHBOURS_OPENED"
 class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
-        this.state={randomCellSelector: new RandomCellSelector(), phase:PHASE_CHECKED}
+        this.state={
+            randomCellSelector: new RandomElemSelector({elemsGenerator: listOfAllCellsGenerator}),
+            randomNeighbourSelector: new RandomElemSelector({elemsGenerator: ()=>[1,2,3,4]}),
+            phase:PHASE_CHECKED
+        }
         this.handleKeyDownListener = e => this.handleKeyDown(e)
     }
 
@@ -320,39 +335,61 @@ class CellToImgExercise extends React.Component {
         this.setState((state,props)=>{
             if (state.phase===PHASE_CHECKED) {
                 resetBoard()
-                openImage(state.randomCellSelector.getCurrentCell())
-                return {phase:PHASE_OPEN_ONE}
-            } if (state.phase===PHASE_OPEN_ONE && props.withNeighbours) {
-                this.openNeighbours4(state.randomCellSelector.getCurrentCell())
-                return {phase:PHASE_OPEN_4}
-            } if (state.phase===PHASE_OPEN_4 && props.withNeighbours) {
-                this.openNeighbours8(state.randomCellSelector.getCurrentCell())
-                return {phase:PHASE_OPEN_8}
-            } else {
+                const currentCell = state.randomCellSelector.getCurrentElem()
+                openImage(currentCell)
+                if (this.props.withNeighbours) {
+                    state.randomNeighbourSelector.reset()
+                    this.getNeighbours(currentCell, state.randomNeighbourSelector.getCurrentElem())
+                        .forEach(cell=>checkCell(cell))
+                    return {phase:PHASE_NEIGHBOURS_CHECKED}
+                } else {
+                    return {phase:PHASE_BASE_OPENED}
+                }
+            } else if (state.phase===PHASE_NEIGHBOURS_CHECKED) {
                 resetBoard()
-                state.randomCellSelector.updateStateToNextCell()
-                checkCell(state.randomCellSelector.getCurrentCell())
-                return {randomCellSelector: state.randomCellSelector, phase: PHASE_CHECKED}
+                const currentCell = state.randomCellSelector.getCurrentElem()
+                openImage(currentCell)
+                this.getNeighbours(currentCell, state.randomNeighbourSelector.getCurrentElem())
+                    .forEach(cell=>openImage(cell))
+                return {phase:PHASE_NEIGHBOURS_OPENED}
+            } else if (state.phase===PHASE_NEIGHBOURS_OPENED) {
+                state.randomNeighbourSelector.updateStateToNextElem()
+                if (state.randomNeighbourSelector.getIterationNumber()===1) {
+                    resetBoard()
+                    const currentCell = state.randomCellSelector.getCurrentElem()
+                    openImage(currentCell)
+                    this.getNeighbours(currentCell, state.randomNeighbourSelector.getCurrentElem())
+                        .forEach(cell=>checkCell(cell))
+                    return {phase:PHASE_NEIGHBOURS_CHECKED}
+                } else {
+                    resetBoard()
+                    state.randomCellSelector.updateStateToNextElem()
+                    checkCell(state.randomCellSelector.getCurrentElem())
+                    return {phase: PHASE_CHECKED}
+                }
+            } else if (state.phase===PHASE_BASE_OPENED) {
+                resetBoard()
+                state.randomCellSelector.updateStateToNextElem()
+                checkCell(state.randomCellSelector.getCurrentElem())
+                return {phase: PHASE_CHECKED}
             }
         })
     }
 
-    openNeighbours4(cell) {
-        openImage(cell,-1,0)
-        openImage(cell,0,-1)
-        openImage(cell,0,1)
-        openImage(cell,1,0)
-    }
-
-    openNeighbours8(cell) {
-        openImage(cell,-1,-1)
-        openImage(cell,-1,1)
-        openImage(cell,1,-1)
-        openImage(cell,1,1)
+    getNeighbours(baseCell, neighboursType) {
+        if (neighboursType === 1) {
+            return [{x:baseCell.x, y:baseCell.y-1}, {x:baseCell.x, y:baseCell.y+1}]
+        } else if (neighboursType === 2) {
+            return [{x:baseCell.x-1, y:baseCell.y}, {x:baseCell.x+1, y:baseCell.y}]
+        } else if (neighboursType === 3) {
+            return [{x:baseCell.x-1, y:baseCell.y-1}, {x:baseCell.x+1, y:baseCell.y+1}]
+        } else if (neighboursType === 4) {
+            return [{x:baseCell.x-1, y:baseCell.y+1}, {x:baseCell.x+1, y:baseCell.y-1}]
+        }
     }
 
     componentDidMount() {
-        checkCell(this.state.randomCellSelector.getCurrentCell())
+        checkCell(this.state.randomCellSelector.getCurrentElem())
         window.addEventListener("keydown", this.handleKeyDownListener);
     }
 
@@ -370,7 +407,10 @@ class CellToImgExercise extends React.Component {
 class ImgToCellExercise extends React.Component {
     constructor(props) {
         super(props)
-        this.state={randomCellSelector: new RandomCellSelector(), error:false}
+        this.state={
+            randomCellSelector: new RandomElemSelector({elemsGenerator: listOfAllCellsGenerator}),
+            error:false
+        }
     }
 
     render() {
@@ -402,9 +442,9 @@ class ImgToCellExercise extends React.Component {
 
     next(clickedCell) {
         this.setState((state,props)=>{
-            const currentCell = state.randomCellSelector.getCurrentCell()
+            const currentCell = state.randomCellSelector.getCurrentElem()
             if (clickedCell.x===currentCell.x && clickedCell.y===currentCell.y) {
-                state.randomCellSelector.updateStateToNextCell()
+                state.randomCellSelector.updateStateToNextElem()
                 return {randomCellSelector: state.randomCellSelector, error:false}
             } else {
                 return {error:true}
@@ -413,7 +453,7 @@ class ImgToCellExercise extends React.Component {
     }
 
     getCurrentCellName() {
-        const currentCell = this.state.randomCellSelector.getCurrentCell()
+        const currentCell = this.state.randomCellSelector.getCurrentElem()
         return XX[currentCell.x] + YY[currentCell.y]
     }
 }
