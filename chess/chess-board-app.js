@@ -396,14 +396,14 @@ class ChessBoardTrainer extends React.Component {
     constructor(props) {
         super(props)
         this.state={hMode:true, taskType: ""}
-        this.compGeneralProps = {cellSize: this.getCellSize(), configName: this.props.configName}
+        this.compConstProps = {configName: this.props.configName}
     }
 
     render() {
         if (this.state.taskType === CELL_TO_IMG) {
-            return re(CellToImgExercise, {...this.compGeneralProps, hMode: this.state.hMode})
+            return re(CellToImgExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === IMG_TO_CELL) {
-            return re(ImgToCellExercise, {...this.compGeneralProps, hMode: this.state.hMode})
+            return re(ImgToCellExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -419,8 +419,8 @@ class ChessBoardTrainer extends React.Component {
         }
     }
 
-    getCellSize() {
-        return this.state.hMode?"72px":"108px"
+    getCompVarProps() {
+        return {hMode: this.state.hMode, cellSize: this.state.hMode?"72px":"108px"}
     }
 
     renderButtons() {
