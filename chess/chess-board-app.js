@@ -249,8 +249,9 @@ class MoveTrainer extends React.Component {
     }
 }
 
-const CELL_TO_IMG = "cell-to-img"
-const IMG_TO_CELL = "img-to-cell"
+const CELL_TO_IMG = "CELL_TO_IMG"
+const CELL_TO_IMG_WITH_NEIGHBOURS = "CELL_TO_IMG_WITH_NEIGHBOURS"
+const IMG_TO_CELL = "IMG_TO_CELL"
 
 class RandomCellSelector {
     constructor() {
@@ -286,10 +287,13 @@ class RandomCellSelector {
     }
 }
 
+const PHASE_CHECKED = "PHASE_CHECKED"
+const PHASE_OPEN_ONE = "PHASE_OPEN_ONE"
+const PHASE_OPEN_ALL = "PHASE_OPEN_ALL"
 class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
-        this.state={randomCellSelector: new RandomCellSelector(), checkedCell:true}
+        this.state={randomCellSelector: new RandomCellSelector(), phase:PHASE_CHECKED}
         this.handleKeyDownListener = e => this.handleKeyDown(e)
     }
 
@@ -313,16 +317,31 @@ class CellToImgExercise extends React.Component {
 
     next() {
         this.setState((state,props)=>{
-            resetBoard()
-            if (state.checkedCell) {
+            if (state.phase===PHASE_CHECKED) {
+                resetBoard()
                 openImage(state.randomCellSelector.getCurrentCell())
-                return {checkedCell:!state.checkedCell}
+                return {phase:PHASE_OPEN_ONE}
+            } if (state.phase===PHASE_OPEN_ONE && props.withNeighbours) {
+                this.openNeighbours(state.randomCellSelector.getCurrentCell())
+                return {phase:PHASE_OPEN_ALL}
             } else {
+                resetBoard()
                 state.randomCellSelector.updateStateToNextCell()
                 checkCell(state.randomCellSelector.getCurrentCell())
-                return {randomCellSelector: state.randomCellSelector, checkedCell:!state.checkedCell}
+                return {randomCellSelector: state.randomCellSelector, phase: PHASE_CHECKED}
             }
         })
+    }
+
+    openNeighbours(cell) {
+        openImage(cell,-1,-1)
+        openImage(cell,-1,0)
+        openImage(cell,-1,1)
+        openImage(cell,0,-1)
+        openImage(cell,0,1)
+        openImage(cell,1,-1)
+        openImage(cell,1,0)
+        openImage(cell,1,1)
     }
 
     componentDidMount() {
@@ -402,6 +421,8 @@ class ChessBoardTrainer extends React.Component {
     render() {
         if (this.state.taskType === CELL_TO_IMG) {
             return re(CellToImgExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === CELL_TO_IMG_WITH_NEIGHBOURS) {
+            return re(CellToImgExercise, {...this.compConstProps, ...this.getCompVarProps(), withNeighbours: true})
         } else if (this.state.taskType === IMG_TO_CELL) {
             return re(ImgToCellExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
@@ -409,6 +430,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: CELL_TO_IMG}))},
                     "Cell to Img"),
+                re(Button,{key:"Cell to Img with Neighbours",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: CELL_TO_IMG_WITH_NEIGHBOURS}))},
+                    "Cell to Img with Neighbours"),
                 re(Button,{key:"Img to Cell",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: IMG_TO_CELL}))},
                     "Img to Cell"),
