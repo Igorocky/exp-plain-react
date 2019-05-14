@@ -289,7 +289,8 @@ class RandomCellSelector {
 
 const PHASE_CHECKED = "PHASE_CHECKED"
 const PHASE_OPEN_ONE = "PHASE_OPEN_ONE"
-const PHASE_OPEN_ALL = "PHASE_OPEN_ALL"
+const PHASE_OPEN_4 = "PHASE_OPEN_4"
+const PHASE_OPEN_8 = "PHASE_OPEN_8"
 class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -322,8 +323,11 @@ class CellToImgExercise extends React.Component {
                 openImage(state.randomCellSelector.getCurrentCell())
                 return {phase:PHASE_OPEN_ONE}
             } if (state.phase===PHASE_OPEN_ONE && props.withNeighbours) {
-                this.openNeighbours(state.randomCellSelector.getCurrentCell())
-                return {phase:PHASE_OPEN_ALL}
+                this.openNeighbours4(state.randomCellSelector.getCurrentCell())
+                return {phase:PHASE_OPEN_4}
+            } if (state.phase===PHASE_OPEN_4 && props.withNeighbours) {
+                this.openNeighbours8(state.randomCellSelector.getCurrentCell())
+                return {phase:PHASE_OPEN_8}
             } else {
                 resetBoard()
                 state.randomCellSelector.updateStateToNextCell()
@@ -333,14 +337,17 @@ class CellToImgExercise extends React.Component {
         })
     }
 
-    openNeighbours(cell) {
-        openImage(cell,-1,-1)
+    openNeighbours4(cell) {
         openImage(cell,-1,0)
-        openImage(cell,-1,1)
         openImage(cell,0,-1)
         openImage(cell,0,1)
-        openImage(cell,1,-1)
         openImage(cell,1,0)
+    }
+
+    openNeighbours8(cell) {
+        openImage(cell,-1,-1)
+        openImage(cell,-1,1)
+        openImage(cell,1,-1)
         openImage(cell,1,1)
     }
 
