@@ -252,6 +252,7 @@ class MoveTrainer extends React.Component {
 const CELL_TO_IMG = "CELL_TO_IMG"
 const CELL_TO_IMG_WITH_NEIGHBOURS = "CELL_TO_IMG_WITH_NEIGHBOURS"
 const IMG_TO_CELL = "IMG_TO_CELL"
+const DIAGONALS = "DIAGONALS"
 
 class RandomElemSelector {
     constructor(params) {
@@ -285,6 +286,22 @@ class RandomElemSelector {
     reset() {
         this.state = {elemsToAsk: [], iterationNumber:0}
         this.updateStateToNextElem()
+    }
+}
+
+class SeqElemSelector extends RandomElemSelector {
+    constructor(params) {
+        super(params)
+    }
+
+    updateStateToNextElem() {
+        let elemsToAsk = this.state.elemsToAsk
+        if (_.size(elemsToAsk)===0) {
+            elemsToAsk = this.elemsGenerator()
+            this.state.iterationNumber += 1
+        }
+        this.state.currentElem = _.first(elemsToAsk)
+        this.state.elemsToAsk = _.rest(elemsToAsk)
     }
 }
 
@@ -416,6 +433,101 @@ class CellToImgExercise extends React.Component {
     }
 }
 
+function isValidCell(cell) {
+    return 0 <= cell.x && cell.x<_.size(XX) && 0 <= cell.y && cell.y<_.size(YY)
+}
+
+function createDiagonal(x,y,dx,dy) {
+    const result = [{x:x,y:y}]
+    let nextCell = {x:result[0].x+dx,y:result[0].y+dy}
+    while (isValidCell(nextCell)) {
+        result.push(nextCell)
+        nextCell = {x:nextCell.x+dx,y:nextCell.y+dy}
+    }
+    return result;
+}
+
+function createDiagonalByNumber(diagNumber) {
+    if (diagNumber <= 8) {
+        return createDiagonal(0,8-diagNumber, 1,1)
+    } else if (diagNumber <= 15) {
+        return createDiagonal(diagNumber-8,0, 1,1)
+    } else if (diagNumber <= 23) {
+        return createDiagonal(23-diagNumber,7, 1,-1)
+    } else if (diagNumber <= 30) {
+        return createDiagonal(0,30-diagNumber, 1,-1)
+    }
+}
+
+function createListOfDiagonalsGenerator(diagNumbers) {
+    return () => {
+        const result = []
+        diagNumbers.forEach(i=>result.push(createDiagonalByNumber(i)))
+        return result
+    }
+}
+
+const PHASE_DIAGONAL_CHECKED = "PHASE_DIAGONAL_CHECKED"
+const PHASE_DIAGONAL_OPENED = "PHASE_DIAGONAL_OPENED"
+class DiagonalsExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={
+            randomCellSelector: new SeqElemSelector({elemsGenerator: createListOfDiagonalsGenerator([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30])}),
+            phase:PHASE_DIAGONAL_CHECKED
+        }
+        this.handleKeyDownListener = e => this.handleKeyDown(e)
+    }
+
+    render() {
+        return this.renderElems(
+            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:()=>this.next()}),
+            re(VContainer,{},
+                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
+            )
+        )
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
+    }
+
+    next() {
+        this.setState((state,props)=>{
+            if (state.phase===PHASE_DIAGONAL_CHECKED) {
+                resetBoard()
+                state.randomCellSelector.getCurrentElem().forEach(cell=>openImage(cell))
+                return {phase:PHASE_DIAGONAL_OPENED}
+            } else if (state.phase===PHASE_DIAGONAL_OPENED) {
+                resetBoard()
+                state.randomCellSelector.updateStateToNextElem()
+                state.randomCellSelector.getCurrentElem().forEach(cell=>checkCell(cell))
+                return {phase: PHASE_DIAGONAL_CHECKED}
+            }
+        })
+    }
+
+    componentDidMount() {
+        this.state.randomCellSelector.getCurrentElem().forEach(cell=>checkCell(cell))
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13) {
+            this.next()
+        }
+    }
+}
+
 class ImgToCellExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -484,6 +596,8 @@ class ChessBoardTrainer extends React.Component {
             return re(CellToImgExercise, {...this.compConstProps, ...this.getCompVarProps(), withNeighbours: true})
         } else if (this.state.taskType === IMG_TO_CELL) {
             return re(ImgToCellExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === DIAGONALS) {
+            return re(DiagonalsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -495,6 +609,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Img to Cell",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: IMG_TO_CELL}))},
                     "Img to Cell"),
+                re(Button,{key:"Diagonals",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: DIAGONALS}))},
+                    "Diagonals"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
