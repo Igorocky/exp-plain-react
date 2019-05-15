@@ -467,13 +467,14 @@ function createListOfDiagonalsGenerator(diagNumbers) {
     }
 }
 
+const GTL = [[25, 7, 14, 21], [2, 8, 13, 20], [17, 26, 22, 11], [24, 6, 16, 29], [12, 3, 28, 19], [10, 18, 4, 27], [5, 15, 23, 9]]
 const PHASE_DIAGONAL_CHECKED = "PHASE_DIAGONAL_CHECKED"
 const PHASE_DIAGONAL_OPENED = "PHASE_DIAGONAL_OPENED"
 class DiagonalsExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={
-            randomCellSelector: new SeqElemSelector({elemsGenerator: createListOfDiagonalsGenerator([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30])}),
+            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])}),
             phase:PHASE_DIAGONAL_CHECKED
         }
         this.handleKeyDownListener = e => this.handleKeyDown(e)
