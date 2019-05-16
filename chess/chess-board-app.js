@@ -18,6 +18,15 @@ for (let y = _.size(YY)-1; y >= 0; y--) {
         _.last(BOARD).push({x:x,y:y, isWhite:(x+y)%2===1})
     }
 }
+function ints(start, end) {
+    let i = start
+    const res = [i];
+    while (i <= end) {
+        res.push(i)
+        i++
+    }
+    return res
+}
 
 const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
 const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
@@ -335,7 +344,7 @@ class CellToImgExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={
-            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfCellsGenerator([0])}),
+            randomCellSelector: new RandomElemSelector({elemsGenerator: listOfAllCellsGenerator}),
             randomNeighbourSelector: new RandomElemSelector({elemsGenerator: ()=>[1,2,3,4]}),
             phase:PHASE_CHECKED
         }
