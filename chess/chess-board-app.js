@@ -592,10 +592,10 @@ class DiagonalsShortcutsExercise extends React.Component {
     renderLine() {
         const curElem = this.state.randomElemSelector.getCurrentElem()
         if (this.state.phase===PHASE_DIAGONAL_CHECKED) {
+            const dir = re('img', {src:"./chess/img/diag-sign-"+curElem[0]+".png"})
+            const dist = re('span', {}, curElem[1]===0?'+':'-', curElem[2])
             return re('span', {style:{fontSize:"3rem"}},
-                re('img', {src:"./chess/img/diag-sign-"+curElem[0]+".png"}),
-                curElem[1]===0?'+':'-',
-                curElem[2]
+                (curElem[0]+curElem[1])%2===0?[dist,dir]:[dir,dist]
             )
         } else if (this.state.phase===PHASE_DIAGONAL_OPENED) {
             return re(ChessBoard, {
