@@ -483,16 +483,16 @@ function createDiagonalByNumber(diagNumber) {
 
 function createLineBySymbols(symbols) {
     if (symbols[0]===0) {
-        if (symbols[2]===0) {
-            return createDiagonalByNumber(8-symbols[1])
+        if (symbols[1]===0) {
+            return createDiagonalByNumber(8-symbols[2])
         } else {
-            return createDiagonalByNumber(8+symbols[1])
+            return createDiagonalByNumber(8+symbols[2])
         }
     } else {
-        if (symbols[2]===0) {
-            return createDiagonalByNumber(23-symbols[1])
+        if (symbols[1]===0) {
+            return createDiagonalByNumber(23-symbols[2])
         } else {
-            return createDiagonalByNumber(23+symbols[1])
+            return createDiagonalByNumber(23+symbols[2])
         }
     }
 }
@@ -572,7 +572,7 @@ class DiagonalsShortcutsExercise extends React.Component {
         super(props)
         this.state={
             randomElemSelector: new RandomElemSelector({
-                elemsGenerator: () => combs([[0,1],ints(0,7),[0,1]])
+                elemsGenerator: () => combs([[0,1],[0,1],ints(0,7)])
             }),
             phase:PHASE_DIAGONAL_CHECKED
         }
@@ -594,8 +594,8 @@ class DiagonalsShortcutsExercise extends React.Component {
         if (this.state.phase===PHASE_DIAGONAL_CHECKED) {
             return re('span', {style:{fontSize:"3rem"}},
                 re('img', {src:"./chess/img/diag-sign-"+curElem[0]+".png"}),
-                curElem[1],
-                curElem[2]===0?'\u2191':'\u2193'
+                curElem[1]===0?'+':'-',
+                curElem[2]
             )
         } else if (this.state.phase===PHASE_DIAGONAL_OPENED) {
             return re(ChessBoard, {
