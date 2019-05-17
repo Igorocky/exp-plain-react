@@ -20,12 +20,23 @@ for (let y = _.size(YY)-1; y >= 0; y--) {
 }
 function ints(start, end) {
     let i = start
-    const res = [i];
+    const res = [];
     while (i <= end) {
         res.push(i)
         i++
     }
     return res
+}
+
+function flatMap(list, func) {
+    const res = []
+    _.each(list, elem=>res.push(...func(elem)))
+    return res
+}
+
+function combs(gens) {
+    if (_.size(gens) == 0) return [[]]
+    return flatMap(_.first(gens), elem=>_.map(combs(_.rest(gens)), comb=>[elem,...comb]))
 }
 
 const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
@@ -262,6 +273,7 @@ const CELL_TO_IMG = "CELL_TO_IMG"
 const CELL_TO_IMG_WITH_NEIGHBOURS = "CELL_TO_IMG_WITH_NEIGHBOURS"
 const IMG_TO_CELL = "IMG_TO_CELL"
 const DIAGONALS = "DIAGONALS"
+const DIAGONAL_SHORTCUTS = "DIAGONAL_SHORTCUTS"
 
 class RandomElemSelector {
     constructor(params) {
@@ -483,7 +495,7 @@ class DiagonalsExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={
-            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])}),
+            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator(ints(1,30))}),
             phase:PHASE_DIAGONAL_CHECKED
         }
         this.handleKeyDownListener = e => this.handleKeyDown(e)
@@ -524,6 +536,62 @@ class DiagonalsExercise extends React.Component {
 
     componentDidMount() {
         this.state.randomCellSelector.getCurrentElem().forEach(cell=>checkCell(cell))
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13) {
+            this.next()
+        }
+    }
+}
+
+class DiagonalsShortcutsExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={
+            randomElemSelector: new RandomElemSelector({
+                elemsGenerator: () => combs([['/','\\'],ints(2,8),['\u2191','\u2193']])
+            })
+        }
+        this.handleKeyDownListener = e => this.handleKeyDown(e)
+    }
+
+    render() {
+        return this.renderElems(
+            this.renderDiagonal(),
+            re(VContainer,{},
+                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomElemSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomElemSelector.getRemainingElements())
+            )
+        )
+    }
+
+    renderDiagonal() {
+        const curElem = this.state.randomElemSelector.getCurrentElem()
+        return re('span', {style:{text:23}}, curElem[0] + curElem[1] + curElem[2])
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
+    }
+
+    next() {
+        this.setState((state,props)=>{
+            state.randomElemSelector.updateStateToNextElem()
+            return {}
+        })
+    }
+
+    componentDidMount() {
         window.addEventListener("keydown", this.handleKeyDownListener);
     }
 
@@ -608,6 +676,8 @@ class ChessBoardTrainer extends React.Component {
             return re(ImgToCellExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === DIAGONALS) {
             return re(DiagonalsExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === DIAGONAL_SHORTCUTS) {
+            return re(DiagonalsShortcutsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -622,6 +692,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Diagonals",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: DIAGONALS}))},
                     "Diagonals"),
+                re(Button,{key:"Diagonal Shortcuts",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: DIAGONAL_SHORTCUTS}))},
+                    "Diagonal Shortcuts"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
