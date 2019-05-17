@@ -573,7 +573,9 @@ class DiagonalsShortcutsExercise extends React.Component {
 
     renderDiagonal() {
         const curElem = this.state.randomElemSelector.getCurrentElem()
-        return re('span', {style:{text:23}}, curElem[0] + curElem[1] + curElem[2])
+        return re('span', {style:{fontSize:"3rem"}},
+            curElem[0], curElem[1], curElem[2]
+        )
     }
 
     renderElems(board, controls) {
