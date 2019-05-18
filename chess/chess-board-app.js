@@ -277,6 +277,7 @@ const CELL_TO_IMG_WITH_NEIGHBOURS = "CELL_TO_IMG_WITH_NEIGHBOURS"
 const IMG_TO_CELL = "IMG_TO_CELL"
 const DIAGONALS = "DIAGONALS"
 const DIAGONAL_SHORTCUTS = "DIAGONAL_SHORTCUTS"
+const DIAGONAL_SHORTCUTS_REVERSE = "DIAGONAL_SHORTCUTS_REVERSE"
 
 class RandomElemSelector {
     constructor(params) {
@@ -576,7 +577,7 @@ class DiagonalsShortcutsExercise extends React.Component {
             randomElemSelector: new RandomElemSelector({
                 elemsGenerator: () => combs([[0,1],[0,1],ints(0,7)])
             }),
-            phase:PHASE_DIAGONAL_CHECKED
+            phase: !this.props.reverse?PHASE_DIAGONAL_CHECKED:PHASE_DIAGONAL_OPENED
         }
         this.handleKeyDownListener = e => this.handleKeyDown(e)
     }
@@ -620,9 +621,14 @@ class DiagonalsShortcutsExercise extends React.Component {
     next() {
         this.setState((state,props)=>{
             if (state.phase===PHASE_DIAGONAL_CHECKED) {
+                if (this.props.reverse) {
+                    state.randomElemSelector.updateStateToNextElem()
+                }
                 return {phase:PHASE_DIAGONAL_OPENED}
             } else if (state.phase===PHASE_DIAGONAL_OPENED) {
-                state.randomElemSelector.updateStateToNextElem()
+                if (!this.props.reverse) {
+                    state.randomElemSelector.updateStateToNextElem()
+                }
                 return {phase: PHASE_DIAGONAL_CHECKED}
             }
         })
@@ -715,6 +721,8 @@ class ChessBoardTrainer extends React.Component {
             return re(DiagonalsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === DIAGONAL_SHORTCUTS) {
             return re(DiagonalsShortcutsExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === DIAGONAL_SHORTCUTS_REVERSE) {
+            return re(DiagonalsShortcutsExercise, {reverse:true, ...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -732,6 +740,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Diagonal Shortcuts",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: DIAGONAL_SHORTCUTS}))},
                     "Diagonal Shortcuts"),
+                re(Button,{key:"Diagonal Shortcuts Reverse",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: DIAGONAL_SHORTCUTS_REVERSE}))},
+                    "Diagonal Shortcuts Reverse"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
