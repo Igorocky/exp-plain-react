@@ -585,8 +585,8 @@ class DiagonalsShortcutsExercise extends React.Component {
         return this.renderElems(
             this.renderLine(),
             re(VContainer,{},
-                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomElemSelector.getIterationNumber()),
-                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomElemSelector.getRemainingElements())
+                re('div',{key:"iter",style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomElemSelector.getIterationNumber()),
+                re('div',{key:"remain",style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomElemSelector.getRemainingElements())
             )
         )
     }
@@ -594,8 +594,8 @@ class DiagonalsShortcutsExercise extends React.Component {
     renderLine() {
         const curElem = this.state.randomElemSelector.getCurrentElem()
         if (this.state.phase===PHASE_DIAGONAL_CHECKED) {
-            const dir = re('img', {src:"./chess/img/diag-sign-"+curElem[0]+".png"})
-            const dist = re('span', {}, curElem[1]===0?'+':'-', curElem[2])
+            const dir = re('img', {key:"dir", src:"./chess/img/diag-sign-"+curElem[0]+".png"})
+            const dist = re('span', {key:"dist"}, curElem[1]===0?'+':'-', curElem[2])
             return re('span', {style:{fontSize:"3rem"}},
                 (curElem[0]+curElem[1])%2===0?[dist,dir]:[dir,dist]
             )
