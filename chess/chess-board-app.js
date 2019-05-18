@@ -481,6 +481,10 @@ function createDiagonalByNumber(diagNumber) {
         return createDiagonal(23-diagNumber,7, 1,-1)
     } else if (diagNumber <= 30) {
         return createDiagonal(0,30-diagNumber, 1,-1)
+    } else if (diagNumber <= 38) {
+        return createDiagonal(diagNumber - 31,0, 0,1)
+    } else if (diagNumber <= 46) {
+        return createDiagonal(0,diagNumber - 39, 1,0)
     }
 }
 
@@ -515,7 +519,7 @@ class DiagonalsExercise extends React.Component {
     constructor(props) {
         super(props)
         this.state={
-            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator(ints(1,30))}),
+            randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator(ints(1,46))}),
             phase:PHASE_DIAGONAL_CHECKED
         }
         this.handleKeyDownListener = e => this.handleKeyDown(e)
