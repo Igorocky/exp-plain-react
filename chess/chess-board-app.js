@@ -142,7 +142,9 @@ class ChessBoard extends React.Component {
 
     componentDidMount() {
         window.addEventListener("keydown", this.handleKeyDown);
-        this.props.onMount()
+        if (this.props.onMount) {
+            this.props.onMount()
+        }
     }
 
     componentWillUnmount() {
