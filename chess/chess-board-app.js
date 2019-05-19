@@ -488,18 +488,39 @@ function createDiagonalByNumber(diagNumber) {
     }
 }
 
-function createLineBySymbols(symbols) {
-    if (symbols[0]===0) {
-        if (symbols[1]===0) {
-            return createDiagonalByNumber(8-symbols[2])
-        } else {
-            return createDiagonalByNumber(8+symbols[2])
+function createSymbolByLineNumber(lineNumber) {
+    const style = {fontSize:"3rem"}
+    if (lineNumber <= 30) {
+        let dir
+        let dist
+        let sign
+        if (lineNumber <= 8) {
+            dir = 0;
+            dist = 8 - lineNumber
+            sign = true;
+        } else if (lineNumber <= 15) {
+            dir = 0;
+            dist = lineNumber - 8
+            sign = false;
+        } else if (lineNumber <= 23) {
+            dir = 1;
+            dist = 23 - lineNumber;
+            sign = true;
+        } else if (lineNumber <= 30) {
+            dir = 1;
+            dist = lineNumber - 23
+            sign = false;
         }
-    } else {
-        if (symbols[1]===0) {
-            return createDiagonalByNumber(23-symbols[2])
-        } else {
-            return createDiagonalByNumber(23+symbols[2])
+        const dirElem = re('img', {key:"dir", src:"./chess/img/diag-sign-"+dir+".png"})
+        const distElem = re('span', {key:"dist"}, sign?'+':'-', dist)
+        return re('span', {style:style},
+            dir%2===(sign?0:1)?[distElem,dirElem]:[dirElem,distElem]
+        )
+    } else if (lineNumber <= 46) {
+        if (lineNumber <= 38) {
+            return re('span', {style:style}, XX[lineNumber - 31])
+        } else if (lineNumber <= 46) {
+            return re('span', {style:style}, YY[lineNumber - 39])
         }
     }
 }
@@ -579,7 +600,7 @@ class DiagonalsShortcutsExercise extends React.Component {
         super(props)
         this.state={
             randomElemSelector: new RandomElemSelector({
-                elemsGenerator: () => combs([[0,1],[0,1],ints(0,7)])
+                elemsGenerator: () => ints(1,46)
             }),
             phase: !this.props.reverse?PHASE_DIAGONAL_CHECKED:PHASE_DIAGONAL_OPENED
         }
@@ -599,17 +620,13 @@ class DiagonalsShortcutsExercise extends React.Component {
     renderLine() {
         const curElem = this.state.randomElemSelector.getCurrentElem()
         if (this.state.phase===PHASE_DIAGONAL_CHECKED) {
-            const dir = re('img', {key:"dir", src:"./chess/img/diag-sign-"+curElem[0]+".png"})
-            const dist = re('span', {key:"dist"}, curElem[1]===0?'+':'-', curElem[2])
-            return re('span', {style:{fontSize:"3rem"}},
-                (curElem[0]+curElem[1])%2===0?[dist,dir]:[dir,dist]
-            )
+            return createSymbolByLineNumber(curElem)
         } else if (this.state.phase===PHASE_DIAGONAL_OPENED) {
             return re(ChessBoard, {
                 configName: this.props.configName,
                 cellSize: this.props.cellSize,
                 onClick:()=>this.next(),
-                onMount: () => createLineBySymbols(curElem).forEach(cell=>openImage(cell))
+                onMount: () => createDiagonalByNumber(curElem).forEach(cell=>openImage(cell))
             })
         }
     }
