@@ -39,6 +39,10 @@ function combs(gens) {
     return flatMap(_.first(gens), elem=>_.map(combs(_.rest(gens)), comb=>[elem,...comb]))
 }
 
+function getCellName(cell) {
+    return XX[cell.x] + YY[cell.y]
+}
+
 const HIDE_IMAGE_MSG = "HIDE_IMAGE_MSG"
 const SHOW_IMAGE_MSG = "SHOW_IMAGE_MSG"
 const HIDE_COORDS_MSG = "HIDE_COORDS_MSG"
@@ -278,6 +282,7 @@ const IMG_TO_CELL = "IMG_TO_CELL"
 const DIAGONALS = "DIAGONALS"
 const DIAGONAL_SHORTCUTS = "DIAGONAL_SHORTCUTS"
 const DIAGONAL_SHORTCUTS_REVERSE = "DIAGONAL_SHORTCUTS_REVERSE"
+const CONNECTIONS = "CONNECTIONS"
 
 class RandomElemSelector {
     constructor(params) {
@@ -462,7 +467,7 @@ function isValidCell(cell) {
     return 0 <= cell.x && cell.x<_.size(XX) && 0 <= cell.y && cell.y<_.size(YY)
 }
 
-function createDiagonal(x,y,dx,dy) {
+function createRay(x, y, dx, dy) {
     const result = [{x:x,y:y}]
     let nextCell = {x:result[0].x+dx,y:result[0].y+dy}
     while (isValidCell(nextCell)) {
@@ -474,17 +479,17 @@ function createDiagonal(x,y,dx,dy) {
 
 function createDiagonalByNumber(diagNumber) {
     if (diagNumber <= 8) {
-        return createDiagonal(0,8-diagNumber, 1,1)
+        return createRay(0,8-diagNumber, 1,1)
     } else if (diagNumber <= 15) {
-        return createDiagonal(diagNumber-8,0, 1,1)
+        return createRay(diagNumber-8,0, 1,1)
     } else if (diagNumber <= 23) {
-        return createDiagonal(23-diagNumber,7, 1,-1)
+        return createRay(23-diagNumber,7, 1,-1)
     } else if (diagNumber <= 30) {
-        return createDiagonal(0,30-diagNumber, 1,-1)
+        return createRay(0,30-diagNumber, 1,-1)
     } else if (diagNumber <= 38) {
-        return createDiagonal(diagNumber - 31,0, 0,1)
+        return createRay(diagNumber - 31,0, 0,1)
     } else if (diagNumber <= 46) {
-        return createDiagonal(0,diagNumber - 39, 1,0)
+        return createRay(0,diagNumber - 39, 1,0)
     }
 }
 
@@ -670,6 +675,119 @@ class DiagonalsShortcutsExercise extends React.Component {
     }
 }
 
+function createAllPossibleKnightMoves(cell) {
+    return _.filter([
+        moveToCellRelatively(cell,-2,-1),
+        moveToCellRelatively(cell,-2,+1),
+        moveToCellRelatively(cell,-1,+2),
+        moveToCellRelatively(cell,+1,+2),
+        moveToCellRelatively(cell,+2,+1),
+        moveToCellRelatively(cell,+2,-1),
+        moveToCellRelatively(cell,+1,-2),
+        moveToCellRelatively(cell,-1,-2)
+    ], c => isValidCell(c))
+}
+
+function createAllPossibleConnections(cell) {
+    return [
+        ...createRay(cell.x, cell.y, -1, -1),
+        ...createRay(cell.x, cell.y, -1, 0),
+        ...createRay(cell.x, cell.y, -1, 1),
+        ...createRay(cell.x, cell.y, 0, -1),
+        ...createRay(cell.x, cell.y, 0, 1),
+        ...createRay(cell.x, cell.y, 1, -1),
+        ...createRay(cell.x, cell.y, 1, 0),
+        ...createRay(cell.x, cell.y, 1, 1),
+        ...createAllPossibleKnightMoves(cell)
+    ]
+}
+
+function calcConnections(cell) {
+    return _.size(createAllPossibleConnections(cell)) - 8
+}
+
+const PHASE_IMAGE_SHOWN = "PHASE_IMAGE_SHOWN"
+class CalculateConnectionsExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={
+            randomElemSelector: new RandomElemSelector({
+                elemsGenerator: listOfAllCellsGenerator
+            }),
+            phase: PHASE_IMAGE_SHOWN
+        }
+        this.handleKeyDownListener = e => this.handleKeyDown(e)
+    }
+
+    render() {
+        return this.renderElems(
+            this.renderQuestionOrAnswer(),
+            re(VContainer,{},
+                this.state.phase===PHASE_DIAGONAL_OPENED
+                    ?re('div',{key:"ANS:",style:{paddingLeft:"20%", fontWeight:"bold"}},"ANS: " + calcConnections(this.state.randomElemSelector.getCurrentElem()))
+                    :null,
+                re('div',{key:"iter",style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomElemSelector.getIterationNumber()),
+                re('div',{key:"remain",style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomElemSelector.getRemainingElements())
+            )
+        )
+    }
+
+    renderQuestionOrAnswer() {
+        const curElem = this.state.randomElemSelector.getCurrentElem()
+        if (this.state.phase===PHASE_IMAGE_SHOWN) {
+            return re('div',{style:{width: this.props.cellSize, height: this.props.cellSize}},
+                re('img',
+                    {
+                        src:"./chess/chess-board-configs/"
+                            + this.props.configName + "/" + getCellName(curElem) + ".png",
+                        style:{maxHeight: "100%", maxWidth: "100%"}
+                    }
+                )
+            )
+        } else if (this.state.phase===PHASE_DIAGONAL_OPENED) {
+            return re(ChessBoard, {
+                configName: this.props.configName,
+                cellSize: this.props.cellSize,
+                onClick:()=>this.next(),
+                onMount: () => createAllPossibleConnections(curElem).forEach(cell=>openImage(cell))
+            })
+        }
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
+    }
+
+    next() {
+        this.setState((state,props)=>{
+            if (state.phase===PHASE_IMAGE_SHOWN) {
+                return {phase:PHASE_DIAGONAL_OPENED}
+            } else if (state.phase===PHASE_DIAGONAL_OPENED) {
+                state.randomElemSelector.updateStateToNextElem()
+                return {phase: PHASE_IMAGE_SHOWN}
+            }
+        })
+    }
+
+    componentDidMount() {
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13) {
+            this.next()
+        }
+    }
+}
+
 class ImgToCellExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -719,8 +837,7 @@ class ImgToCellExercise extends React.Component {
     }
 
     getCurrentCellName() {
-        const currentCell = this.state.randomCellSelector.getCurrentElem()
-        return XX[currentCell.x] + YY[currentCell.y]
+        return getCellName(this.state.randomCellSelector.getCurrentElem())
     }
 }
 
@@ -744,6 +861,8 @@ class ChessBoardTrainer extends React.Component {
             return re(DiagonalsShortcutsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === DIAGONAL_SHORTCUTS_REVERSE) {
             return re(DiagonalsShortcutsExercise, {reverse:true, ...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === CONNECTIONS) {
+            return re(CalculateConnectionsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -764,6 +883,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Diagonal Shortcuts Reverse",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: DIAGONAL_SHORTCUTS_REVERSE}))},
                     "Diagonal Shortcuts Reverse"),
+                re(Button,{key:"Connections",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: CONNECTIONS}))},
+                    "Connections"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
@@ -822,11 +944,14 @@ const resetBoard = ()=> {
     hideAllImages()
     uncheckAllCells()
 }
+function moveToCellRelatively(baseCell,dx,dy) {
+    return {x:baseCell.x+dx, y:baseCell.y+dy}
+}
 function sendMessageToCell(msg,baseCell,dx,dy) {
     dx = dx?dx:0
     dy = dy?dy:0
-    const targetCell = {x:baseCell.x+dx, y:baseCell.y+dy}
-    if (targetCell.x < 0 || targetCell.x > _.size(XX) - 1 || targetCell.y < 0 || targetCell.y > _.size(YY) - 1) {
+    const targetCell = moveToCellRelatively(baseCell,dx,dy)
+    if (!isValidCell(targetCell)) {
         return;
     }
     const targetCellName = "cell-" + XX[targetCell.x]+YY[targetCell.y]
