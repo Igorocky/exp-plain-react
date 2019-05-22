@@ -457,7 +457,7 @@ class CellToImgExercise extends React.Component {
     }
 
     handleKeyDown(event) {
-        if (event.keyCode === 13) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
             this.next()
         }
     }
@@ -594,7 +594,7 @@ class DiagonalsExercise extends React.Component {
     }
 
     handleKeyDown(event) {
-        if (event.keyCode === 13) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
             this.next()
         }
     }
@@ -669,7 +669,7 @@ class DiagonalsShortcutsExercise extends React.Component {
     }
 
     handleKeyDown(event) {
-        if (event.keyCode === 13) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
             this.next()
         }
     }
@@ -782,7 +782,7 @@ class CalculateConnectionsExercise extends React.Component {
     }
 
     handleKeyDown(event) {
-        if (event.keyCode === 13) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
             this.next()
         }
     }
