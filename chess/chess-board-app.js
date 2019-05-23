@@ -373,21 +373,13 @@ class CellToImgExercise extends React.Component {
     }
 
     render() {
-        return this.renderElems(
+        return re(Grid,{container:true,direction:"column",justify:"flex-start",alignItems:"center"},
             re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:()=>this.next()}),
-            re(VContainer,{},
-                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
-                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
+            re(Grid,{container:true,direction:"row",justify:"center", alignItems:"flex-start"},
+                re('div',{style:{paddingRight:"30px"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30px"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
             )
         )
-    }
-
-    renderElems(board, controls) {
-        if (this.props.hMode) {
-            return re(HContainer,{},board,controls)
-        } else {
-            return re(VContainer,{},board,controls)
-        }
     }
 
     next() {
