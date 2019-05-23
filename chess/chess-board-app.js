@@ -548,7 +548,7 @@ class DiagonalsExercise extends React.Component {
             randomCellSelector: new RandomElemSelector({elemsGenerator: createListOfDiagonalsGenerator(ints(1,46))}),
             phase:PHASE_DIAGONAL_CHECKED
         }
-        this.handleKeyDownListener = e => this.handleKeyDown(e)
+        this.handleKeyDown = this.handleKeyDown.bind(this)
     }
 
     render() {
@@ -586,11 +586,11 @@ class DiagonalsExercise extends React.Component {
 
     componentDidMount() {
         this.state.randomCellSelector.getCurrentElem().forEach(cell=>checkCell(cell))
-        window.addEventListener("keydown", this.handleKeyDownListener);
+        window.addEventListener("keydown", this.handleKeyDown);
     }
 
     componentWillUnmount() {
-        window.removeEventListener("keydown", this.handleKeyDownListener);
+        window.removeEventListener("keydown", this.handleKeyDown);
     }
 
     handleKeyDown(event) {
