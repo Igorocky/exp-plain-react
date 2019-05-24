@@ -699,6 +699,7 @@ function calcConnections(cell) {
 }
 
 const PHASE_IMAGE_SHOWN = "PHASE_IMAGE_SHOWN"
+const PHASE_BOAR_SHOWN = "PHASE_BOAR_SHOWN"
 class CalculateConnectionsExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -785,45 +786,48 @@ class ImgToCellExercise extends React.Component {
         super(props)
         this.state={
             randomCellSelector: new RandomElemSelector({elemsGenerator: listOfAllCellsGenerator}),
+            phase: PHASE_IMAGE_SHOWN,
             error:false
         }
+        this.next = this.next.bind(this)
     }
 
     render() {
-        return this.renderElems(
-            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:cell=>this.next(cell)}),
-            re(VContainer,{},
-                re('div',{style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
-                re('div',{style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements()),
-                re('div',{style:{width: this.props.cellSize, height: this.props.cellSize, border:this.state.error?"5px red solid":null}},
-                    re('img',
-                        {
-                            src:"./chess/chess-board-configs/"
-                                + this.props.configName + "/" + this.getCurrentCellName() + ".png",
-                            style:{maxHeight: "100%", maxWidth: "100%"}
-                        }
+        const size = this.props.sizeNum*8
+        return re(Grid,{container:true,direction:"column",justify:"flex-start",alignItems:"center"},
+                this.state.phase===PHASE_IMAGE_SHOWN
+                    ?re(Grid, {container:true,direction:"row",justify:"center",alignItems:"center",
+                                    style:{height: size+"px", width: size+"px"}
+                                },
+                        re('img',
+                            {
+                                src:"./chess/chess-board-configs/"
+                                    + this.props.configName + "/" + this.getCurrentCellName() + ".png",
+                                style:{height: this.props.cellSize, width: this.props.cellSize},
+                                onClick: this.next
+                            }
+                        )
                     )
-                )
+                    :re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:this.next}),
+            re(Grid,{container:true,direction:"row",justify:"center", alignItems:"flex-start"},
+                re('div',{style:{paddingRight:"30px"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
+                re('div',{style:{paddingLeft:"30px"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
             )
         )
     }
 
-    renderElems(board, controls) {
-        if (this.props.hMode) {
-            return re(HContainer,{},board,controls)
-        } else {
-            return re(VContainer,{},board,controls)
-        }
-    }
-
     next(clickedCell) {
-        this.setState((state,props)=>{
-            const currentCell = state.randomCellSelector.getCurrentElem()
-            if (clickedCell.x===currentCell.x && clickedCell.y===currentCell.y) {
-                state.randomCellSelector.updateStateToNextElem()
-                return {randomCellSelector: state.randomCellSelector, error:false}
-            } else {
-                return {error:true}
+        this.setState(state=>{
+            if (state.phase===PHASE_IMAGE_SHOWN) {
+                return {phase:PHASE_BOAR_SHOWN}
+            } else if (state.phase===PHASE_BOAR_SHOWN) {
+                const currentCell = state.randomCellSelector.getCurrentElem()
+                if (clickedCell.x===currentCell.x && clickedCell.y===currentCell.y) {
+                    state.randomCellSelector.updateStateToNextElem()
+                    return {error:false,phase:PHASE_IMAGE_SHOWN}
+                } else {
+                    return {error:true}
+                }
             }
         })
     }
@@ -886,7 +890,8 @@ class ChessBoardTrainer extends React.Component {
     }
 
     getCompVarProps() {
-        return {hMode: this.state.hMode, cellSize: this.state.hMode?"72px":"108px"}
+        const sizeNum = this.state.hMode?72:108
+        return {hMode: this.state.hMode, sizeNum: sizeNum, cellSize: sizeNum+"px"}
     }
 
     renderButtons() {
