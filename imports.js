@@ -18,6 +18,9 @@ const {
     Icon,
     MuiThemeProvider,
     Typography,
+    RadioGroup,
+    FormControlLabel,
+    Radio,
     withStyles,
 } = window['material-ui'];
 

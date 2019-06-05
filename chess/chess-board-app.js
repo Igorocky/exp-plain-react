@@ -283,6 +283,7 @@ const DIAGONALS = "DIAGONALS"
 const DIAGONAL_SHORTCUTS = "DIAGONAL_SHORTCUTS"
 const DIAGONAL_SHORTCUTS_REVERSE = "DIAGONAL_SHORTCUTS_REVERSE"
 const CONNECTIONS = "CONNECTIONS"
+const LINES_EXERCISE = "LinesExercise"
 
 class RandomElemSelector {
     constructor(params) {
@@ -667,6 +668,81 @@ class DiagonalsShortcutsExercise extends React.Component {
     }
 }
 
+const LINE_TYPE_DIAG_DU = "LINE_TYPE_DIAG_DU"
+const LINE_TYPE_DIAG_UD = "LINE_TYPE_DIAG_UD"
+const LINE_TYPE_H = "LINE_TYPE_H"
+const LINE_TYPE_V = "LINE_TYPE_V"
+class LinesExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={
+            lineType: LINE_TYPE_DIAG_DU
+        }
+        this.handleKeyDownListener = this.handleKeyDown.bind(this)
+        this.chaneLineType = this.chaneLineType.bind(this)
+        this.openLine = this.openLine.bind(this)
+    }
+
+    render() {
+        return re(HContainer,{},
+            re(ChessBoard, {
+                configName: this.props.configName,
+                cellSize: this.props.cellSize,
+                onClick: this.openLine
+            }),
+            re(RadioGroup,{"aria-label":"Line type",
+                name: "Line-type",
+                value: this.state.lineType,
+                onChange: this.chaneLineType},
+                re(FormControlLabel,{value:LINE_TYPE_DIAG_DU, control:re(Radio,{}), label:LINE_TYPE_DIAG_DU}),
+                re(FormControlLabel,{value:LINE_TYPE_DIAG_UD, control:re(Radio,{}), label:LINE_TYPE_DIAG_UD}),
+                re(FormControlLabel,{value:LINE_TYPE_H, control:re(Radio,{}), label:LINE_TYPE_H}),
+                re(FormControlLabel,{value:LINE_TYPE_V, control:re(Radio,{}), label:LINE_TYPE_V})
+            )
+        )
+    }
+
+    chaneLineType(event) {
+        const newValue = event.target.value
+        this.setState(state=>({lineType: newValue}));
+        resetBoard()
+    }
+
+    openLine(cell) {
+        let line = []
+        if (this.state.lineType === LINE_TYPE_DIAG_DU) {
+            line.push(...createRay(cell.x,cell.y,1,1))
+            line.push(...createRay(cell.x,cell.y,-1,-1))
+        } else if (this.state.lineType === LINE_TYPE_DIAG_UD) {
+            line.push(...createRay(cell.x,cell.y,1,-1))
+            line.push(...createRay(cell.x,cell.y,-1,1))
+        } else if (this.state.lineType === LINE_TYPE_V) {
+            line.push(...createRay(cell.x,cell.y,0,-1))
+            line.push(...createRay(cell.x,cell.y,0,1))
+        } else if (this.state.lineType === LINE_TYPE_H) {
+            line.push(...createRay(cell.x,cell.y,1,0))
+            line.push(...createRay(cell.x,cell.y,-1,0))
+        }
+        line.forEach(cell=>openImage(cell))
+    }
+
+    componentDidMount() {
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            this.next()
+        } else if (event.keyCode === 27) {
+            resetBoard()
+        }
+    }
+}
+
 function createAllPossibleKnightMoves(cell) {
     return _.filter([
         moveToCellRelatively(cell,-2,-1),
@@ -859,6 +935,8 @@ class ChessBoardTrainer extends React.Component {
             return re(DiagonalsShortcutsExercise, {reverse:true, ...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === CONNECTIONS) {
             return re(CalculateConnectionsExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === LINES_EXERCISE) {
+            return re(LinesExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -882,6 +960,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"Connections",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: CONNECTIONS}))},
                     "Connections"),
+                re(Button,{key:"LinesExercise",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: LINES_EXERCISE}))},
+                    "Lines"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
