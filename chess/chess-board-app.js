@@ -890,7 +890,8 @@ class KnightMovesExercise extends React.Component {
                     {
                         src:"./chess/chess-board-configs/"
                             + this.props.configName + "/" + getCellName(curElem) + ".png",
-                        style:{maxHeight: "100%", maxWidth: "100%"}
+                        style:{maxHeight: "100%", maxWidth: "100%"},
+                        onClick: () => this.next()
                     }
                 )
             )
@@ -898,7 +899,7 @@ class KnightMovesExercise extends React.Component {
             return re(ChessBoard, {
                 configName: this.props.configName,
                 cellSize: this.props.cellSize,
-                onClick:()=>this.next(),
+                onClick: () => this.next(),
                 onMount: () => [...createAllPossibleKnightMoves(curElem), curElem].forEach(cell=>openImage(cell))
             })
         }
