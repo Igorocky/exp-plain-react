@@ -284,6 +284,7 @@ const DIAGONAL_SHORTCUTS = "DIAGONAL_SHORTCUTS"
 const DIAGONAL_SHORTCUTS_REVERSE = "DIAGONAL_SHORTCUTS_REVERSE"
 const CONNECTIONS = "CONNECTIONS"
 const LINES_EXERCISE = "LinesExercise"
+const KNIGHT_MOVES_EXERCISE = "KnightMovesExercise"
 
 class RandomElemSelector {
     constructor(params) {
@@ -857,6 +858,86 @@ class CalculateConnectionsExercise extends React.Component {
     }
 }
 
+const KNIGHT_MOVES_PHASE_IMAGE_SHOWN = "KNIGHT_MOVES_PHASE_IMAGE_SHOWN"
+const KNIGHT_MOVES_PHASE_BOARD_SHOWN = "KNIGHT_MOVES_PHASE_BOARD_SHOWN"
+class KnightMovesExercise extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state={
+            randomElemSelector: new RandomElemSelector({
+                elemsGenerator: listOfAllCellsGenerator
+            }),
+            phase: KNIGHT_MOVES_PHASE_IMAGE_SHOWN
+        }
+        this.handleKeyDownListener = e => this.handleKeyDown(e)
+    }
+
+    render() {
+        return this.renderElems(
+            this.renderQuestionOrAnswer(),
+            re(VContainer,{},
+                re('div',{key:"iter",style:{paddingLeft:"30%"}},"Iteration: " + this.state.randomElemSelector.getIterationNumber()),
+                re('div',{key:"remain",style:{paddingLeft:"30%"}},"Remaining elements: " + this.state.randomElemSelector.getRemainingElements())
+            )
+        )
+    }
+
+    renderQuestionOrAnswer() {
+        const curElem = this.state.randomElemSelector.getCurrentElem()
+        if (this.state.phase===KNIGHT_MOVES_PHASE_IMAGE_SHOWN) {
+            return re('div',{style:{width: this.props.cellSize, height: this.props.cellSize}},
+                re('img',
+                    {
+                        src:"./chess/chess-board-configs/"
+                            + this.props.configName + "/" + getCellName(curElem) + ".png",
+                        style:{maxHeight: "100%", maxWidth: "100%"}
+                    }
+                )
+            )
+        } else if (this.state.phase===KNIGHT_MOVES_PHASE_BOARD_SHOWN) {
+            return re(ChessBoard, {
+                configName: this.props.configName,
+                cellSize: this.props.cellSize,
+                onClick:()=>this.next(),
+                onMount: () => [...createAllPossibleKnightMoves(curElem), curElem].forEach(cell=>openImage(cell))
+            })
+        }
+    }
+
+    renderElems(board, controls) {
+        if (this.props.hMode) {
+            return re(HContainer,{},board,controls)
+        } else {
+            return re(VContainer,{},board,controls)
+        }
+    }
+
+    next() {
+        this.setState((state,props)=>{
+            if (state.phase===KNIGHT_MOVES_PHASE_IMAGE_SHOWN) {
+                return {phase:KNIGHT_MOVES_PHASE_BOARD_SHOWN}
+            } else if (state.phase===KNIGHT_MOVES_PHASE_BOARD_SHOWN) {
+                state.randomElemSelector.updateStateToNextElem()
+                return {phase: KNIGHT_MOVES_PHASE_IMAGE_SHOWN}
+            }
+        })
+    }
+
+    componentDidMount() {
+        window.addEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("keydown", this.handleKeyDownListener);
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            this.next()
+        }
+    }
+}
+
 class ImgToCellExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -937,6 +1018,8 @@ class ChessBoardTrainer extends React.Component {
             return re(CalculateConnectionsExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === LINES_EXERCISE) {
             return re(LinesExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === KNIGHT_MOVES_EXERCISE) {
+            return re(KnightMovesExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -963,6 +1046,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"LinesExercise",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: LINES_EXERCISE}))},
                     "Lines"),
+                re(Button,{key:"KnightMovesExercise",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: KNIGHT_MOVES_EXERCISE}))},
+                    "Knight Moves"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
