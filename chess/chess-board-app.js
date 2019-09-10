@@ -744,7 +744,7 @@ class LinesExercise extends React.Component {
     }
 }
 
-function createAllPossibleKnightMoves(cell) {
+function knightMovesFrom(cell) {
     return _.filter([
         moveToCellRelatively(cell,-2,-1),
         moveToCellRelatively(cell,-2,+1),
@@ -767,7 +767,7 @@ function createAllPossibleConnections(cell) {
         ...createRay(cell.x, cell.y, 1, -1),
         ...createRay(cell.x, cell.y, 1, 0),
         ...createRay(cell.x, cell.y, 1, 1),
-        ...createAllPossibleKnightMoves(cell)
+        ...knightMovesFrom(cell)
     ]
 }
 
@@ -900,7 +900,7 @@ class KnightMovesExercise extends React.Component {
                 configName: this.props.configName,
                 cellSize: this.props.cellSize,
                 onClick: () => this.next(),
-                onMount: () => [...createAllPossibleKnightMoves(curElem), curElem].forEach(cell=>openImage(cell))
+                onMount: () => [...knightMovesFrom(curElem), curElem].forEach(cell=>openImage(cell))
             })
         }
     }
