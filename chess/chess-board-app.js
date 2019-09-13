@@ -34,9 +34,9 @@ function flatMap(list, func) {
     return res
 }
 
-function combs(gens) {
-    if (_.size(gens) == 0) return [[]]
-    return flatMap(_.first(gens), elem=>_.map(combs(_.rest(gens)), comb=>[elem,...comb]))
+function product(...lists) {
+    if (_.size(lists) == 0) return [[]]
+    return flatMap(_.first(lists), elem=>_.map(product(..._.rest(lists)), rightPart=>[elem,...rightPart]))
 }
 
 function getCellName(cell) {
@@ -285,10 +285,11 @@ const DIAGONAL_SHORTCUTS_REVERSE = "DIAGONAL_SHORTCUTS_REVERSE"
 const CONNECTIONS = "CONNECTIONS"
 const LINES_EXERCISE = "LinesExercise"
 const KNIGHT_MOVES_EXERCISE = "KnightMovesExercise"
+const DISTANCES_EXERCISE = "DistancesExercise"
 
 class RandomElemSelector {
-    constructor(params) {
-        this.elemsGenerator = params.elemsGenerator
+    constructor({elemsGenerator}) {
+        this.elemsGenerator = elemsGenerator
         this.reset()
     }
 
@@ -469,6 +470,15 @@ function createRay(x, y, dx, dy) {
         nextCell = {x:nextCell.x+dx,y:nextCell.y+dy}
     }
     return result;
+}
+
+function move({x,y}, {dx,dy}, dist) {
+    const ray = createRay(x,y,dx,dy)
+    if (dist < _.size(ray)) {
+        return ray[dist]
+    } else {
+        return null
+    }
 }
 
 function createDiagonalByNumber(diagNumber) {
@@ -939,6 +949,101 @@ class KnightMovesExercise extends React.Component {
     }
 }
 
+const CARDS_EXERCISE_PHASE_QUESTION = "CARDS_EXERCISE_PHASE_QUESTION"
+const CARDS_EXERCISE_PHASE_ANSWER = "CARDS_EXERCISE_PHASE_ANSWER"
+const CardsExercise = ({cardsGenerator, questionRenderer, answerRenderer}) => {
+    const [randomElemSelector] = useState(new RandomElemSelector({elemsGenerator: cardsGenerator}))
+    const [phase, setPhase] = useState(CARDS_EXERCISE_PHASE_QUESTION)
+
+    function handleKeyDown(event) {
+        if (event.keyCode === 13 || event.keyCode === 32) {
+            if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
+                setPhase(CARDS_EXERCISE_PHASE_ANSWER)
+            } else {
+                randomElemSelector.updateStateToNextElem()
+                setPhase(CARDS_EXERCISE_PHASE_QUESTION)
+            }
+        }
+    }
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [phase])
+
+    function renderContent() {
+        if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
+            return questionRenderer(randomElemSelector.getCurrentElem())
+        } else {
+            return answerRenderer(randomElemSelector.getCurrentElem())
+        }
+    }
+
+    return RE.Container.col.top.center({},{},
+        RE.div({}, "Iteration: " + randomElemSelector.getIterationNumber()),
+        RE.div({}, "Remaining elements: " + randomElemSelector.getRemainingElements()),
+        renderContent()
+    )
+}
+
+const DistancesExercise = ({cellSize, configName}) => {
+    const startCell = A1
+    const possibleCells = createRay(startCell.x, startCell.y, 1,0)
+    const possibleDirections = [{dx:-1,dy:0},{dx:1,dy:0}]
+    const possibleDistances = ints(1,7)
+
+    function getDistance(dir, question) {
+        if (question && dir.dx == question.dir.dx && dir.dy == question.dir.dy) {
+            return RE.span({style:{fontSize: "40px"}}, question.dist)
+        } else {
+            return ""
+        }
+    }
+
+    function renderImage(cell) {
+        return RE.img({
+            src:"./chess/chess-board-configs/" + configName + "/" + getCellName(cell) + ".png",
+            className: "cell-img"
+        })
+    }
+
+    function renderCell(content) {
+        return RE.td({style: tdStyle}, RE.Container.row.center.top({},{}, content))
+    }
+
+    function renderCells({className, question, centerCell}) {
+        return RE.table({className: className}, RE.tbody({},
+            RE.tr({},
+                renderCell(getDistance({dx:-1,dy:1}, question)),
+                renderCell(getDistance({dx:0,dy:1}, question)),
+                renderCell(getDistance({dx:1,dy:1}, question)),
+            ),
+            RE.tr({},
+                renderCell(getDistance({dx:-1,dy:0}, question)),
+                RE.td({style: tdStyle}, renderImage(centerCell)),
+                renderCell(getDistance({dx:1,dy:0}, question)),
+            ),
+            RE.tr({},
+                renderCell(getDistance({dx:-1,dy:-1}, question)),
+                renderCell(getDistance({dx:0,dy:-1}, question)),
+                renderCell(getDistance({dx:1,dy:-1}, question)),
+            ),
+        ))
+    }
+
+    const tdStyle = {width: cellSize, height: cellSize}
+
+    return re(CardsExercise, {
+        cardsGenerator: () => _.chain(product(possibleCells, possibleDirections, possibleDistances))
+            .map(([from,dir,dist]) => ({q:{from:from,dir:dir,dist:dist}, a:move(from,dir,dist)}))
+            .filter(card => card.a != null)
+            .value()
+        ,
+        questionRenderer: card => renderCells({className:"chessboard", question:card.q, centerCell:card.q.from}),
+        answerRenderer: card => renderCells({centerCell:card.a})
+    })
+}
+
 class ImgToCellExercise extends React.Component {
     constructor(props) {
         super(props)
@@ -1021,6 +1126,8 @@ class ChessBoardTrainer extends React.Component {
             return re(LinesExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else if (this.state.taskType === KNIGHT_MOVES_EXERCISE) {
             return re(KnightMovesExercise, {...this.compConstProps, ...this.getCompVarProps()})
+        } else if (this.state.taskType === DISTANCES_EXERCISE) {
+            return re(DistancesExercise, {...this.compConstProps, ...this.getCompVarProps()})
         } else {
             return re(HContainer,{},
                 re(Button,{key:"Cell to Img",variant:"contained", color:"primary",
@@ -1050,6 +1157,9 @@ class ChessBoardTrainer extends React.Component {
                 re(Button,{key:"KnightMovesExercise",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({taskType: KNIGHT_MOVES_EXERCISE}))},
                     "Knight Moves"),
+                re(Button,{key:"DistancesExercise",variant:"contained", color:"primary",
+                        onClick: ()=> this.setState((state,props)=>({taskType: DISTANCES_EXERCISE}))},
+                    "Distances"),
                 !this.state.hMode?null:re(Button,{key:"H/V mode",variant:"contained", color:"primary",
                         onClick: ()=> this.setState((state,props)=>({hMode: !state.hMode}))},
                     "H/V mode")
