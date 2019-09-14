@@ -1041,7 +1041,7 @@ const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, 
 
 const DistancesExercise = ({cellSize, configName}) => {
 
-    const [usedSelectedLines, setUsedSelectedLines] = useState([2])
+    const [usedSelectedLines, setUsedSelectedLines] = useState([8])
     const [selectedLinesInDialog, setSelectedLinesInDialog] = useState(null)
 
     function generateCardsFromStartPoint({cell, dirHour}) {
@@ -1054,7 +1054,7 @@ const DistancesExercise = ({cellSize, configName}) => {
             .value()
     }
 
-    cellSize = "144px"
+    cellSize = "110px"
     const tdStyle = {width: cellSize, height: cellSize}
 
     function getDistance(dir, question) {
