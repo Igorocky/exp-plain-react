@@ -988,14 +988,18 @@ const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, 
     )
     const [phase, setPhase] = useState(CARDS_EXERCISE_PHASE_QUESTION)
 
+    function goToNextPhase() {
+        if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
+            setPhase(CARDS_EXERCISE_PHASE_ANSWER)
+        } else {
+            randomElemSelector.updateStateToNextElem()
+            setPhase(CARDS_EXERCISE_PHASE_QUESTION)
+        }
+    }
+
     function handleKeyDown(event) {
         if (event.keyCode === 13 || event.keyCode === 32) {
-            if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
-                setPhase(CARDS_EXERCISE_PHASE_ANSWER)
-            } else {
-                randomElemSelector.updateStateToNextElem()
-                setPhase(CARDS_EXERCISE_PHASE_QUESTION)
-            }
+            goToNextPhase()
         }
     }
 
@@ -1017,9 +1021,9 @@ const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, 
 
     function renderContent() {
         if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
-            return questionRenderer(randomElemSelector.getCurrentElem())
+            return questionRenderer({card:randomElemSelector.getCurrentElem(), onNext: goToNextPhase})
         } else {
-            return answerRenderer(randomElemSelector.getCurrentElem())
+            return answerRenderer({card:randomElemSelector.getCurrentElem(), onNext: goToNextPhase})
         }
     }
 
@@ -1070,8 +1074,8 @@ const DistancesExercise = ({cellSize, configName}) => {
         return RE.td({style: tdStyle}, RE.Container.row.center.top({},{}, content))
     }
 
-    function renderCells({className, question, centerCell}) {
-        return RE.table({className: className}, RE.tbody({},
+    function renderCells({className, question, centerCell, onNext}) {
+        return RE.table({className: className, onClick: onNext}, RE.tbody({},
             RE.tr({},
                 renderCell(getDistance({dx:-1,dy:1}, question)),
                 renderCell(getDistance({dx:0,dy:1}, question)),
@@ -1169,8 +1173,13 @@ const DistancesExercise = ({cellSize, configName}) => {
         cardsGenerator: createCardGenerator(usedSelectedLines),
         modeSelectorRenderer: ({onCardGeneratorChanged}) =>
             renderDialog({onCardGeneratorChanged: onCardGeneratorChanged}),
-        questionRenderer: card => renderCells({className:"chessboard", question:card.q, centerCell:card.q.from}),
-        answerRenderer: card => renderCells({centerCell:card.a})
+        questionRenderer: ({card,onNext}) => renderCells({
+            className:"chessboard",
+            question:card.q,
+            centerCell:card.q.from,
+            onNext:onNext
+        }),
+        answerRenderer: ({card,onNext}) => renderCells({centerCell:card.a, onNext:onNext})
     })
 }
 
