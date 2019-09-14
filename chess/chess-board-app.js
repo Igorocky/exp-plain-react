@@ -1043,6 +1043,7 @@ const DistancesExercise = ({cellSize, configName}) => {
 
     const [usedSelectedLines, setUsedSelectedLines] = useState([8])
     const [selectedLinesInDialog, setSelectedLinesInDialog] = useState(null)
+    const [openDialogOnIterationComplete, setOpenDialogOnIterationComplete] = useState(true)
 
     function generateCardsFromStartPoint({cell, dirHour}) {
         const possibleCells = createRayH(cell.x, cell.y, dirHour)
@@ -1151,6 +1152,13 @@ const DistancesExercise = ({cellSize, configName}) => {
                             color:"primary" },"Cancel"),
                         RE.Button({onClick: () => setSelectedLinesInDialog([]),
                             color:"primary"},"Clear selection"),
+                        RE.FormControlLabel({
+                            control:RE.Checkbox({
+                                checked: openDialogOnIterationComplete,
+                                onChange: event => setOpenDialogOnIterationComplete(event.target.checked)
+                            }),
+                            label:"Open on iteration complete"
+                        }),
                     ),
                     renderCheckboxGroup(39,46),
                     renderCheckboxGroup(31,38),
@@ -1184,7 +1192,7 @@ const DistancesExercise = ({cellSize, configName}) => {
             onNext:onNext
         }),
         answerRenderer: ({card,onNext}) => renderCells({centerCell:card.a, onNext:onNext}),
-        onIterationComplete: () => setSelectedLinesInDialog(usedSelectedLines)
+        onIterationComplete: () => openDialogOnIterationComplete?setSelectedLinesInDialog(usedSelectedLines):null
     })
 }
 
