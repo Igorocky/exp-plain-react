@@ -982,7 +982,8 @@ class KnightMovesExercise extends React.Component {
 
 const CARDS_EXERCISE_PHASE_QUESTION = "CARDS_EXERCISE_PHASE_QUESTION"
 const CARDS_EXERCISE_PHASE_ANSWER = "CARDS_EXERCISE_PHASE_ANSWER"
-const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, answerRenderer}) => {
+const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, answerRenderer,
+                           onIterationComplete}) => {
     const [randomElemSelector, setRandomElemSelector] = useState(
         new RandomElemSelector({elemsGenerator: cardsGenerator})
     )
@@ -992,6 +993,9 @@ const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, 
         if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
             setPhase(CARDS_EXERCISE_PHASE_ANSWER)
         } else {
+            if (randomElemSelector.getRemainingElements() == 0) {
+                onIterationComplete()
+            }
             randomElemSelector.updateStateToNextElem()
             setPhase(CARDS_EXERCISE_PHASE_QUESTION)
         }
@@ -1138,7 +1142,7 @@ const DistancesExercise = ({cellSize, configName}) => {
             return RE.Paper({},
                 RE.Container.col.top.left({},{style:{margin: "10px"}},
                     RE.Container.row.left.top({},{},
-                        RE.Button({onClick: () => {
+                        RE.Button({autoFocus: true, onClick: () => {
                                 onCardGeneratorChanged(createCardGenerator(selectedLinesInDialog))
                                 setUsedSelectedLines(selectedLinesInDialog)
                                 setSelectedLinesInDialog(null)
@@ -1179,7 +1183,8 @@ const DistancesExercise = ({cellSize, configName}) => {
             centerCell:card.q.from,
             onNext:onNext
         }),
-        answerRenderer: ({card,onNext}) => renderCells({centerCell:card.a, onNext:onNext})
+        answerRenderer: ({card,onNext}) => renderCells({centerCell:card.a, onNext:onNext}),
+        onIterationComplete: () => setSelectedLinesInDialog(usedSelectedLines)
     })
 }
 
