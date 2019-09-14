@@ -462,6 +462,10 @@ function isValidCell(cell) {
     return 0 <= cell.x && cell.x<_.size(XX) && 0 <= cell.y && cell.y<_.size(YY)
 }
 
+function createRayH(x, y, dirHour) {
+    const dir = hourToDir(dirHour)
+    return createRay(x,y,dir.dx,dir.dy)
+}
 function createRay(x, y, dx, dy) {
     const result = [{x:x,y:y}]
     let nextCell = {x:result[0].x+dx,y:result[0].y+dy}
@@ -481,19 +485,46 @@ function move({x,y}, {dx,dy}, dist) {
     }
 }
 
+function hourToDir(hour) {
+    if (hour == 10 || hour == 11) return {dx:-1, dy:1}
+    if (hour == 12) return {dx:0, dy:1}
+    if (hour == 1 || hour == 2) return {dx:1, dy:1}
+    if (hour == 9) return {dx:-1, dy:0}
+    if (hour == 3) return {dx:1, dy:0}
+    if (hour == 7 || hour == 8) return {dx:-1, dy:-1}
+    if (hour == 6) return {dx:0, dy:-1}
+    if (hour == 4 || hour == 5) return {dx:1, dy:-1}
+}
+
+function invHour(hour) {
+    return (hour + 6) % 12
+}
+
+function lineNumberToDirH(lineNumber) {
+    if (lineNumber <= 15) {
+        return 2
+    } else if (lineNumber <= 30) {
+        return 4
+    } else if (lineNumber <= 38) {
+        return 12
+    } else if (lineNumber <= 46) {
+        return 3
+    }
+}
+
 function createDiagonalByNumber(diagNumber) {
     if (diagNumber <= 8) {
-        return createRay(0,8-diagNumber, 1,1)
+        return createRayH(0,8-diagNumber, lineNumberToDirH(diagNumber))
     } else if (diagNumber <= 15) {
-        return createRay(diagNumber-8,0, 1,1)
+        return createRayH(diagNumber-8,0, lineNumberToDirH(diagNumber))
     } else if (diagNumber <= 23) {
-        return createRay(23-diagNumber,7, 1,-1)
+        return createRayH(23-diagNumber,7, lineNumberToDirH(diagNumber))
     } else if (diagNumber <= 30) {
-        return createRay(0,30-diagNumber, 1,-1)
+        return createRayH(0,30-diagNumber, lineNumberToDirH(diagNumber))
     } else if (diagNumber <= 38) {
-        return createRay(diagNumber - 31,0, 0,1)
+        return createRayH(diagNumber - 31,0, lineNumberToDirH(diagNumber))
     } else if (diagNumber <= 46) {
-        return createRay(0,diagNumber - 39, 1,0)
+        return createRayH(0,diagNumber - 39, lineNumberToDirH(diagNumber))
     }
 }
 
@@ -951,8 +982,10 @@ class KnightMovesExercise extends React.Component {
 
 const CARDS_EXERCISE_PHASE_QUESTION = "CARDS_EXERCISE_PHASE_QUESTION"
 const CARDS_EXERCISE_PHASE_ANSWER = "CARDS_EXERCISE_PHASE_ANSWER"
-const CardsExercise = ({cardsGenerator, questionRenderer, answerRenderer}) => {
-    const [randomElemSelector] = useState(new RandomElemSelector({elemsGenerator: cardsGenerator}))
+const CardsExercise = ({cardsGenerator, modeSelectorRenderer, questionRenderer, answerRenderer}) => {
+    const [randomElemSelector, setRandomElemSelector] = useState(
+        new RandomElemSelector({elemsGenerator: cardsGenerator})
+    )
     const [phase, setPhase] = useState(CARDS_EXERCISE_PHASE_QUESTION)
 
     function handleKeyDown(event) {
@@ -971,6 +1004,17 @@ const CardsExercise = ({cardsGenerator, questionRenderer, answerRenderer}) => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [phase])
 
+    function renderModeSelector() {
+        if (modeSelectorRenderer) {
+            return modeSelectorRenderer({
+                onCardGeneratorChanged: newCardGenerator => {
+                    setRandomElemSelector(new RandomElemSelector({elemsGenerator: newCardGenerator}))
+                    setPhase(CARDS_EXERCISE_PHASE_QUESTION)
+                }
+            })
+        }
+    }
+
     function renderContent() {
         if (phase === CARDS_EXERCISE_PHASE_QUESTION) {
             return questionRenderer(randomElemSelector.getCurrentElem())
@@ -980,6 +1024,7 @@ const CardsExercise = ({cardsGenerator, questionRenderer, answerRenderer}) => {
     }
 
     return RE.Container.col.top.center({},{},
+        renderModeSelector(),
         RE.div({}, "Iteration: " + randomElemSelector.getIterationNumber()),
         RE.div({}, "Remaining elements: " + randomElemSelector.getRemainingElements()),
         renderContent()
@@ -987,14 +1032,28 @@ const CardsExercise = ({cardsGenerator, questionRenderer, answerRenderer}) => {
 }
 
 const DistancesExercise = ({cellSize, configName}) => {
-    const startCell = A1
-    const possibleCells = createRay(startCell.x, startCell.y, 1,0)
-    const possibleDirections = [{dx:-1,dy:0},{dx:1,dy:0}]
-    const possibleDistances = ints(1,7)
+
+    const [usedSelectedLines, setUsedSelectedLines] = useState([2])
+    const [selectedLinesInDialog, setSelectedLinesInDialog] = useState(null)
+
+    function generateCardsFromStartPoint({cell, dirHour}) {
+        const possibleCells = createRayH(cell.x, cell.y, dirHour)
+        const possibleDirections = [hourToDir(dirHour),hourToDir(invHour(dirHour))]
+        const possibleDistances = ints(1,1)
+        return _.chain(product(possibleCells, possibleDirections, possibleDistances))
+            .map(([from,dir,dist]) => ({q:{from:from,dir:dir,dist:dist}, a:move(from,dir,dist)}))
+            .filter(card => card.a != null)
+            .value()
+    }
+
+    cellSize = "144px"
+    const tdStyle = {width: cellSize, height: cellSize}
 
     function getDistance(dir, question) {
         if (question && dir.dx == question.dir.dx && dir.dy == question.dir.dy) {
-            return RE.span({style:{fontSize: "40px"}}, question.dist)
+            return RE.span({style:{fontSize: "80px"}},
+                question.dist == 1 ? String.fromCharCode(8226) : question.dist
+            )
         } else {
             return ""
         }
@@ -1031,14 +1090,85 @@ const DistancesExercise = ({cellSize, configName}) => {
         ))
     }
 
-    const tdStyle = {width: cellSize, height: cellSize}
+    const handleCheckboxClick = lineNumber => event => {
+        if (event.target.checked) {
+            setSelectedLinesInDialog(selectedLines => [lineNumber, ...selectedLines])
+        } else {
+            setSelectedLinesInDialog(selectedLines => selectedLines.filter(n => n!=lineNumber))
+        }
+    }
+
+    function lineNumberToStartPoint(lineNumber) {
+        return {cell:createDiagonalByNumber(lineNumber)[0], dirHour:lineNumberToDirH(lineNumber)}
+    }
+
+    function lineNumberToCheckbox(lineNumber) {
+        const {cell, dirHour} = lineNumberToStartPoint(lineNumber)
+        const label =
+            dirHour == 3 ? YY[cell.y].toUpperCase() :
+            dirHour == 12 ? XX[cell.x].toUpperCase() :
+            dirHour == 2 ? getCellName(cell) + String.fromCharCode(8599) :
+                        getCellName(cell) + String.fromCharCode(8600)
+
+        return RE.FormControlLabel({
+            key:lineNumber,
+            control:RE.Checkbox({
+                checked: selectedLinesInDialog.includes(lineNumber),
+                onChange: handleCheckboxClick(lineNumber)
+            }),
+            label:label
+        })
+    }
+
+    function renderCheckboxGroup(lineNumberFrom,lineNumberTo) {
+        return RE.Paper({},
+            RE.Container.row.left.top({},{}, _.map(ints(lineNumberFrom,lineNumberTo), lineNumberToCheckbox))
+        )
+    }
+
+    function renderDialog({onCardGeneratorChanged}) {
+        if (!selectedLinesInDialog) {
+            return RE.Button({onClick: () => setSelectedLinesInDialog(usedSelectedLines),
+                color:"primary"},"Change selection")
+        } else {
+            return RE.Paper({},
+                RE.Container.col.top.left({},{style:{margin: "10px"}},
+                    RE.Container.row.left.top({},{},
+                        RE.Button({onClick: () => {
+                                onCardGeneratorChanged(createCardGenerator(selectedLinesInDialog))
+                                setUsedSelectedLines(selectedLinesInDialog)
+                                setSelectedLinesInDialog(null)
+                            }, color:"primary", disabled: selectedLinesInDialog.length == 0},"Apply"),
+                        RE.Button({onClick: () => setSelectedLinesInDialog(null),
+                            color:"primary" },"Cancel"),
+                        RE.Button({onClick: () => setSelectedLinesInDialog([]),
+                            color:"primary"},"Clear selection"),
+                    ),
+                    renderCheckboxGroup(39,46),
+                    renderCheckboxGroup(31,38),
+                    renderCheckboxGroup(2,14),
+                    renderCheckboxGroup(17,29),
+                )
+            )
+        }
+    }
+
+    function generateCards(selectedLines) {
+        return _.chain(selectedLines)
+            .map(lineNumberToStartPoint)
+            .map(generateCardsFromStartPoint)
+            .flatten()
+            .value()
+    }
+
+    function createCardGenerator(selectedLines) {
+        return () => generateCards(selectedLines)
+    }
 
     return re(CardsExercise, {
-        cardsGenerator: () => _.chain(product(possibleCells, possibleDirections, possibleDistances))
-            .map(([from,dir,dist]) => ({q:{from:from,dir:dir,dist:dist}, a:move(from,dir,dist)}))
-            .filter(card => card.a != null)
-            .value()
-        ,
+        cardsGenerator: createCardGenerator(usedSelectedLines),
+        modeSelectorRenderer: ({onCardGeneratorChanged}) =>
+            renderDialog({onCardGeneratorChanged: onCardGeneratorChanged}),
         questionRenderer: card => renderCells({className:"chessboard", question:card.q, centerCell:card.q.from}),
         answerRenderer: card => renderCells({centerCell:card.a})
     })

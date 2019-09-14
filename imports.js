@@ -51,7 +51,8 @@ const RE = {
     div: reFactory('div'),
     Button: reFactory(MaterialUI.Button),
     CircularProgress: reFactory(MaterialUI.CircularProgress),
-    Fragment: reFactory(React.Fragment),
+    Checkbox: reFactory(MaterialUI.Checkbox),
+    FormControlLabel: reFactory(MaterialUI.FormControlLabel),
     Grid: reFactory(MaterialUI.Grid),
     Paper: reFactory(MaterialUI.Paper),
     span: reFactory('span'),
@@ -64,6 +65,7 @@ const RE = {
     If: (condition, ...elems) => condition?re(Fragment,{},...elems):re(Fragment,{}),
     IfNot: (condition, ...elems) => !condition?re(Fragment,{},...elems):re(Fragment,{}),
     IfTrue: (condition, ...elems) => re(Fragment,{},...elems),
+    Fragment: reFactory(React.Fragment),
     Container: {
         row: {
             left: {
