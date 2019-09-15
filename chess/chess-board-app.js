@@ -1152,8 +1152,19 @@ const DistancesExercise = ({cellSize, configName}) => {
     }
 
     function renderCheckboxGroup(lineNumberFrom,lineNumberTo) {
+        let lineNumbersArr = ints(lineNumberFrom,lineNumberTo);
         return RE.Paper({},
-            RE.Container.row.left.top({},{}, _.map(ints(lineNumberFrom,lineNumberTo), lineNumberToCheckbox))
+            RE.Container.row.left.top({},{}, [
+                RE.FormControlLabel({
+                    key:"all",
+                    control:RE.Checkbox({
+                        checked: _.difference(lineNumbersArr, selectedLinesInDialog).length == 0,
+                        onChange: e => lineNumbersArr.forEach(n=>handleCheckboxClick(n)(e))
+                    }),
+                    label:"all"
+                }),
+                ..._.map(lineNumbersArr, lineNumberToCheckbox)
+            ])
         )
     }
 
