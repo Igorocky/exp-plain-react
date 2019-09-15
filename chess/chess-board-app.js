@@ -1043,12 +1043,13 @@ const DistancesExercise = ({cellSize, configName}) => {
 
     const [usedSelectedLines, setUsedSelectedLines] = useState([8])
     const [selectedLinesInDialog, setSelectedLinesInDialog] = useState(null)
+    const [usedSelectedDistances, setUsedSelectedDistances] = useState([1])
+    const [selectedDistancesInDialog, setSelectedDistancesInDialog] = useState(null)
     const [openDialogOnIterationComplete, setOpenDialogOnIterationComplete] = useState(true)
 
-    function generateCardsFromStartPoint({cell, dirHour}) {
+    function generateCardsFromStartPoint({cell, dirHour, possibleDistances}) {
         const possibleCells = createRayH(cell.x, cell.y, dirHour)
         const possibleDirections = [hourToDir(dirHour),hourToDir(invHour(dirHour))]
-        const possibleDistances = ints(1,1)
         return _.chain(product(possibleCells, possibleDirections, possibleDistances))
             .map(([from,dir,dist]) => ({q:{from:from,dir:dir,dist:dist}, a:move(from,dir,dist)}))
             .filter(card => card.a != null)
@@ -1107,12 +1108,24 @@ const DistancesExercise = ({cellSize, configName}) => {
         }
     }
 
-    function lineNumberToStartPoint(lineNumber) {
-        return {cell:createDiagonalByNumber(lineNumber)[0], dirHour:lineNumberToDirH(lineNumber)}
+    const handleDistanceCheckboxClick = dist => event => {
+        if (event.target.checked) {
+            setSelectedDistancesInDialog(selectedDistances => [dist, ...selectedDistances])
+        } else {
+            setSelectedDistancesInDialog(selectedDistances => selectedDistances.filter(n => n!=dist))
+        }
+    }
+
+    function lineNumberToStartPoint(possibleDistances) {
+        return lineNumber => ({
+            cell:createDiagonalByNumber(lineNumber)[0],
+            dirHour:lineNumberToDirH(lineNumber),
+            possibleDistances:possibleDistances
+        })
     }
 
     function lineNumberToCheckbox(lineNumber) {
-        const {cell, dirHour} = lineNumberToStartPoint(lineNumber)
+        const {cell, dirHour} = lineNumberToStartPoint()(lineNumber)
         const label =
             dirHour == 3 ? YY[cell.y].toUpperCase() :
             dirHour == 12 ? XX[cell.x].toUpperCase() :
@@ -1129,25 +1142,55 @@ const DistancesExercise = ({cellSize, configName}) => {
         })
     }
 
+    function distanceToCheckbox(dist) {
+        return RE.FormControlLabel({
+            key:dist,
+            control:RE.Checkbox({
+                checked: selectedDistancesInDialog.includes(dist),
+                onChange: handleDistanceCheckboxClick(dist)
+            }),
+            label:dist
+        })
+    }
+
     function renderCheckboxGroup(lineNumberFrom,lineNumberTo) {
         return RE.Paper({},
             RE.Container.row.left.top({},{}, _.map(ints(lineNumberFrom,lineNumberTo), lineNumberToCheckbox))
         )
     }
 
+    function renderCheckboxDistancesGroup(distFrom,distTo) {
+        return RE.Paper({},
+            RE.Container.row.left.top({},{}, _.map(ints(distFrom,distTo), distanceToCheckbox))
+        )
+    }
+
     function renderDialog({onCardGeneratorChanged}) {
         if (!selectedLinesInDialog) {
-            return RE.Button({onClick: () => setSelectedLinesInDialog(usedSelectedLines),
-                color:"primary"},"Change selection")
+            return RE.Button({
+                onClick: () => {
+                    setSelectedLinesInDialog(usedSelectedLines)
+                    setSelectedDistancesInDialog(usedSelectedDistances)
+                },
+                color:"primary"
+            },"Change selection")
         } else {
             return RE.Paper({},
                 RE.Container.col.top.left({},{style:{margin: "10px"}},
                     RE.Container.row.left.top({},{},
-                        RE.Button({autoFocus: true, onClick: () => {
-                                onCardGeneratorChanged(createCardGenerator(selectedLinesInDialog))
+                        RE.Button({
+                            autoFocus: true,
+                            onClick: () => {
+                                onCardGeneratorChanged(
+                                    createCardGenerator(selectedLinesInDialog, selectedDistancesInDialog)
+                                )
                                 setUsedSelectedLines(selectedLinesInDialog)
+                                setUsedSelectedDistances(selectedDistancesInDialog)
                                 setSelectedLinesInDialog(null)
-                            }, color:"primary", disabled: selectedLinesInDialog.length == 0},"Apply"),
+                            },
+                            color:"primary",
+                            disabled: selectedLinesInDialog.length == 0 || selectedDistancesInDialog.length == 0
+                        },"Apply"),
                         RE.Button({onClick: () => setSelectedLinesInDialog(null),
                             color:"primary" },"Cancel"),
                         RE.Button({onClick: () => setSelectedLinesInDialog([]),
@@ -1160,6 +1203,9 @@ const DistancesExercise = ({cellSize, configName}) => {
                             label:"Open on iteration complete"
                         }),
                     ),
+                    RE.Container.row.left.top({},{},"Distances"),
+                    renderCheckboxDistancesGroup(1,7),
+                    RE.Container.row.left.top({},{},"Lines"),
                     renderCheckboxGroup(39,46),
                     renderCheckboxGroup(31,38),
                     renderCheckboxGroup(2,14),
@@ -1169,20 +1215,20 @@ const DistancesExercise = ({cellSize, configName}) => {
         }
     }
 
-    function generateCards(selectedLines) {
+    function generateCards(selectedLines,selectedDistances) {
         return _.chain(selectedLines)
-            .map(lineNumberToStartPoint)
+            .map(lineNumberToStartPoint(selectedDistances))
             .map(generateCardsFromStartPoint)
             .flatten()
             .value()
     }
 
-    function createCardGenerator(selectedLines) {
-        return () => generateCards(selectedLines)
+    function createCardGenerator(selectedLines,selectedDistances) {
+        return () => generateCards(selectedLines,selectedDistances)
     }
 
     return re(CardsExercise, {
-        cardsGenerator: createCardGenerator(usedSelectedLines),
+        cardsGenerator: createCardGenerator(usedSelectedLines, usedSelectedDistances),
         modeSelectorRenderer: ({onCardGeneratorChanged}) =>
             renderDialog({onCardGeneratorChanged: onCardGeneratorChanged}),
         questionRenderer: ({card,onNext}) => renderCells({
