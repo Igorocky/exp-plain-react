@@ -1061,9 +1061,7 @@ const DistancesExercise = ({cellSize, configName}) => {
 
     function getDistance(dir, question) {
         if (question && dir.dx == question.dir.dx && dir.dy == question.dir.dy) {
-            return RE.span({style:{fontSize: "80px"}},
-                question.dist == 1 ? String.fromCharCode(8226) : question.dist
-            )
+            return RE.span({style:{fontSize: "80px"}}, question.dist)
         } else {
             return ""
         }
@@ -1179,7 +1177,6 @@ const DistancesExercise = ({cellSize, configName}) => {
                 RE.Container.col.top.left({},{style:{margin: "10px"}},
                     RE.Container.row.left.top({},{},
                         RE.Button({
-                            autoFocus: true,
                             onClick: () => {
                                 onCardGeneratorChanged(
                                     createCardGenerator(selectedLinesInDialog, selectedDistancesInDialog)
@@ -1238,7 +1235,12 @@ const DistancesExercise = ({cellSize, configName}) => {
             onNext:onNext
         }),
         answerRenderer: ({card,onNext}) => renderCells({centerCell:card.a, onNext:onNext}),
-        onIterationComplete: () => openDialogOnIterationComplete?setSelectedLinesInDialog(usedSelectedLines):null
+        onIterationComplete: () => {
+            if(openDialogOnIterationComplete) {
+                setSelectedDistancesInDialog(usedSelectedDistances)
+                setSelectedLinesInDialog(usedSelectedLines)
+            }
+        }
     })
 }
 
