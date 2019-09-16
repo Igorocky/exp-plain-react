@@ -7,14 +7,14 @@ function handleCellClicked(cell) {
     apply(volatile.flipImageOnCell, cell)
 }
 
-const TestChessboard = () => {
-    const {flipCell, flipImageOnCell, renderChessboard} = useChessboard({cellSize:72, configName:"config1"})
+const TestChessboard = ({configName}) => {
+    const {flipCell, flipImageOnCell, renderChessboard} = useChessboard({cellSize:72, configName:configName})
     volatile.flipCell = flipCell
     volatile.flipImageOnCell = flipImageOnCell
     return renderChessboard(handleCellClicked)
 }
 
 ReactDOM.render(
-    re(TestChessboard,{}),
+    re(ImgToCoordsExercise,{configName:"config1"}),
     document.getElementById('react-container')
 )
