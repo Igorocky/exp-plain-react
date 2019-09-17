@@ -89,8 +89,8 @@ const ImgToCoordsSettingsDialog = ({settings, onSave, onCancel}) => {
         return RE.FormControl({component:"fieldset"},
             RE.FormLabel({component:"legend"},"Direction"),
             RE.RadioGroup({value:getDirValue(), onChange: handleDirChange, row:true},
-                RE.FormControlLabel({label: "Img->Coords", value: "ic", control: RE.Radio({})}),
-                RE.FormControlLabel({label: "Coords->Img", value: "ci", control: RE.Radio({})}),
+                RE.FormControlLabel({label: getDirectionTitle(true), value: "ic", control: RE.Radio({})}),
+                RE.FormControlLabel({label: getDirectionTitle(false), value: "ci", control: RE.Radio({})}),
             )
         )
     }

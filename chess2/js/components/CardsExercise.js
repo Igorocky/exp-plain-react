@@ -4,8 +4,12 @@ const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterati
     const [phaseQuestion, setPhaseQuestion] = useState(true)
 
     useEffect(() => {
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown)
+        window.addEventListener("click", handlePageClick)
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown)
+            window.removeEventListener("click", handlePageClick)
+        }
     }, [phaseQuestion])
 
     function flipPhase() {
@@ -31,6 +35,10 @@ const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterati
         if (event.keyCode === 13 || event.keyCode === 32) {
             flipPhase()
         }
+    }
+
+    function handlePageClick(event) {
+        flipPhase()
     }
 
 
