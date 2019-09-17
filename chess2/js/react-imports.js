@@ -5,6 +5,7 @@ const useState = React.useState
 const useEffect = React.useEffect
 const useMemo = React.useMemo
 const useCallback = React.useCallback
+const useRef = React.useRef
 const Fragment = React.Fragment
 
 function reFactory(elemType) {
@@ -30,6 +31,7 @@ function gridFactory(direction, justify, alignItems) {
 const RE = {
     div: reFactory('div'),
     Button: reFactory(MaterialUI.Button),
+    ButtonGroup: reFactory(MaterialUI.ButtonGroup),
     CircularProgress: reFactory(MaterialUI.CircularProgress),
     Checkbox: reFactory(MaterialUI.Checkbox),
     FormControlLabel: reFactory(MaterialUI.FormControlLabel),

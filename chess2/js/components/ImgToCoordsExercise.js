@@ -8,6 +8,8 @@ const ImgToCoordsExercise = ({configName}) => {
     const [settings, setSettings] = useState({dirImgToCoords:true})
     const [settingsDialogOpened, setSettingsDialogOpened] = useState(false)
     const [rndElemSelector, setRndElemSelector] = useState(getNewRndElemSelector())
+    const [rndElemSelectorId, setRndElemSelectorId] = useState(1)
+    const flipPhaseRef = useRef(null)
     const cellSize = "150px"
     const divStyle = {width: cellSize, height: cellSize, fontSize: "120px"}
 
@@ -46,6 +48,7 @@ const ImgToCoordsExercise = ({configName}) => {
                     setSettings(newSettings)
                     setSettingsDialogOpened(false)
                     setRndElemSelector(getNewRndElemSelector())
+                    setRndElemSelectorId(prevId => prevId+1)
                 },
                 onCancel: () => setSettingsDialogOpened(false)
             })
@@ -54,11 +57,21 @@ const ImgToCoordsExercise = ({configName}) => {
 
     function renderExercise() {
         return re(CardsExercise, {
+            key:rndElemSelectorId,
             rndElemSelector:rndElemSelector,
             renderQuestion: card => settings.dirImgToCoords?renderImage(card):renderCoords(card),
             renderAnswer: card => settings.dirImgToCoords?renderCoords(card):renderImage(card),
+            flipPhaseRef:flipPhaseRef,
             onIterationComplete: () => setSettingsDialogOpened(true)
         })
+    }
+    
+    function renderNextButton() {
+        return RE.Button({
+                onClick: ()=>apply(flipPhaseRef.current), size:"large",
+                style:{height:"100px", width:"100px"}},
+            "Next"
+        )
     }
 
     function renderExerciseDescription() {
@@ -67,10 +80,11 @@ const ImgToCoordsExercise = ({configName}) => {
         )
     }
 
-    return RE.Container.col.top.center({},{},
+    return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
         renderSettings(),
         renderExerciseDescription(),
-        renderExercise()
+        renderExercise(),
+        renderNextButton()
     )
 }
 

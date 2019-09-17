@@ -1,16 +1,7 @@
 'use strict';
 
-const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterationComplete}) => {
+const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterationComplete, flipPhaseRef}) => {
     const [phaseQuestion, setPhaseQuestion] = useState(true)
-
-    useEffect(() => {
-        window.addEventListener("keydown", handleKeyDown)
-        window.addEventListener("click", handlePageClick)
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown)
-            window.removeEventListener("click", handlePageClick)
-        }
-    }, [phaseQuestion])
 
     function flipPhase() {
         if (!phaseQuestion) {
@@ -21,6 +12,9 @@ const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterati
         }
         setPhaseQuestion(!phaseQuestion)
     }
+    if (flipPhaseRef) {
+        flipPhaseRef.current = flipPhase
+    }
 
     function renderContent() {
         const card = rndElemSelector.getCurrentElem()
@@ -30,17 +24,6 @@ const CardsExercise = ({rndElemSelector, renderQuestion, renderAnswer, onIterati
             return renderAnswer(card)
         }
     }
-
-    function handleKeyDown(event) {
-        if (event.keyCode === 13 || event.keyCode === 32) {
-            flipPhase()
-        }
-    }
-
-    function handlePageClick(event) {
-        flipPhase()
-    }
-
 
     return RE.Container.col.top.center({},{},
         RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
