@@ -4,6 +4,7 @@ const re = React.createElement;
 const useState = React.useState
 const useEffect = React.useEffect
 const useMemo = React.useMemo
+const useCallback = React.useCallback
 const Fragment = React.Fragment
 
 function reFactory(elemType) {

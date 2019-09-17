@@ -37,26 +37,6 @@ function useChessboard({cellSize, configName}) {
         })
     }
 
-    function checkCell(cell) {
-        modCellAttrs(cell,() => ({checked:true}))
-    }
-    function uncheckCell(cell) {
-        modCellAttrs(cell,() => ({checked:false}))
-    }
-    function flipCell(cell) {
-        modCellAttrs(cell,attrs => ({checked:!attrs.checked}))
-    }
-
-    function showImageOnCell(cell) {
-        modCellAttrs(cell,() => ({showImage:true}))
-    }
-    function hideImageOnCell(cell) {
-        modCellAttrs(cell,() => ({showImage:false}))
-    }
-    function flipImageOnCell(cell) {
-        modCellAttrs(cell,attrs => ({showImage:!attrs.showImage}))
-    }
-
     function renderChessboard({onCellClicked}) {
         return re(ChessBoard, {
             cellSize:cellSize,
@@ -67,12 +47,30 @@ function useChessboard({cellSize, configName}) {
     }
 
     return {
-        checkCell: checkCell,
-        uncheckCell: uncheckCell,
-        flipCell: flipCell,
-        showImageOnCell:showImageOnCell,
-        hideImageOnCell:hideImageOnCell,
-        flipImageOnCell:flipImageOnCell,
+        checkCell: useCallback(function (cell) {
+            modCellAttrs(cell, () => ({checked: true}))
+        },[]),
+
+        uncheckCell: useCallback(function (cell) {
+            modCellAttrs(cell, () => ({checked: false}))
+        },[]),
+
+        flipCell: useCallback(function (cell) {
+            modCellAttrs(cell, attrs => ({checked: !attrs.checked}));
+        }, []),
+
+        showImageOnCell:useCallback(function (cell) {
+            modCellAttrs(cell, () => ({showImage: true}))
+        },[]),
+
+        hideImageOnCell:useCallback(function (cell) {
+            modCellAttrs(cell, () => ({showImage: false}))
+        },[]),
+
+        flipImageOnCell:useCallback(function (cell) {
+            modCellAttrs(cell, attrs => ({showImage: !attrs.showImage}))
+        },[]),
+
         renderChessboard: renderChessboard,
     }
 }
