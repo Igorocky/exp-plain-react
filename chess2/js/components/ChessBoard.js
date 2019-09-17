@@ -27,41 +27,37 @@ const ChessBoard = ({cellSize, configName, cellAttrsList, onCellClicked}) => {
 function useChessboard({cellSize, configName}) {
     const [cellAttrsList, setCellAttrsList] = useState([])
 
-    function getCellAttrs(cell) {
-        const attrs = cellAttrsList[cellToAbsNum(cell)]
-        return attrs?attrs:{}
-    }
-
-    function modCellAttr(cell, modifiers) {
+    function modCellAttrs(cell, modifier) {
         setCellAttrsList(cellAttrsList => {
             const result = [...cellAttrsList]
             const cellNum = cellToAbsNum(cell)
-            result[cellNum] = clone(cellAttrsList[cellNum],modifiers)
+            const attrs = cellAttrsList[cellNum]
+            result[cellNum] = clone(attrs,modifier(attrs?attrs:{}))
             return result
         })
     }
 
     function checkCell(cell) {
-        modCellAttr(cell,{checked:true})
+        modCellAttrs(cell,() => ({checked:true}))
     }
     function uncheckCell(cell) {
-        modCellAttr(cell,{checked:false})
+        modCellAttrs(cell,() => ({checked:false}))
     }
     function flipCell(cell) {
-        modCellAttr(cell,{checked:!getCellAttrs(cell).checked})
+        modCellAttrs(cell,attrs => ({checked:!attrs.checked}))
     }
 
     function showImageOnCell(cell) {
-        modCellAttr(cell,{showImage:true})
+        modCellAttrs(cell,() => ({showImage:true}))
     }
     function hideImageOnCell(cell) {
-        modCellAttr(cell,{showImage:false})
+        modCellAttrs(cell,() => ({showImage:false}))
     }
     function flipImageOnCell(cell) {
-        modCellAttr(cell,{showImage:!getCellAttrs(cell).showImage})
+        modCellAttrs(cell,attrs => ({showImage:!attrs.showImage}))
     }
 
-    function renderChessboard(onCellClicked) {
+    function renderChessboard({onCellClicked}) {
         return re(ChessBoard, {
             cellSize:cellSize,
             configName:configName,

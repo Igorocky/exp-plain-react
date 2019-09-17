@@ -11,10 +11,10 @@ const TestChessboard = ({configName}) => {
     const {flipCell, flipImageOnCell, renderChessboard} = useChessboard({cellSize:72, configName:configName})
     volatile.flipCell = flipCell
     volatile.flipImageOnCell = flipImageOnCell
-    return renderChessboard(handleCellClicked)
+    return renderChessboard({onCellClicked:handleCellClicked})
 }
 
 ReactDOM.render(
-    re(ImgToCoordsExercise,{configName:"config1"}),
+    re(TestChessboard,{configName:"config1"}),
     document.getElementById('react-container')
 )
