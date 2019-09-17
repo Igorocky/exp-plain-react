@@ -6,6 +6,7 @@ const useEffect = React.useEffect
 const useMemo = React.useMemo
 const useCallback = React.useCallback
 const useRef = React.useRef
+const useReducer = React.useReducer
 const Fragment = React.Fragment
 
 function reFactory(elemType) {

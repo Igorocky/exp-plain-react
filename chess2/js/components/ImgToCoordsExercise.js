@@ -4,6 +4,14 @@ function getDirectionTitle(dir) {
     return dir?"Img->Coords":"Coords->Img"
 }
 
+function getDirectionShortValue(dir) {
+    return dir?"ic":"ci"
+}
+
+function directionShortValueToBool(dirShortValue) {
+    return "ic" == dirShortValue
+}
+
 const ImgToCoordsExercise = ({configName}) => {
     const [settings, setSettings] = useState({dirImgToCoords:true})
     const [settingsDialogOpened, setSettingsDialogOpened] = useState(false)
@@ -43,7 +51,7 @@ const ImgToCoordsExercise = ({configName}) => {
             return RE.Button({onClick: () => setSettingsDialogOpened(true), color:"primary"},"Settings")
         } else {
             return re(ImgToCoordsSettingsDialog,{
-                settings:settings,
+                initSettings:settings,
                 onSave: newSettings => {
                     setSettings(newSettings)
                     setSettingsDialogOpened(false)
@@ -88,37 +96,39 @@ const ImgToCoordsExercise = ({configName}) => {
     )
 }
 
-const ImgToCoordsSettingsDialog = ({settings, onSave, onCancel}) => {
-    const [dirImgToCoords, setDirImgToCoords] = useState(settings.dirImgToCoords)
+const ImgToCoordsSettingsDialog = ({initSettings, onSave, onCancel}) => {
+    const [settings, dispatchSettingsUpdate] = useReducer(
+        (settings, newValues) => ({...settings, ...newValues}),
+        initSettings
+    )
 
-    function getDirValue() {
-        return dirImgToCoords?"ic":"ci"
-    }
-
-    function handleDirChange(event) {
-        setDirImgToCoords("ic" == event.target.value)
+    function updateSettings(settingName, value) {
+        dispatchSettingsUpdate({[settingName]:value})
     }
 
     function renderDirSelector() {
         return RE.FormControl({component:"fieldset"},
             RE.FormLabel({component:"legend"},"Direction"),
-            RE.RadioGroup({value:getDirValue(), onChange: handleDirChange, row:true},
-                RE.FormControlLabel({label: getDirectionTitle(true), value: "ic", control: RE.Radio({})}),
-                RE.FormControlLabel({label: getDirectionTitle(false), value: "ci", control: RE.Radio({})}),
+            RE.RadioGroup({
+                    row: true,
+                    value: getDirectionShortValue(settings.dirImgToCoords),
+                    onChange: event => updateSettings(
+                        'dirImgToCoords',
+                        directionShortValueToBool(event.target.value)
+                    )
+                },
+                RE.FormControlLabel({label: getDirectionTitle(true), value: getDirectionShortValue(true),
+                    control: RE.Radio({})}),
+                RE.FormControlLabel({label: getDirectionTitle(false), value: getDirectionShortValue(false),
+                    control: RE.Radio({})}),
             )
         )
     }
 
     function renderButtons() {
         return RE.Container.row.left.top({}, {},
-            RE.Button(
-                {onClick: () => onSave({dirImgToCoords: dirImgToCoords}), color: "primary"},
-                "Save"
-            ),
-            RE.Button(
-                {onClick: () => onCancel()},
-                "Cancel"
-            )
+            RE.Button({onClick: () => onSave(settings), color: "primary"}, "Save"),
+            RE.Button({onClick: () => onCancel()}, "Cancel")
         )
     }
 
