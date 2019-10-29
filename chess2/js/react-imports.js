@@ -56,10 +56,12 @@ const RE = {
     Container: {
         row: {
             left: {
-                top: gridFactory(DIRECTION.row, JUSTIFY.flexStart, ALIGN_ITEMS.flexStart)
+                top: gridFactory(DIRECTION.row, JUSTIFY.flexStart, ALIGN_ITEMS.flexStart),
+                center: gridFactory(DIRECTION.row, JUSTIFY.flexStart, ALIGN_ITEMS.center),
             },
             center: {
-                top: gridFactory(DIRECTION.row, JUSTIFY.center, ALIGN_ITEMS.flexStart)
+                top: gridFactory(DIRECTION.row, JUSTIFY.center, ALIGN_ITEMS.flexStart),
+                center: gridFactory(DIRECTION.row, JUSTIFY.center, ALIGN_ITEMS.center),
             },
         },
         col: {
