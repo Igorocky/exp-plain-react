@@ -37,6 +37,17 @@ function useChessboard({cellSize, configName}) {
         })
     }
 
+    function modAllCellAttrs(modifier) {
+        setCellAttrsList(cellAttrsList => {
+            const result = []
+            ints(0,63).forEach(cellNum => {
+                const attrs = cellAttrsList[cellNum]
+                result[cellNum] = clone(attrs,modifier(attrs?attrs:{}))
+            })
+            return result
+        })
+    }
+
     function renderChessboard({onCellClicked}) {
         return re(ChessBoard, {
             cellSize:cellSize,
@@ -53,6 +64,10 @@ function useChessboard({cellSize, configName}) {
 
         uncheckCell: useCallback(function (cell) {
             modCellAttrs(cell, () => ({checked: false}))
+        },[]),
+
+        uncheckAllCells: useCallback(function () {
+            modAllCellAttrs(() => ({checked: false}))
         },[]),
 
         flipCell: useCallback(function (cell) {

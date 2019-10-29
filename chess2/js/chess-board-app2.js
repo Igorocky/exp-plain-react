@@ -11,6 +11,6 @@ const TestChessboard = ({configName}) => {
 
 ReactDOM.render(
     // re(ImgToCoordsExercise,{configName:"config1"}),
-    re(VisionExercise,{configName:"config1"}),
+    re(VisionExerciseRev,{configName:"config1"}),
     document.getElementById('react-container')
 )

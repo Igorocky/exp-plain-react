@@ -1,10 +1,11 @@
 'use strict';
 
-const VisionExercise = ({configName}) => {
+const VisionExerciseRev = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
-    const [question, setQuestion] = useState(rndElemSelector.getCurrentElem())
-    const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
-    const {renderChessboard} = useChessboard({cellSize:72, configName:configName})
+    const {renderChessboard, checkCell, uncheckAllCells} = useChessboard({cellSize:72, configName:configName})
+    const [phaseQuestion, setPhaseQuestion] = useState(true)
+
+    useEffect(() => checkCell(absNumToCell(rndElemSelector.getCurrentElem())), [])
 
     function getNewRndElemSelector() {
         return new RandomElemSelector({
@@ -17,19 +18,19 @@ const VisionExercise = ({configName}) => {
     }
 
     const onCellClicked = cell => {
-        const userAnswerIsCorrect = getCellName(cell) == cellNumToCellName(question)
-        setUserAnswerIsIncorrect(!userAnswerIsCorrect)
-        if (userAnswerIsCorrect) {
+        setPhaseQuestion(!phaseQuestion)
+        if (!phaseQuestion) {
+            uncheckAllCells()
             rndElemSelector.loadNextElem()
-            setQuestion(rndElemSelector.getCurrentElem())
+            checkCell(absNumToCell(rndElemSelector.getCurrentElem()))
         }
     }
 
-    return RE.Container.row.left.center({},{style:{marginRight:"20px"}},
+    return RE.Container.row.left.bottom({},{style:{marginRight:"20px"}},
         renderChessboard({onCellClicked:onCellClicked}),
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            RE.div({style:{color: userAnswerIsIncorrect?"red":"black", fontSize:"100px"}},
-                cellNumToCellName(rndElemSelector.getCurrentElem())
+            RE.div({style:{fontSize:"100px"}},
+                phaseQuestion?"":cellNumToCellName(rndElemSelector.getCurrentElem())
             ),
             RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
             RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
