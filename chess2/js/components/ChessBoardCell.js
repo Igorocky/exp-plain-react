@@ -2,7 +2,7 @@
 
 const ChessBoardCell = React.memo( ({configName, coords, size, checked, showImage, onClick}) => {
 
-    console.log("rendering cell - " + JSON.stringify(coords));
+    // console.log("rendering cell - " + JSON.stringify(coords));
 
     const isWhite = useMemo(() => (cellToAbsNum(coords)+coords.y) % 2 == 1, [coords.x, coords.y])
 

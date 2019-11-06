@@ -2,7 +2,7 @@
 
 const ChessBoard = ({cellSize, configName, cellAttrsList, onCellClicked}) => {
 
-    console.log("render Chessboard");
+    // console.log("render Chessboard");
 
     const cells = useMemo(() => _.map(ints(0,7).reverse(), y => _.map(ints(0,7), x => (
         {coords:{x:x,y:y}, size:cellSize, configName:configName}
