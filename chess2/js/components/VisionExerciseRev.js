@@ -66,6 +66,7 @@ const VisionExerciseRev = ({configName}) => {
             renderModeSelector(),
             RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
             RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
+            RE.Button({onClick:onCellClicked}, "Next")
         ),
     )
 }
