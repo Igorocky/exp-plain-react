@@ -4,9 +4,9 @@ function getNextId() {
     return "global-id-" + (globalIdCounter++)
 }
 
-function appendSvgElem(htmlElemObj) {
-    const node = document.createElementNS("http://www.w3.org/2000/svg", htmlElemObj[0])
-    _.chain(htmlElemObj[1])
+function appendSvgElem(name, attrs) {
+    const node = document.createElementNS("http://www.w3.org/2000/svg", name)
+    _.chain(attrs)
         .pairs()
         .forEach(([k,v]) => {
             if (k == "style") {
@@ -29,6 +29,6 @@ function appendSvgElem(htmlElemObj) {
 }
 
 function line(x1,y1,x2,y2,attrs) {
-    appendSvgElem(["line", {x1:x1, y1:y1, x2:x2, y2:y2, style:{stroke:"#000000"}, ...attrs}])
+    appendSvgElem("line", {x1:x1, y1:y1, x2:x2, y2:y2, style:{stroke:"#000000"}, ...attrs})
 }
 
