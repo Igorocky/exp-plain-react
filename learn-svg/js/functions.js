@@ -1,5 +1,7 @@
 var globalIdCounter = 0
 
+var SVG_PARENT = "svg-a"
+
 const MIN_X = -300
 const MIN_Y = -300
 const MAX_X = 300
@@ -7,6 +9,11 @@ const MAX_Y = 300
 
 function getNextId() {
     return "global-id-" + (globalIdCounter++)
+}
+
+function changeStyleKey(key) {
+    return key == "strokeWidth" ? "stroke-width"
+        : key
 }
 
 function appendSvgElem(name, attrs) {
@@ -19,7 +26,7 @@ function appendSvgElem(name, attrs) {
                     "style",
                     _.chain(v)
                         .pairs()
-                        .map(([sk,sv]) => sk+":"+sv+";")
+                        .map(([sk,sv]) => changeStyleKey(sk)+":"+sv+";")
                         .reduce((m,e) => m+e,"")
                         .value()
                 )
@@ -29,7 +36,7 @@ function appendSvgElem(name, attrs) {
         })
     const id = getNextId()
     node.setAttribute("id",id)
-    document.getElementById("svg-parent").appendChild(node)
+    document.getElementById(SVG_PARENT).appendChild(node)
     return id
 }
 
@@ -48,12 +55,12 @@ function circle(attrs) {
 function coordLines({dx,dy}) {
     dx = dx?dx:50
     dy = dy?dy:50
-    line({x1:0,y1:MIN_Y,x2:0,y2:MAX_Y, style:{stroke:"grey", width:3}})
-    line({x1:MIN_X,y1:0,x2:MAX_X,y2:0, style:{stroke:"grey", width:3}})
+    line({x1:0,y1:MIN_Y,x2:0,y2:MAX_Y, style:{stroke:"grey", strokeWidth:3}})
+    line({x1:MIN_X,y1:0,x2:MAX_X,y2:0, style:{stroke:"grey", strokeWidth:3}})
     for (let x = MIN_X; x <= MAX_X; x+=dx) {
-        line({x1:x,y1:MIN_Y,x2:x,y2:MAX_Y, style:{stroke:"lightgrey", width:1}})
+        line({x1:x,y1:MIN_Y,x2:x,y2:MAX_Y, style:{stroke:"lightgrey", strokeWidth:1}})
     }
     for (let y = MIN_Y; y <= MAX_Y; y+=dy) {
-        line({x1:MIN_X,y1:y,x2:MAX_X,y2:y, style:{stroke:"lightgrey", width:1}})
+        line({x1:MIN_X,y1:y,x2:MAX_X,y2:y, style:{stroke:"lightgrey", strokeWidth:1}})
     }
 }
