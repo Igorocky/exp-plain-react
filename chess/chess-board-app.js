@@ -914,8 +914,8 @@ class KnightMovesExercise extends React.Component {
 
         this.state={
             randomElemSelector: new RandomElemSelector({
-                // elemsGenerator: listOfAllCellsGenerator
-                elemsGenerator: () => arrFromTo(cellsInRandomOrder, 1, 4)
+                elemsGenerator: listOfAllCellsGenerator
+                // elemsGenerator: () => arrFromTo(cellsInRandomOrder, 1, 64)
             }),
             phase: KNIGHT_MOVES_PHASE_IMAGE_SHOWN
         }
