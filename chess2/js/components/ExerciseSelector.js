@@ -4,6 +4,7 @@ const AVAILABLE_EXERCISES = [
     {name:"Img To Coords", component: ImgToCoordsExercise},
     {name:"Vision", component: VisionExercise},
     {name:"Vision Rev", component: VisionExerciseRev},
+    {name:"Knight Path", component: KnightPath},
 ]
 
 const ExerciseSelector = ({}) => {

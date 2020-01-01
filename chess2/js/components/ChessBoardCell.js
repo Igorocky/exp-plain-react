@@ -20,7 +20,7 @@ const ChessBoardCell = React.memo( ({configName, coords, size, checked, showImag
 
     return RE.div({
         className:(checked?"checked-cell":(isWhite?"white-cell":"black-cell")),
-        style: {width: size, height: size},
+        style: {width: size, height: size, outline:(checked&&showImage)?"7px dashed red":""},
         onClick: () => onClick(coords)
     }, getContent())
 

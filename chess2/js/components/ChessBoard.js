@@ -82,6 +82,10 @@ function useChessboard({cellSize, configName}) {
             modCellAttrs(cell, () => ({showImage: false}))
         },[]),
 
+        showImageOnAllCells: useCallback(function () {
+            modAllCellAttrs(() => ({showImage: true}))
+        },[]),
+
         hideImageOnAllCells: useCallback(function () {
             modAllCellAttrs(() => ({showImage: false}))
         },[]),

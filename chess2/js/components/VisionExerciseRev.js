@@ -27,6 +27,7 @@ const VisionExerciseRev = ({configName}) => {
             checkCell(absNumToCell(rndElemSelector.getCurrentElem()))
         } else {
             if (!isCoordsMode) {
+                uncheckAllCells()
                 showImageOnCell(absNumToCell(rndElemSelector.getCurrentElem()))
             }
         }
