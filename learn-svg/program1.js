@@ -1,6 +1,8 @@
-line(30,70,50,-10)
-line(-30,70,50,-10, {style:{stroke:"red"}})
+coordLines({})
 
-rect(120, 150, 25, 70)
+line({x1:30,y1:70,x2:50,y2:-10})
+line({x1:-30,y1:70,x2:50,y2:-10, style:{stroke:"red"}})
 
-circle(-200, -230, 35)
+rect({x:120, y:150, width:25, height:70})
+
+circle({cx:-200, cy:-230, r:35})
