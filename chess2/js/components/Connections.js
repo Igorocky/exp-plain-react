@@ -90,16 +90,26 @@ const Connections = ({configName}) => {
     }
 
     function getDirForLine(cells) {
-        const dx = cells[0].x-cells[1].x
-        const dy = cells[0].y-cells[1].y
-        if (dx == 0) {
-            return 12
-        } else if (dy == 0) {
-            return 3
-        } else if (dx < 0 && dy < 0 || dx > 0 && dy > 0) {
-            return 2
+        if (_.size(cells) == 1) {
+            const x = cells[0].x
+            const y = cells[0].y
+            if (x == 0 && y == 0 || x != 0 && y != 0) {
+                return 4
+            } else {
+                return 2
+            }
         } else {
-            return 4
+            const dx = cells[0].x-cells[1].x
+            const dy = cells[0].y-cells[1].y
+            if (dx == 0) {
+                return 12
+            } else if (dy == 0) {
+                return 3
+            } else if (dx < 0 && dy < 0 || dx > 0 && dy > 0) {
+                return 2
+            } else {
+                return 4
+            }
         }
     }
 
