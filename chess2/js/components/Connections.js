@@ -150,14 +150,14 @@ const Connections = ({configName}) => {
         )
     }
 
-    return RE.Container.row.left.bottom({},{style:{marginRight:"20px"}},
-        renderChessboard({onCellClicked:onCellClicked}),
+    return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderQuestion(),
             RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
             RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
             RE.Button({onClick:onCellClicked}, "Next")
         ),
+        !phaseQuestion?renderChessboard({onCellClicked:onCellClicked}):null,
     )
 }
 
