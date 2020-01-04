@@ -7,7 +7,8 @@ const KnightPath = ({configName}) => {
 
     function getNewRndElemSelector() {
         return new RandomElemSelector({
-            elems: product(ints(0,63),ints(0,63))
+            // elems: product(ints(0,63),ints(0,63))
+            elems: [...product(ints(0,7),ints(56,63)), ...product([0,8,16,24,32,40,48,56],[7,15,23,31,39,47,55,63])]
         })
     }
 
