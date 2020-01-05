@@ -1,5 +1,11 @@
 'use strict';
 
+const cellsInRandomOrder = [15,23,8,61,46,10,7,4,14,57,21,59,26,31,3,37,28,6,32,51,9,62,41,60,39,13,47,58,24,36,1,34,5,50,33,18,40,44,49,48,56,54,63,17,38,19,45,22,52,11,16,2,55,30,25,27,43,35,20,0,53,42,12,29]
+function arrFromTo(arr, from, to) {
+    const res = []
+    ints(from-1,to-1).forEach(i => res.push(arr[i]))
+    return res
+}
 const Neighbors = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({cellSize:72, configName:configName})
@@ -7,7 +13,7 @@ const Neighbors = ({configName}) => {
 
     function getNewRndElemSelector() {
         return new RandomElemSelector({
-            elems: ints(0,63)
+            elems: arrFromTo(cellsInRandomOrder,1,4)
         })
     }
 
