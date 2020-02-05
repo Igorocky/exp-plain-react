@@ -8,6 +8,7 @@ const Connections = ({configName}) => {
     function getNewRndElemSelector() {
         return new RandomElemSelector({
             elems: ints(1,46+64)
+                // .filter(i => getConnectionType(i).typeNum == 7)
         })
     }
 
@@ -113,29 +114,32 @@ const Connections = ({configName}) => {
         }
     }
 
-    function createSymbolByConnectionNumber(connectionNumber) {
+    function getConnectionType(connectionNumber) {
         if (connectionNumber <= 46) {
             const allCells = createCellsByConnectionNumber(connectionNumber)
+            const length = _.size(allCells);
             const dir = getDirForLine(allCells)
             if (dir == 12) {
-                return String.fromCharCode(97+allCells[0].x)
+                return {typeNum: 1, vertical:true, symbol: String.fromCharCode(97+allCells[0].x)}
             } else if (dir == 3) {
-                return new String(allCells[0].y+1)
+                return {typeNum: 2, horizontal:true, symbol: new String(allCells[0].y+1)}
             } else if (dir == 2) {
+                const color = length%2==0?0:1
                 if (allCells[0].y >= allCells[0].x) {
-                    return _.size(allCells) + "/"
+                    return {typeNum: 3, diag:true, length: length, color: color, above: true, symbol: length + "/"}
                 } else {
-                    return "/" + _.size(allCells)
+                    return {typeNum: 4, diag:true, length: length, color: color, above: false, symbol: "/" + length}
                 }
             } else if (dir == 4) {
+                const color = length%2==0?1:0
                 if (allCells[0].x + allCells[0].y <= 7) {
-                    return _.size(allCells) + "\\"
+                    return {typeNum: 5, diag:true, length: length, color: color, above: false, symbol: length + "\\"}
                 } else {
-                    return "\\" + _.size(allCells)
+                    return {typeNum: 6, diag:true, length: length, color: color, above: true, symbol: "\\" + length}
                 }
             }
         } else {
-            return cellNumToCellName(connectionNumber-47)
+            return {typeNum: 7, knight:connectionNumber-47, symbol: cellNumToCellName(connectionNumber-47)}
         }
     }
 
@@ -156,7 +160,7 @@ const Connections = ({configName}) => {
 
     function renderQuestion() {
         return RE.div({style:{fontSize:"100px"}},
-            createSymbolByConnectionNumber(rndElemSelector.getCurrentElem())
+            getConnectionType(rndElemSelector.getCurrentElem()).symbol
         )
     }
 
