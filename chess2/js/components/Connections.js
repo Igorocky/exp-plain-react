@@ -8,7 +8,10 @@ const Connections = ({configName}) => {
     function getNewRndElemSelector() {
         return new RandomElemSelector({
             elems: ints(1,46+64)
-                // .filter(i => getConnectionType(i).typeNum == 7)
+                 // .filter(i => {
+                 //     const type = getConnectionType(i)
+                 //     return type.diagonal && type.color == 0 && type.length % 2 == 0
+                 // })
         })
     }
 
@@ -126,16 +129,16 @@ const Connections = ({configName}) => {
             } else if (dir == 2) {
                 const color = length%2==0?0:1
                 if (allCells[0].y >= allCells[0].x) {
-                    return {typeNum: 3, diag:true, length: length, color: color, above: true, symbol: length + "/"}
+                    return {typeNum: 3, diagonal:true, length: length, color: color, above: true, symbol: length + "/"}
                 } else {
-                    return {typeNum: 4, diag:true, length: length, color: color, above: false, symbol: "/" + length}
+                    return {typeNum: 4, diagonal:true, length: length, color: color, above: false, symbol: "/" + length}
                 }
             } else if (dir == 4) {
                 const color = length%2==0?1:0
                 if (allCells[0].x + allCells[0].y <= 7) {
-                    return {typeNum: 5, diag:true, length: length, color: color, above: false, symbol: length + "\\"}
+                    return {typeNum: 5, diagonal:true, length: length, color: color, above: false, symbol: length + "\\"}
                 } else {
-                    return {typeNum: 6, diag:true, length: length, color: color, above: true, symbol: "\\" + length}
+                    return {typeNum: 6, diagonal:true, length: length, color: color, above: true, symbol: "\\" + length}
                 }
             }
         } else {
