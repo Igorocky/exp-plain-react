@@ -1,5 +1,11 @@
 'use strict';
 
+const LINES = ints(1,46)
+const CIRCLES = ints(LINES[LINES.length-1]+1,LINES[LINES.length-1]+64)
+const ROOKS = ints(CIRCLES[CIRCLES.length-1]+1,CIRCLES[CIRCLES.length-1]+64)
+const BISHOPS = ints(ROOKS[ROOKS.length-1]+1,ROOKS[ROOKS.length-1]+64)
+const FOOTPRINTS = [...LINES,...CIRCLES,...ROOKS,...BISHOPS]
+
 const Connections = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({cellSize:72, configName:configName})
@@ -7,11 +13,19 @@ const Connections = ({configName}) => {
 
     function getNewRndElemSelector() {
         return new RandomElemSelector({
-            elems: ints(1,46+64)
-                 // .filter(i => {
-                 //     const type = getConnectionType(i)
-                 //     return type.diagonal && type.color == 0 && type.length % 2 == 0
-                 // })
+            elems: FOOTPRINTS.filter(i => {
+                const type = getConnectionType(i)
+
+                // return type.diagonal && type.length > 1
+                return type.horizontal || type.vertical
+
+                // const cellNum = type.knight
+                // const cellNum = type.rook
+                // const cellNum = type.bishop
+
+                // return cellNum || cellNum == 0
+                // return (cellNum || cellNum == 0) && [0].includes(cellNum % 12)
+             })
         })
     }
 
@@ -87,9 +101,25 @@ const Connections = ({configName}) => {
             return createRayH(connectionNumber - 31,0, lineNumberToDirH(connectionNumber))
         } else if (connectionNumber <= 46) {
             return createRayH(0,connectionNumber - 39, lineNumberToDirH(connectionNumber))
-        } else {
-            const currCell = absNumToCell(connectionNumber-47);
+        } else if (connectionNumber <= CIRCLES[CIRCLES.length-1]) {
+            const currCell = absNumToCell(connectionNumber-CIRCLES[0]);
             return [currCell, ...knightMovesFrom(currCell)]
+        } else if (connectionNumber <= ROOKS[ROOKS.length-1]) {
+            const currCell = absNumToCell(connectionNumber-ROOKS[0]);
+            return [
+                ...createRayH(currCell.x, currCell.y, 12),
+                ...createRayH(currCell.x, currCell.y, 6),
+                ...createRayH(currCell.x, currCell.y, 3),
+                ...createRayH(currCell.x, currCell.y, 9),
+            ]
+        } else if (connectionNumber <= BISHOPS[BISHOPS.length-1]) {
+            const currCell = absNumToCell(connectionNumber-BISHOPS[0]);
+            return [
+                ...createRayH(currCell.x, currCell.y, 1),
+                ...createRayH(currCell.x, currCell.y, 7),
+                ...createRayH(currCell.x, currCell.y, 4),
+                ...createRayH(currCell.x, currCell.y, 10),
+            ]
         }
     }
 
@@ -118,7 +148,7 @@ const Connections = ({configName}) => {
     }
 
     function getConnectionType(connectionNumber) {
-        if (connectionNumber <= 46) {
+        if (connectionNumber <= LINES[LINES.length-1]) {
             const allCells = createCellsByConnectionNumber(connectionNumber)
             const length = _.size(allCells);
             const dir = getDirForLine(allCells)
@@ -141,8 +171,15 @@ const Connections = ({configName}) => {
                     return {typeNum: 6, diagonal:true, length: length, color: color, above: true, symbol: "\\" + length}
                 }
             }
-        } else {
-            return {typeNum: 7, knight:connectionNumber-47, symbol: cellNumToCellName(connectionNumber-47)}
+        } else if (connectionNumber <= CIRCLES[CIRCLES.length-1]) {
+            const cellNum = connectionNumber-CIRCLES[0]
+            return {typeNum: 7, knight:cellNum, symbol: "o " + cellNumToCellName(cellNum)}
+        } else if (connectionNumber <= ROOKS[ROOKS.length-1]) {
+            const cellNum = connectionNumber-ROOKS[0]
+            return {typeNum: 8, rook:cellNum, symbol: "+ " + cellNumToCellName(cellNum)}
+        } else if (connectionNumber <= BISHOPS[BISHOPS.length-1]) {
+            const cellNum = connectionNumber-BISHOPS[0]
+            return {typeNum: 9, bishop:cellNum, symbol: "x " + cellNumToCellName(cellNum)}
         }
     }
 
