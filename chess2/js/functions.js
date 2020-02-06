@@ -1,5 +1,9 @@
 'use strict';
 
+function hasValue(variable) {
+    return typeof variable !== 'undefined' && variable != null
+}
+
 function ints(start, end) {
     let i = start
     const res = [];

@@ -17,14 +17,14 @@ const Connections = ({configName}) => {
                 const type = getConnectionType(i)
 
                 // return type.diagonal && type.length > 1
-                return type.horizontal || type.vertical
+                // return type.horizontal || type.vertical
+
+                return hasValue(type.knight)
+                // return hasValue(type.rook)
+                // return hasValue(type.bishop)
 
                 // const cellNum = type.knight
-                // const cellNum = type.rook
-                // const cellNum = type.bishop
-
-                // return cellNum || cellNum == 0
-                // return (cellNum || cellNum == 0) && [0].includes(cellNum % 12)
+                // return hasValue(cellNum) && [0].includes(cellNum % 12)
              })
         })
     }
@@ -173,13 +173,13 @@ const Connections = ({configName}) => {
             }
         } else if (connectionNumber <= CIRCLES[CIRCLES.length-1]) {
             const cellNum = connectionNumber-CIRCLES[0]
-            return {typeNum: 7, knight:cellNum, symbol: "o " + cellNumToCellName(cellNum)}
+            return {typeNum: 7, knight:cellNum, symbol: "N " + cellNumToCellName(cellNum)}
         } else if (connectionNumber <= ROOKS[ROOKS.length-1]) {
             const cellNum = connectionNumber-ROOKS[0]
-            return {typeNum: 8, rook:cellNum, symbol: "+ " + cellNumToCellName(cellNum)}
+            return {typeNum: 8, rook:cellNum, symbol: "R " + cellNumToCellName(cellNum)}
         } else if (connectionNumber <= BISHOPS[BISHOPS.length-1]) {
             const cellNum = connectionNumber-BISHOPS[0]
-            return {typeNum: 9, bishop:cellNum, symbol: "x " + cellNumToCellName(cellNum)}
+            return {typeNum: 9, bishop:cellNum, symbol: "B " + cellNumToCellName(cellNum)}
         }
     }
 
