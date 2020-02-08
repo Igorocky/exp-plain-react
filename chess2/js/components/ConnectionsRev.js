@@ -30,10 +30,16 @@ const CONNECTIONS_INFO = ints(0,63).map(i => ({
     n:knightMovesFrom(absNumToCell(i)).map(getCellName)
 }))
 
+const ALL_CONNECTIONS = "ALL_CONNECTIONS"
+const LINE_CONNECTIONS = "LINE_CONNECTIONS"
+const DIAG_CONNECTIONS = "DIAG_CONNECTIONS"
+const KNIGHT_CONNECTIONS = "KNIGHT_CONNECTIONS"
+
 const ConnectionsRev = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [commandStr, setCommandStr] = useState(null)
     const [userInputIsCorrect, setUserInputIsCorrect] = useState(true)
+    const [selectedConnectionType, setSelectedConnectionType] = useState(ALL_CONNECTIONS)
 
     const cellSize = "150px"
     const divStyle = {width: cellSize, height: cellSize, fontSize: "120px",
@@ -79,11 +85,36 @@ const ConnectionsRev = ({configName}) => {
 
     //f4 /6 \\7 e2d3g2h3h5g6e6d5
     function isUserInputCorrect(userInput) {
-        const parts = userInput.split(" ")
         const currCellInfo = CONNECTIONS_INFO[rndElemSelector.getCurrentElem()]
-        return currCellInfo.c == parts[0]
-            && compareArrays(currCellInfo.d, [parts[1], parts[2]])
-            && compareArrays(currCellInfo.n, parts[3].split(/(?<=\d)(?=\w)/))
+
+        if (selectedConnectionType == ALL_CONNECTIONS) {
+            const parts = userInput.split(" ")
+            const linesMatch = currCellInfo.c == parts[0]
+            const diagonalsMatch = compareArrays(currCellInfo.d, [unifyDiag(parts[1]), unifyDiag(parts[2])])
+            const knightsMatch = compareArrays(currCellInfo.n, splitKnightCells(parts[3]))
+            return linesMatch && diagonalsMatch && knightsMatch
+        } else if (selectedConnectionType == LINE_CONNECTIONS) {
+            return  currCellInfo.c == userInput
+        } else if (selectedConnectionType == DIAG_CONNECTIONS) {
+            const parts = userInput.split(" ")
+            return compareArrays(currCellInfo.d, [unifyDiag(parts[0]), unifyDiag(parts[1])])
+        } else if (selectedConnectionType == KNIGHT_CONNECTIONS) {
+            return compareArrays(currCellInfo.n, splitKnightCells(userInput))
+        }
+    }
+
+    function splitKnightCells(knightCells) {
+        return knightCells ? knightCells.split(/(?<=\d)(?=\w)/) : []
+    }
+
+    function unifyDiag(diag) {
+        if (diag == "\\8") {
+            return "8\\"
+        } else if (diag == "/8") {
+            return "8/"
+        } else {
+            return diag
+        }
     }
 
     function compareArrays(expected, actual) {
@@ -98,13 +129,36 @@ const ConnectionsRev = ({configName}) => {
         return true
     }
 
+    function renderConnectionTypeSelector() {
+        return RE.FormControl({component:"fieldset"},
+            RE.FormLabel({component:"legend"},"Connection type"),
+            RE.RadioGroup({
+                    value: selectedConnectionType,
+                    onChange: event => {
+                        setSelectedConnectionType(event.target.value)
+                        setRndElemSelector(getNewRndElemSelector())
+                    }
+                },
+                RE.FormControlLabel({label: "All types", value: ALL_CONNECTIONS,
+                    control: RE.Radio({})}),
+                RE.FormControlLabel({label: "Lines", value: LINE_CONNECTIONS,
+                    control: RE.Radio({})}),
+                RE.FormControlLabel({label: "Diagonals", value: DIAG_CONNECTIONS,
+                    control: RE.Radio({})}),
+                RE.FormControlLabel({label: "Knight", value: KNIGHT_CONNECTIONS,
+                    control: RE.Radio({})}),
+            )
+        )
+    }
+
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderQuestion(),
             RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
             RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
             // JSON.stringify(CONNECTIONS_INFO[rndElemSelector.getCurrentElem()]),
-            renderTextField()
+            renderTextField(),
+            renderConnectionTypeSelector(),
         ),
     )
 }
