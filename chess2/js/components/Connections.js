@@ -16,10 +16,12 @@ const Connections = ({configName}) => {
             elems: FOOTPRINTS.filter(i => {
                 const type = getConnectionType(i)
 
-                // return type.diagonal && type.length > 1
+                return type.diagonal && type.length > 1
                 // return type.horizontal || type.vertical
+                // return type.vertical
+                // return type.horizontal
 
-                return hasValue(type.knight)
+                // return hasValue(type.knight)
                 // return hasValue(type.rook)
                 // return hasValue(type.bishop)
 
