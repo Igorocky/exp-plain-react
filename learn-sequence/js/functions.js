@@ -5,6 +5,8 @@ const ESC_KEY_CODE = 27
 const UP_KEY_CODE = 38
 const DOWN_KEY_CODE = 40
 
+const KEYDOWN_LISTENER_NAME = 'keydown'
+
 function hasValue(variable) {
     return typeof variable !== 'undefined' && variable != null
 }

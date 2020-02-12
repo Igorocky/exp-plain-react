@@ -2,7 +2,32 @@
 
 const LearnSequenceApp = () => {
     const [elemsToLearn, setElemsToLearn] = useState(() => ints(0,400).map(e => ({value:e%10})))
-    const [focusedElemIdx, setFocusedElemIdx] = useState(1)
+    const [focusedElemIdx, setFocusedElemIdx] = useState(0)
+
+    useEffect(() => {
+        document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
+        return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
+    }, [focusedElemIdx])
+
+    function onKeyDown(event) {
+        if (48 <= event.keyCode && event.keyCode <= 57) {
+            const userInputDigit = event.keyCode-48
+            setElemsToLearn(oldElemsToLearn => {
+                return oldElemsToLearn.map((e, i) => {
+                    if (focusedElemIdx == i) {
+                        if (e.value == userInputDigit) {
+                            setFocusedElemIdx(focusedElemIdx + 1)
+                            return {...e, opened: true}
+                        } else {
+                            return {...e, failed: true}
+                        }
+                    } else {
+                        return e
+                    }
+                })
+            })
+        }
+    }
 
     function openCloseElemsInRow(startIdxClicked) {
         setElemsToLearn(oldElemsToLearn => {
@@ -12,7 +37,7 @@ const LearnSequenceApp = () => {
             const atLeastOneElemIsOpened = elemsInRow.reduce((a,e) => a || e.opened, false)
             return oldElemsToLearn.map((e,i) => {
                 if (start <= i && i <= end) {
-                    return {...e, opened:!atLeastOneElemIsOpened}
+                    return {...e, opened:!atLeastOneElemIsOpened, failed:false}
                 } else {
                     return e
                 }
@@ -21,7 +46,7 @@ const LearnSequenceApp = () => {
     }
 
     return RE.Container.row.left.top({},{style:{margin:"30px"}},
-        ints(0,0).map(numberOfHundreds => re(TableOfElems, {
+        ints(0,1).map(numberOfHundreds => re(TableOfElems, {
             numberOfHundreds:numberOfHundreds,
             focusedElemIdx:focusedElemIdx,
             focusedElemBackgroundColor:"orange",

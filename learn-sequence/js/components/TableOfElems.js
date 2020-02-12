@@ -31,8 +31,10 @@ const TableOfElems = ({numberOfHundreds, focusedElemIdx, focusedElemBackgroundCo
             if (isFocused) {
                 return focusedElemBackgroundColor
             } else if (!elems[elemIndex].opened) {
-                return "rgb(220,220,220)"
+                return "rgb(150,150,150)"
             }
+        } else {
+            return "rgb(200,200,200)"
         }
 
         return ""
