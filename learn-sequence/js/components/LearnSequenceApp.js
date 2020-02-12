@@ -1,7 +1,7 @@
 'use strict';
 
 const LearnSequenceApp = () => {
-    const [elemsToLearn, setElemsToLearn] = useState(() => ints(0,400).map(e => ({value:e%10})))
+    const [elemsToLearn, setElemsToLearn] = useState(() => PI_DIGITS.split('').map(e => ({value:parseInt(e)})))
     const [focusedElemIdx, setFocusedElemIdx] = useState(0)
 
     useEffect(() => {
