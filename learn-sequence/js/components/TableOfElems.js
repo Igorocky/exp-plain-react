@@ -2,6 +2,7 @@
 
 const ELEM_CELL_SIZE = 45
 const ELEM_CELL_SIZE_PX = ELEM_CELL_SIZE+"px"
+const ELEM_CELL_FONT_SIZE_PX = ELEM_CELL_SIZE*0.6+"px"
 
 const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRowLeftClicked, elems}) => {
 
@@ -68,7 +69,7 @@ const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRo
                     width:ELEM_CELL_SIZE_PX,
                     height:ELEM_CELL_SIZE_PX,
                     backgroundColor: getBackgroundColorForCell(elemIndex, isCellWithElemToLearn, isFocused),
-                    fontSize: ELEM_CELL_SIZE*0.6+"px",
+                    fontSize: ELEM_CELL_FONT_SIZE_PX,
                 },
                 onClick: () => {
                     if (isCellWithElemToLearn) {
