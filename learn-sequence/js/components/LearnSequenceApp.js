@@ -9,9 +9,19 @@ const LearnSequenceApp = () => {
         return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
     }, [focusedElemIdx])
 
+    function calcUserInputDigit(keyCode) {
+        if (48 <= keyCode && keyCode <= 57) {
+            return keyCode - 48
+        } else if (96 <= keyCode && keyCode <= 105) {
+            return keyCode - 96
+        } else {
+            return null
+        }
+    }
+
     function onKeyDown(event) {
-        if (48 <= event.keyCode && event.keyCode <= 57) {
-            const userInputDigit = event.keyCode-48
+        const userInputDigit = calcUserInputDigit(event.keyCode)
+        if (hasValue(userInputDigit)) {
             setElemsToLearn(oldElemsToLearn => {
                 return oldElemsToLearn.map((e, i) => {
                     if (focusedElemIdx == i) {
