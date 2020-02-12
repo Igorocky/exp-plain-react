@@ -3,8 +3,7 @@
 const ELEM_CELL_SIZE = 25
 const ELEM_CELL_SIZE_PX = ELEM_CELL_SIZE+"px"
 
-const TableOfElems = ({numberOfHundreds, focusedElemIdx, focusedElemBackgroundColor,
-                          onElemLeftClicked, onRowLeftClicked, elems}) => {
+const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRowLeftClicked, elems}) => {
 
     function getElemIndex(rowNum, colNum) {
         return numberOfHundreds*100 + (rowNum-1)*10 + colNum - 1
@@ -29,9 +28,15 @@ const TableOfElems = ({numberOfHundreds, focusedElemIdx, focusedElemBackgroundCo
     function getBackgroundColorForCell(elemIndex, isCellWithElemToLearn, isFocused) {
         if (isCellWithElemToLearn) {
             if (isFocused) {
-                return focusedElemBackgroundColor
+                if (elems[elemIndex].failed) {
+                    return "red"
+                } else {
+                    return "orange"
+                }
             } else if (!elems[elemIndex].opened) {
                 return "rgb(150,150,150)"
+            } else if (elems[elemIndex].opened && elems[elemIndex].failed) {
+                return "pink"
             }
         } else {
             return "rgb(200,200,200)"

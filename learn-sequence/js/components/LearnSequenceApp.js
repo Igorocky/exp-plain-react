@@ -49,7 +49,6 @@ const LearnSequenceApp = () => {
         ints(0,1).map(numberOfHundreds => re(TableOfElems, {
             numberOfHundreds:numberOfHundreds,
             focusedElemIdx:focusedElemIdx,
-            focusedElemBackgroundColor:"orange",
             onElemLeftClicked: idxClicked => setFocusedElemIdx(idxClicked),
             onRowLeftClicked: openCloseElemsInRow,
             elems: elemsToLearn
