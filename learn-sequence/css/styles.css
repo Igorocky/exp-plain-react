@@ -1,0 +1,21 @@
+.table-of-elems-to-learn, .table-of-elems-to-learn td {
+    border-collapse: collapse;
+    border: 1px solid black;
+    padding: 0px;
+}
+
+.cursor-pointer-on-hover:hover {
+    cursor: pointer;
+}
+
+.with-green-outline-on-hover:hover {
+    outline: 3px solid green;
+}
+
+.with-red-outline-on-hover:hover {
+    outline: 3px solid red;
+}
+
+.elem-to-learn-cell {
+    text-align: center;
+}

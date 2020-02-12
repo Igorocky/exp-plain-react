@@ -64,7 +64,7 @@ const ImgToCoordsExercise = ({configName}) => {
     }
 
     function renderExercise() {
-        return re(CardsExercise, {
+        return re(LearnSequenceApp, {
             key:rndElemSelectorId,
             rndElemSelector:rndElemSelector,
             renderQuestion: card => settings.dirImgToCoords?renderImage(card):renderCoords(card),
