@@ -8,12 +8,16 @@
     cursor: pointer;
 }
 
-.with-green-outline-on-hover:hover {
-    outline: 3px solid green;
+.with-yellow-outline-on-hover:hover {
+    outline: 3px solid yellow;
 }
 
 .with-red-outline-on-hover:hover {
     outline: 3px solid red;
+}
+
+.with-blue-outline-on-hover:hover {
+    outline: 3px solid blue;
 }
 
 .elem-to-learn-cell {

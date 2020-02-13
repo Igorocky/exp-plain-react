@@ -22,21 +22,25 @@ const LearnSequenceApp = () => {
     function onKeyDown(event) {
         const userInputDigit = calcUserInputDigit(event.keyCode)
         if (hasValue(userInputDigit)) {
-            setElemsToLearn(oldElemsToLearn => {
-                return oldElemsToLearn.map((e, i) => {
-                    if (focusedElemIdx == i) {
-                        if (e.value == userInputDigit) {
-                            setFocusedElemIdx(focusedElemIdx + 1)
-                            return {...e, opened: true}
-                        } else {
-                            return {...e, failed: true}
-                        }
-                    } else {
-                        return e
-                    }
-                })
-            })
+            onDigitEntered(userInputDigit)
         }
+    }
+
+    function onDigitEntered(userInputDigit) {
+        setElemsToLearn(oldElemsToLearn => {
+            return oldElemsToLearn.map((e, i) => {
+                if (focusedElemIdx == i) {
+                    if (e.value == userInputDigit) {
+                        setFocusedElemIdx(focusedElemIdx + 1)
+                        return {...e, opened: true}
+                    } else {
+                        return {...e, failed: true}
+                    }
+                } else {
+                    return e
+                }
+            })
+        })
     }
 
     function openCloseElemsInRow(startIdxClicked) {
@@ -58,10 +62,11 @@ const LearnSequenceApp = () => {
     return RE.Container.row.left.top({},{style:{margin:"30px"}},
         ints(0,1).map(numberOfHundreds => re(TableOfElems, {
             numberOfHundreds:numberOfHundreds,
+            elems: elemsToLearn,
             focusedElemIdx:focusedElemIdx,
             onElemLeftClicked: idxClicked => setFocusedElemIdx(idxClicked),
             onRowLeftClicked: openCloseElemsInRow,
-            elems: elemsToLearn
+            onDigitLeftClicked: onDigitEntered
         }))
     )
 }

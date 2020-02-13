@@ -4,7 +4,8 @@ const ELEM_CELL_SIZE = 45
 const ELEM_CELL_SIZE_PX = ELEM_CELL_SIZE+"px"
 const ELEM_CELL_FONT_SIZE_PX = ELEM_CELL_SIZE*0.6+"px"
 
-const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRowLeftClicked, elems}) => {
+const TableOfElems = ({numberOfHundreds, elems, focusedElemIdx,
+                          onElemLeftClicked, onRowLeftClicked, onDigitLeftClicked}) => {
 
     function getElemIndex(rowNum, colNum) {
         return numberOfHundreds*100 + (rowNum-1)*10 + colNum - 1
@@ -49,10 +50,13 @@ const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRo
     function getCellStyleClasses(rowNum, colNum, isCellWithElemToLearn) {
         let result = "elem-to-learn-cell"
         if (isCellWithElemToLearn) {
-            result += " with-green-outline-on-hover"
+            result += " with-yellow-outline-on-hover"
             result += " cursor-pointer-on-hover"
         } else if (colNum == 0 && rowNum > 0) {
             result += " with-red-outline-on-hover"
+            result += " cursor-pointer-on-hover"
+        } else if (colNum > 0 && rowNum == 0) {
+            result += " with-blue-outline-on-hover"
             result += " cursor-pointer-on-hover"
         }
 
@@ -76,6 +80,8 @@ const TableOfElems = ({numberOfHundreds, focusedElemIdx, onElemLeftClicked, onRo
                         onElemLeftClicked(elemIndex)
                     } else if (colNum == 0 && rowNum > 0) {
                         onRowLeftClicked(elemIndex+1)
+                    } else if (colNum > 0 && rowNum == 0) {
+                        onDigitLeftClicked(colNum-1)
                     }
                 },
             },
