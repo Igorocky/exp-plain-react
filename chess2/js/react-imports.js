@@ -31,6 +31,7 @@ function gridFactory(direction, justify, alignItems) {
 
 const RE = {
     div: reFactory('div'),
+    svg: reFactory('svg'),
     Button: reFactory(MaterialUI.Button),
     ButtonGroup: reFactory(MaterialUI.ButtonGroup),
     CircularProgress: reFactory(MaterialUI.CircularProgress),
@@ -75,4 +76,12 @@ const RE = {
             }
         }
     },
+}
+
+const SVG = {
+    rect: reFactory('rect'),
+    line: reFactory('line'),
+    image: reFactory('image'),
+    path: reFactory('path'),
+    g: reFactory('g'),
 }

@@ -39,6 +39,7 @@ const ConnectionsRev = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [commandStr, setCommandStr] = useState(null)
     const [userInputIsCorrect, setUserInputIsCorrect] = useState(true)
+    const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [selectedConnectionType, setSelectedConnectionType] = useState(ALL_CONNECTIONS)
 
     const cellSize = "150px"
@@ -46,23 +47,29 @@ const ConnectionsRev = ({configName}) => {
         border:userInputIsCorrect?"none":"5px solid red"}
 
     function getNewRndElemSelector() {
-        return randomElemSelector({allElems: ints(0,63)})
+        return randomElemSelector({
+            allElems: ints(0,63)
+                // .map(i => [i, absNumToCell(i)])
+                // .filter(([i,c]) => c.y == 0)
+                // .map(([i,c]) => i)
+        })
     }
 
     function onKeyDown(event) {
         if (event.keyCode == ENTER_KEY_CODE){
             if (isUserInputCorrect(commandStr)) {
-                next()
+                nextQuestion()
             } else {
                 setUserInputIsCorrect(false)
             }
         }
     }
 
-    function next() {
+    function nextQuestion() {
         setUserInputIsCorrect(true)
         setRndElemSelector(old => old.next())
         setCommandStr(null)
+        setChessboardIsShown(false)
     }
 
     function renderTextField() {
@@ -76,7 +83,7 @@ const ConnectionsRev = ({configName}) => {
                 variant: "outlined",
                 onChange: e => setCommandStr(e.target.value)
             }),
-            RE.Button({onClick: next,}, "Next"),
+            RE.Button({onClick: () => chessboardIsShown?nextQuestion():setChessboardIsShown(true),}, "Next"),
         )
     }
 
@@ -150,6 +157,7 @@ const ConnectionsRev = ({configName}) => {
                     onChange: event => {
                         setSelectedConnectionType(event.target.value)
                         setRndElemSelector(getNewRndElemSelector())
+                        setChessboardIsShown(false)
                     }
                 },
                 RE.FormControlLabel({label: "All types", value: ALL_CONNECTIONS,
@@ -164,6 +172,41 @@ const ConnectionsRev = ({configName}) => {
         )
     }
 
+    function renderChessboard() {
+        let pieces = []
+        let selectedCells = []
+        const currCell = absNumToCell(rndElemSelector.currentElem);
+
+        if (selectedConnectionType == ALL_CONNECTIONS) {
+            pieces = [{cell: currCell, chCode:"Q".charCodeAt(0)}]
+        } else if (selectedConnectionType == LINE_CONNECTIONS) {
+            pieces = [{cell:currCell, chCode:"R".charCodeAt(0)}]
+            selectedCells = [
+                ...createRayH(currCell.x, currCell.y, 12),
+                ...createRayH(currCell.x, currCell.y, 6),
+                ...createRayH(currCell.x, currCell.y, 3),
+                ...createRayH(currCell.x, currCell.y, 9),
+            ]
+        } else if (selectedConnectionType == DIAG_CONNECTIONS) {
+            pieces = [{cell:currCell, chCode:"B".charCodeAt(0)}]
+            selectedCells = [
+                ...createRayH(currCell.x, currCell.y, 1),
+                ...createRayH(currCell.x, currCell.y, 7),
+                ...createRayH(currCell.x, currCell.y, 4),
+                ...createRayH(currCell.x, currCell.y, 10),
+            ]
+        } else if (selectedConnectionType == KNIGHT_CONNECTIONS) {
+            pieces = [{cell:currCell, chCode:"N".charCodeAt(0)}]
+            selectedCells = knightMovesFrom(currCell)
+        }
+
+        return re(SvgChessBoard,{
+            pieces: pieces,
+            selectedCells: selectedCells,
+            showAxes:true,
+        })
+    }
+
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderQuestion(),
@@ -172,6 +215,7 @@ const ConnectionsRev = ({configName}) => {
             renderTextField(),
             renderConnectionTypeSelector(),
         ),
+        chessboardIsShown?renderChessboard():null,
     )
 }
 
