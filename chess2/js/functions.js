@@ -78,8 +78,31 @@ class RandomElemSelector {
     }
 }
 
-function getCellName(cell) {
-    return XX[cell.x] + YY[cell.y]
+function randomElemSelector({allElems, remainingElems, iterationNumber}) {
+    const newState = {allElems: allElems, remainingElems: remainingElems, iterationNumber: iterationNumber}
+    if (!hasValue(remainingElems) || remainingElems.length==0) {
+        newState.remainingElems = [...allElems]
+        newState.iterationNumber = hasValue(iterationNumber) ? iterationNumber + 1 : 1
+    }
+    newState.remainingElems = _.shuffle(newState.remainingElems)
+    newState.currentElem = _.first(newState.remainingElems)
+    newState.remainingElems = _.rest(newState.remainingElems)
+    newState.next = () => randomElemSelector(newState)
+    return newState
+}
+
+
+
+function getCellName({x,y}) {
+    return XX[x] + YY[y]
+}
+
+function isBlackCell({x,y}) {
+    return (x+y)%2 == 0
+}
+
+function isWhiteCell(cell) {
+    return !isBlackCell(cell)
 }
 
 function cellToAbsNum(cell) {

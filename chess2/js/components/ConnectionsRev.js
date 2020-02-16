@@ -46,43 +46,50 @@ const ConnectionsRev = ({configName}) => {
         border:userInputIsCorrect?"none":"5px solid red"}
 
     function getNewRndElemSelector() {
-        return new RandomElemSelector({elems: ints(0,63)})
+        return randomElemSelector({allElems: ints(0,63)})
     }
 
     function onKeyDown(event) {
         if (event.keyCode == ENTER_KEY_CODE){
             if (isUserInputCorrect(commandStr)) {
-                setUserInputIsCorrect(true)
-                rndElemSelector.loadNextElem()
-                setCommandStr(null)
+                next()
             } else {
                 setUserInputIsCorrect(false)
             }
         }
     }
 
+    function next() {
+        setUserInputIsCorrect(true)
+        setRndElemSelector(old => old.next())
+        setCommandStr(null)
+    }
+
     function renderTextField() {
-        return re('input', {
-            type:"text",
-            autoFocus: true,
-            style: {fontSize: "20px", width:"300px"},
-            onKeyDown: onKeyDown,
-            value: commandStr?commandStr:"",
-            variant: "outlined",
-            onChange: e => setCommandStr(e.target.value)
-        })
+        return RE.Container.row.left.center({},{},
+            re('input', {
+                type:"text",
+                autoFocus: true,
+                style: {fontSize: "20px", width:"300px"},
+                onKeyDown: onKeyDown,
+                value: commandStr?commandStr:"",
+                variant: "outlined",
+                onChange: e => setCommandStr(e.target.value)
+            }),
+            RE.Button({onClick: next,}, "Next"),
+        )
     }
 
     function renderQuestion() {
-        const currentCellAbsNumber = rndElemSelector.getCurrentElem();
+        const currentCellAbsNumber = rndElemSelector.currentElem;
         const curCell = absNumToCell(currentCellAbsNumber)
         return RE.div({style: {
             ...divStyle,
                 backgroundImage: "url(chess-board-configs/" + configName
                     + "/" + cellNumToCellName(currentCellAbsNumber) + ".png)",
                 backgroundSize:"cover",
-                webkitTextStrokeWidth: "1px",
-                webkitTextStrokeColor: "cyan",
+                WebkitTextStrokeWidth: "1px",
+                WebkitTextStrokeColor: "cyan",
                 color:(curCell.x+curCell.y)%2==0?"black":"white"
             }}, RE.Container.row.center.top({},{},
             cellNumToCellName(currentCellAbsNumber)
@@ -91,7 +98,7 @@ const ConnectionsRev = ({configName}) => {
 
     //f4 /6 \\7 e2d3g2h3h5g6e6d5
     function isUserInputCorrect(userInput) {
-        const currCellInfo = CONNECTIONS_INFO[rndElemSelector.getCurrentElem()]
+        const currCellInfo = CONNECTIONS_INFO[rndElemSelector.currentElem]
 
         if (selectedConnectionType == ALL_CONNECTIONS) {
             const parts = userInput.split(" ")
@@ -160,9 +167,8 @@ const ConnectionsRev = ({configName}) => {
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderQuestion(),
-            RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
-            RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
-            // JSON.stringify(CONNECTIONS_INFO[rndElemSelector.getCurrentElem()]),
+            RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
+            RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
             renderTextField(),
             renderConnectionTypeSelector(),
         ),
