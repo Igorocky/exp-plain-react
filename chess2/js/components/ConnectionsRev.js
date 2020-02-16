@@ -74,12 +74,18 @@ const ConnectionsRev = ({configName}) => {
     }
 
     function renderQuestion() {
-        return RE.div({style: divStyle}, RE.Container.row.center.top({},{},
-            RE.img({
-                src:"chess-board-configs/" + configName
-                    + "/" + cellNumToCellName(rndElemSelector.getCurrentElem()) + ".png",
-                className: "cell-img"
-            }),
+        const currentCellAbsNumber = rndElemSelector.getCurrentElem();
+        const curCell = absNumToCell(currentCellAbsNumber)
+        return RE.div({style: {
+            ...divStyle,
+                backgroundImage: "url(chess-board-configs/" + configName
+                    + "/" + cellNumToCellName(currentCellAbsNumber) + ".png)",
+                backgroundSize:"cover",
+                webkitTextStrokeWidth: "1px",
+                webkitTextStrokeColor: "cyan",
+                color:(curCell.x+curCell.y)%2==0?"black":"white"
+            }}, RE.Container.row.center.top({},{},
+            cellNumToCellName(currentCellAbsNumber)
         ))
     }
 
