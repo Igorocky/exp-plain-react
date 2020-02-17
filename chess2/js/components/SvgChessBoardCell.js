@@ -1,6 +1,6 @@
 "use strict";
 
-const svgCellSize = 65;
+const svgCellSize = 25;
 function xCoordFromChessboardToSvg(x) {
     return x*svgCellSize
 }
@@ -34,19 +34,21 @@ const SvgChessBoardCell = ({chCode,x,y,selected}) => {
         }
     }
 
+    function getCellColor({x,y,selected}) {
+        if (selected) {
+            return (x + y) % 2 == 0 ? "black" : "white"
+        } else {
+            return "rgb(150,150,150)"
+        }
+    }
+
     const cellXPos = xCoordFromChessboardToSvg(x)
     const cellYPos = yCoordFromChessboardToSvg(y)
     return RE.Fragment({},
         SVG.rect({
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
-            style:{fill:(x + y) % 2 == 0 ? "rgb(181,136,99)" : "rgb(240,217,181)"},
+            style:{fill:getCellColor({x:x,y:y,selected:selected})},
         }),
-        selected
-            ?SVG.rect({
-                x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
-                style:{fill:"green", fillOpacity:"0.4"},
-            })
-            :null,
         chCode
             ?SVG.image({
                 x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,

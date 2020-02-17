@@ -182,6 +182,7 @@ const ConnectionsRev = ({configName}) => {
         } else if (selectedConnectionType == LINE_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"R".charCodeAt(0)}]
             selectedCells = [
+                currCell,
                 ...createRayH(currCell.x, currCell.y, 12),
                 ...createRayH(currCell.x, currCell.y, 6),
                 ...createRayH(currCell.x, currCell.y, 3),
@@ -190,6 +191,7 @@ const ConnectionsRev = ({configName}) => {
         } else if (selectedConnectionType == DIAG_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"B".charCodeAt(0)}]
             selectedCells = [
+                currCell,
                 ...createRayH(currCell.x, currCell.y, 1),
                 ...createRayH(currCell.x, currCell.y, 7),
                 ...createRayH(currCell.x, currCell.y, 4),
@@ -197,7 +199,7 @@ const ConnectionsRev = ({configName}) => {
             ]
         } else if (selectedConnectionType == KNIGHT_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"N".charCodeAt(0)}]
-            selectedCells = knightMovesFrom(currCell)
+            selectedCells = [currCell, ...knightMovesFrom(currCell)]
         }
 
         return re(SvgChessBoard,{

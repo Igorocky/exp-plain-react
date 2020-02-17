@@ -84,22 +84,48 @@ const SvgChessBoard = ({pieces, selectedCells, wPlayer, bPlayer, flipped, arrow,
         }
     }
 
+    function hLine({dist, color, width}) {
+        return SVG.line({
+            x1: xCoordFromChessboardToSvg(0),
+            y1:yCoordFromChessboardToSvg(-1+dist),
+            x2:xCoordFromChessboardToSvg(8),
+            y2:yCoordFromChessboardToSvg(-1+dist),
+            style:{stroke: color, strokeWidth: width?width:1},
+        })
+    }
+
+    function vLine({dist, color, width}) {
+        return SVG.line({
+            x1: xCoordFromChessboardToSvg(dist),
+            y1:yCoordFromChessboardToSvg(-1),
+            x2:xCoordFromChessboardToSvg(dist),
+            y2:yCoordFromChessboardToSvg(7),
+            style:{stroke: color, strokeWidth: width?width:1},
+        })
+    }
+
     function renderAxes() {
+        const axesColor = "blue";
+        const cellEdgeColor = "rgb(200,200,200)";
         return RE.Fragment({},
-            SVG.line({
-                x1:xCoordFromChessboardToSvg(0),
-                y1:xCoordFromChessboardToSvg(4),
-                x2:xCoordFromChessboardToSvg(8),
-                y2:xCoordFromChessboardToSvg(4),
-                style:{stroke:"black",  strokeWidth: 2},
-            }),
-            SVG.line({
-                x1:xCoordFromChessboardToSvg(4),
-                y1:xCoordFromChessboardToSvg(0),
-                x2:xCoordFromChessboardToSvg(4),
-                y2:xCoordFromChessboardToSvg(8),
-                style:{stroke:"black",  strokeWidth: 2},
-            }),
+            hLine({dist: 0, color: cellEdgeColor}),
+            hLine({dist: 1, color: cellEdgeColor}),
+            hLine({dist: 2, color: cellEdgeColor}),
+            hLine({dist: 3, color: cellEdgeColor}),
+            hLine({dist: 4, color: axesColor, width:2}),
+            hLine({dist: 5, color: cellEdgeColor}),
+            hLine({dist: 6, color: cellEdgeColor}),
+            hLine({dist: 7, color: cellEdgeColor}),
+            hLine({dist: 8, color: cellEdgeColor}),
+            vLine({dist: 0, color: cellEdgeColor}),
+            vLine({dist: 1, color: cellEdgeColor}),
+            vLine({dist: 2, color: cellEdgeColor}),
+            vLine({dist: 3, color: cellEdgeColor}),
+            vLine({dist: 4, color: axesColor, width:2}),
+            vLine({dist: 5, color: cellEdgeColor}),
+            vLine({dist: 6, color: cellEdgeColor}),
+            vLine({dist: 7, color: cellEdgeColor}),
+            vLine({dist: 8, color: cellEdgeColor}),
         )
     }
 
