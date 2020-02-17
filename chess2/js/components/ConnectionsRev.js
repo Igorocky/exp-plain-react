@@ -50,7 +50,7 @@ const ConnectionsRev = ({configName}) => {
         return randomElemSelector({
             allElems: ints(0,63)
                 // .map(i => [i, absNumToCell(i)])
-                // .filter(([i,c]) => c.y == 0)
+                // .filter(([i,c]) => c.y == 4)
                 // .map(([i,c]) => i)
         })
     }
@@ -92,12 +92,12 @@ const ConnectionsRev = ({configName}) => {
         const curCell = absNumToCell(currentCellAbsNumber)
         return RE.div({style: {
             ...divStyle,
-                backgroundImage: "url(chess-board-configs/" + configName
-                    + "/" + cellNumToCellName(currentCellAbsNumber) + ".png)",
-                backgroundSize:"cover",
-                WebkitTextStrokeWidth: "1px",
-                WebkitTextStrokeColor: "cyan",
-                color:(curCell.x+curCell.y)%2==0?"black":"white"
+                // backgroundImage: "url(chess-board-configs/" + configName
+                //     + "/" + cellNumToCellName(currentCellAbsNumber) + ".png)",
+                // backgroundSize:"cover",
+                // WebkitTextStrokeWidth: "1px",
+                // WebkitTextStrokeColor: "cyan",
+                // color:(curCell.x+curCell.y)%2==0?"black":"white"
             }}, RE.Container.row.center.top({},{},
             cellNumToCellName(currentCellAbsNumber)
         ))
