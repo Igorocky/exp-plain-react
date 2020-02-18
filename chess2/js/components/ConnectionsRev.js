@@ -180,18 +180,18 @@ const ConnectionsRev = ({configName}) => {
         } else if (selectedConnectionType == LINE_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"R".charCodeAt(0)}]
             selectedCells = [
-                ...createRayH(currCell.x, currCell.y, 12),
-                ...createRayH(currCell.x, currCell.y, 6),
-                ...createRayH(currCell.x, currCell.y, 3),
-                ...createRayH(currCell.x, currCell.y, 9),
+                ...rayHFrom(currCell.x, currCell.y, 12),
+                ...rayHFrom(currCell.x, currCell.y, 6),
+                ...rayHFrom(currCell.x, currCell.y, 3),
+                ...rayHFrom(currCell.x, currCell.y, 9),
             ]
         } else if (selectedConnectionType == DIAG_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"B".charCodeAt(0)}]
             selectedCells = [
-                ...createRayH(currCell.x, currCell.y, 1),
-                ...createRayH(currCell.x, currCell.y, 7),
-                ...createRayH(currCell.x, currCell.y, 4),
-                ...createRayH(currCell.x, currCell.y, 10),
+                ...rayHFrom(currCell.x, currCell.y, 1),
+                ...rayHFrom(currCell.x, currCell.y, 7),
+                ...rayHFrom(currCell.x, currCell.y, 4),
+                ...rayHFrom(currCell.x, currCell.y, 10),
             ]
         } else if (selectedConnectionType == KNIGHT_CONNECTIONS) {
             pieces = [{cell:currCell, chCode:"N".charCodeAt(0)}]

@@ -135,19 +135,25 @@ function isValidCell(cell) {
     return 0 <= cell.x && cell.x < 8 && 0 <= cell.y && cell.y < 8
 }
 
+function createRayH(x, y, dirHour) {
+    const dir = hourToDir(dirHour)
+    return createRay(x,y,dir.dx,dir.dy)
+}
+function rayHFrom(x, y, dirHour) {
+    const dir = hourToDir(dirHour)
+    return rayFrom(x,y,dir.dx,dir.dy)
+}
 function createRay(x, y, dx, dy) {
-    const result = [{x:x,y:y}]
-    let nextCell = {x:result[0].x+dx,y:result[0].y+dy}
+    return [{x:x,y:y}, ...rayFrom(x, y, dx, dy)]
+}
+function rayFrom(x, y, dx, dy) {
+    const result = []
+    let nextCell = {x:x+dx,y:y+dy}
     while (isValidCell(nextCell)) {
         result.push(nextCell)
         nextCell = {x:nextCell.x+dx,y:nextCell.y+dy}
     }
     return result;
-}
-
-function createRayH(x, y, dirHour) {
-    const dir = hourToDir(dirHour)
-    return createRay(x,y,dir.dx,dir.dy)
 }
 
 function hourToDir(hour) {
