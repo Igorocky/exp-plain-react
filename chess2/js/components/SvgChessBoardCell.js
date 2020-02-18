@@ -1,6 +1,8 @@
 "use strict";
 
-const svgCellSize = 25;
+const svgCellSize = 50;
+const svgCellSizeHalf = svgCellSize/2;
+const selectedCellDotR = svgCellSize*0.2;
 function xCoordFromChessboardToSvg(x) {
     return x*svgCellSize
 }
@@ -35,11 +37,7 @@ const SvgChessBoardCell = ({chCode,x,y,selected}) => {
     }
 
     function getCellColor({x,y,selected}) {
-        if (selected) {
-            return (x + y) % 2 == 0 ? "black" : "white"
-        } else {
-            return "rgb(150,150,150)"
-        }
+        return (x + y) % 2 == 0 ? "black" : "white"
     }
 
     const cellXPos = xCoordFromChessboardToSvg(x)
@@ -49,11 +47,14 @@ const SvgChessBoardCell = ({chCode,x,y,selected}) => {
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
             style:{fill:getCellColor({x:x,y:y,selected:selected})},
         }),
-        chCode
-            ?SVG.image({
-                x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
-                href:codeToImg(chCode),
-            }):null
+        chCode? SVG.image({
+            x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
+            href:codeToImg(chCode),
+        }):null,
+        selected? SVG.circle({
+            cx:cellXPos + svgCellSizeHalf, cy:cellYPos+svgCellSizeHalf, r:selectedCellDotR,
+            style:{fill:"grey"},
+        }):null
 
     )
 }

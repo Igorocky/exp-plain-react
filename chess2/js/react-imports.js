@@ -80,6 +80,7 @@ const RE = {
 
 const SVG = {
     rect: reFactory('rect'),
+    circle: reFactory('circle'),
     line: reFactory('line'),
     image: reFactory('image'),
     path: reFactory('path'),

@@ -10,6 +10,9 @@ const VisionExercise = ({configName}) => {
     function getNewRndElemSelector() {
         return new RandomElemSelector({
             elems: ints(0,63)
+                // .map(i => [i,absNumToCell(i)])
+                // .filter(([i,c]) => 0<=c.x && c.x<=3 && 0<=c.y && c.y<=3)
+                // .map(([i,c]) => i)
         })
     }
 
