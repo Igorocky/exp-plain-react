@@ -48,17 +48,19 @@ const VisionExercise = ({configName}) => {
     }
 
     function renderQuestion() {
-        const questionDivSize = "150px";
+        const questionFontSize = 100
+        const questionFontSizePx = questionFontSize + "px"
+        const questionDivSizePx = questionFontSize*1.5 + "px"
         const cellName = cellNumToCellName(rndElemSelector.currentElem);
         if (isCoordsMode) {
             return RE.Container.row.center.center({
                     style:{
                         color: userAnswerIsIncorrect?"red":"black",
                         border: userAnswerIsIncorrect?"solid 3px red":null,
-                        fontSize:"100px",
+                        fontSize:questionFontSizePx,
                         cursor:"pointer",
-                        width: questionDivSize,
-                        height: questionDivSize,
+                        width: questionDivSizePx,
+                        height: questionDivSizePx,
                     },
                     className: "lightgrey-background-on-hover",
                     onClick: () => setChessboardIsShown(true)
