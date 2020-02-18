@@ -1,11 +1,11 @@
 "use strict";
 
-const SvgChessBoard = ({pieces, selectedCells, wPlayer, bPlayer, flipped, arrow, showAxes}) => {
+const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
         x:cellCoordsAfterFlip(flipped,x),
         y:cellCoordsAfterFlip(flipped,y),
-        selected: selectedCells.filter(cell => x==cell.x && y==cell.y).length > 0,
+        withDot: cellsWithDots.filter(cell => x==cell.x && y==cell.y).length > 0,
         chCode: _.first(
             pieces
                 .filter(({cell, chCode}) => x==cell.x && y==cell.y)
@@ -108,22 +108,22 @@ const SvgChessBoard = ({pieces, selectedCells, wPlayer, bPlayer, flipped, arrow,
         const axesColor = "blue";
         const cellEdgeColor = "rgb(200,200,200)";
         return RE.Fragment({},
-            hLine({dist: 0, color: cellEdgeColor}),
-            hLine({dist: 1, color: cellEdgeColor}),
-            hLine({dist: 2, color: cellEdgeColor}),
-            hLine({dist: 3, color: cellEdgeColor}),
-            hLine({dist: 5, color: cellEdgeColor}),
-            hLine({dist: 6, color: cellEdgeColor}),
-            hLine({dist: 7, color: cellEdgeColor}),
-            hLine({dist: 8, color: cellEdgeColor}),
-            vLine({dist: 0, color: cellEdgeColor}),
-            vLine({dist: 1, color: cellEdgeColor}),
-            vLine({dist: 2, color: cellEdgeColor}),
-            vLine({dist: 3, color: cellEdgeColor}),
-            vLine({dist: 5, color: cellEdgeColor}),
-            vLine({dist: 6, color: cellEdgeColor}),
-            vLine({dist: 7, color: cellEdgeColor}),
-            vLine({dist: 8, color: cellEdgeColor}),
+            // hLine({dist: 0, color: cellEdgeColor}),
+            // hLine({dist: 1, color: cellEdgeColor}),
+            // hLine({dist: 2, color: cellEdgeColor}),
+            // hLine({dist: 3, color: cellEdgeColor}),
+            // hLine({dist: 5, color: cellEdgeColor}),
+            // hLine({dist: 6, color: cellEdgeColor}),
+            // hLine({dist: 7, color: cellEdgeColor}),
+            // hLine({dist: 8, color: cellEdgeColor}),
+            // vLine({dist: 0, color: cellEdgeColor}),
+            // vLine({dist: 1, color: cellEdgeColor}),
+            // vLine({dist: 2, color: cellEdgeColor}),
+            // vLine({dist: 3, color: cellEdgeColor}),
+            // vLine({dist: 5, color: cellEdgeColor}),
+            // vLine({dist: 6, color: cellEdgeColor}),
+            // vLine({dist: 7, color: cellEdgeColor}),
+            // vLine({dist: 8, color: cellEdgeColor}),
             hLine({dist: 4, color: axesColor, width:2}),
             vLine({dist: 4, color: axesColor, width:2}),
         )
@@ -140,7 +140,7 @@ const SvgChessBoard = ({pieces, selectedCells, wPlayer, bPlayer, flipped, arrow,
                     chCode:board[x][y].chCode,
                     x:board[x][y].x,
                     y:board[x][y].y,
-                    selected:board[x][y].selected
+                    withDot:board[x][y].withDot
                 }))
             ),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,

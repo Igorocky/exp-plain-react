@@ -26,7 +26,7 @@ const chCodeToImg = {
     ["k".charCodeAt(0)]:"Chess_kdt45",
 }
 
-const SvgChessBoardCell = ({chCode,x,y,selected}) => {
+const SvgChessBoardCell = ({chCode,x,y,withDot}) => {
 
     function codeToImg(code) {
         if (code == 0) {
@@ -36,24 +36,20 @@ const SvgChessBoardCell = ({chCode,x,y,selected}) => {
         }
     }
 
-    function getCellColor({x,y,selected}) {
-        return (x + y) % 2 == 0 ? "black" : "white"
-    }
-
     const cellXPos = xCoordFromChessboardToSvg(x)
     const cellYPos = yCoordFromChessboardToSvg(y)
     return RE.Fragment({},
         SVG.rect({
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
-            style:{fill:getCellColor({x:x,y:y,selected:selected})},
+            style:{fill:(x + y) % 2 == 0 ? "rgb(181,136,99)" : "rgb(240,217,181)"},
         }),
         chCode? SVG.image({
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
             href:codeToImg(chCode),
         }):null,
-        selected? SVG.circle({
+        withDot? SVG.circle({
             cx:cellXPos + svgCellSizeHalf, cy:cellYPos+svgCellSizeHalf, r:selectedCellDotR,
-            style:{fill:"grey"},
+            style:{fill:"green", fillOpacity:"0.5"},
         }):null
 
     )

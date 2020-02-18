@@ -200,8 +200,7 @@ const ConnectionsRev = ({configName}) => {
 
         return re(SvgChessBoard,{
             pieces: pieces,
-            selectedCells: selectedCells,
-            showAxes:true,
+            cellsWithDots: selectedCells,
         })
     }
 
