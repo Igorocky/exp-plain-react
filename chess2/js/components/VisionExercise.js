@@ -7,6 +7,17 @@ const VisionExercise = ({configName}) => {
     const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [isCoordsMode, setIsCoordsMode] = useState(true)
 
+    useEffect(() => {
+        document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
+        return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
+    }, [rndElemSelector])
+
+    function onKeyDown(event) {
+        if (event.keyCode == SPACE_KEY_CODE) {
+            questionAreaClicked()
+        }
+    }
+
     function getNewRndElemSelector() {
         return randomElemSelector({
             allElems: ints(0,63)
@@ -47,6 +58,10 @@ const VisionExercise = ({configName}) => {
         )
     }
 
+    function questionAreaClicked() {
+        setChessboardIsShown(true)
+    }
+
     function renderQuestion() {
         const questionFontSize = 100
         const questionFontSizePx = questionFontSize + "px"
@@ -63,7 +78,7 @@ const VisionExercise = ({configName}) => {
                         height: questionDivSizePx,
                     },
                     className: "lightgrey-background-on-hover",
-                    onClick: () => setChessboardIsShown(true)
+                    onClick: questionAreaClicked
                 }, {},
                 cellName
             )

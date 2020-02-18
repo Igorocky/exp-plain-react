@@ -4,6 +4,9 @@ const ENTER_KEY_CODE = 13
 const ESC_KEY_CODE = 27
 const UP_KEY_CODE = 38
 const DOWN_KEY_CODE = 40
+const SPACE_KEY_CODE = 32
+
+const KEYDOWN_LISTENER_NAME = 'keydown'
 
 const XX = ["a","b","c","d","e","f","g","h"]
 const YY = ["1","2","3","4","5","6","7","8"]
