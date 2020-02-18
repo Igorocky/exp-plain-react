@@ -1,13 +1,14 @@
 "use strict";
 
-const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes}) => {
+const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
+                           onCellLeftClicked}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
         x:cellCoordsAfterFlip(flipped,x),
         y:cellCoordsAfterFlip(flipped,y),
-        withDot: cellsWithDots.filter(cell => x==cell.x && y==cell.y).length > 0,
+        withDot: (cellsWithDots?cellsWithDots:[]).filter(cell => x==cell.x && y==cell.y).length > 0,
         chCode: _.first(
-            pieces
+            (pieces?pieces:[])
                 .filter(({cell, chCode}) => x==cell.x && y==cell.y)
                 .map(({cell, chCode}) => chCode)
         ),
@@ -140,7 +141,8 @@ const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow,
                     chCode:board[x][y].chCode,
                     x:board[x][y].x,
                     y:board[x][y].y,
-                    withDot:board[x][y].withDot
+                    withDot:board[x][y].withDot,
+                    onLeftClicked: () => onCellLeftClicked?onCellLeftClicked({x:x,y:y}):null
                 }))
             ),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,

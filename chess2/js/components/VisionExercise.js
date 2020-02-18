@@ -2,14 +2,14 @@
 
 const VisionExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
-    const [question, setQuestion] = useState(rndElemSelector.getCurrentElem())
+    const [question, setQuestion] = useState(rndElemSelector.currentElem)
     const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
-    const {renderChessboard} = useChessboard({cellSize:72, configName:configName})
+    const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [isCoordsMode, setIsCoordsMode] = useState(true)
 
     function getNewRndElemSelector() {
-        return new RandomElemSelector({
-            elems: ints(0,63)
+        return randomElemSelector({
+            allElems: ints(0,63)
                 // .map(i => [i,absNumToCell(i)])
                 // .filter(([i,c]) => 0<=c.x && c.x<=3 && 0<=c.y && c.y<=3)
                 // .map(([i,c]) => i)
@@ -24,8 +24,12 @@ const VisionExercise = ({configName}) => {
         const userAnswerIsCorrect = getCellName(cell) == cellNumToCellName(question)
         setUserAnswerIsIncorrect(!userAnswerIsCorrect)
         if (userAnswerIsCorrect) {
-            rndElemSelector.loadNextElem()
-            setQuestion(rndElemSelector.getCurrentElem())
+            setRndElemSelector(oldRndElemSelector => {
+                const newRndElemSelector = oldRndElemSelector.next();
+                setQuestion(newRndElemSelector.currentElem)
+                setChessboardIsShown(false)
+                return newRndElemSelector
+            })
         }
     }
 
@@ -44,15 +48,21 @@ const VisionExercise = ({configName}) => {
     }
 
     function renderQuestion() {
-        const cellName = cellNumToCellName(rndElemSelector.getCurrentElem());
+        const questionDivSize = "150px";
+        const cellName = cellNumToCellName(rndElemSelector.currentElem);
         if (isCoordsMode) {
-            return RE.div({
+            return RE.Container.row.center.center({
                     style:{
                         color: userAnswerIsIncorrect?"red":"black",
                         border: userAnswerIsIncorrect?"solid 3px red":null,
-                        fontSize:"100px"
-                    }
-                },
+                        fontSize:"100px",
+                        cursor:"pointer",
+                        width: questionDivSize,
+                        height: questionDivSize,
+                    },
+                    className: "lightgrey-background-on-hover",
+                    onClick: () => setChessboardIsShown(true)
+                }, {},
                 cellName
             )
         } else {
@@ -68,14 +78,20 @@ const VisionExercise = ({configName}) => {
         }
     }
 
-    return RE.Container.row.left.center({},{style:{marginRight:"20px"}},
-        renderChessboard({onCellClicked:onCellClicked}),
+    function renderChessboard() {
+        return re(SvgChessBoard,{
+            onCellLeftClicked: onCellClicked
+        })
+    }
+
+    return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            renderModeSelector(),
+            // renderModeSelector(),
             renderQuestion(),
-            RE.div({}, "Iteration: " + rndElemSelector.getIterationNumber()),
-            RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
+            RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
+            RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
         ),
+        chessboardIsShown?renderChessboard({onCellClicked:onCellClicked}):null,
     )
 }
 

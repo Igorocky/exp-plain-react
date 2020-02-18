@@ -26,7 +26,7 @@ const chCodeToImg = {
     ["k".charCodeAt(0)]:"Chess_kdt45",
 }
 
-const SvgChessBoardCell = ({chCode,x,y,withDot}) => {
+const SvgChessBoardCell = ({chCode,x,y,withDot,onLeftClicked}) => {
 
     function codeToImg(code) {
         if (code == 0) {
@@ -42,6 +42,7 @@ const SvgChessBoardCell = ({chCode,x,y,withDot}) => {
         SVG.rect({
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
             style:{fill:(x + y) % 2 == 0 ? "rgb(181,136,99)" : "rgb(240,217,181)"},
+            onClick: () => onLeftClicked?onLeftClicked():null
         }),
         chCode? SVG.image({
             x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,

@@ -28,3 +28,7 @@
     color: black;
     background-color: deeppink;
 }
+
+.lightgrey-background-on-hover:hover {
+    background-color: lightgray;
+}
