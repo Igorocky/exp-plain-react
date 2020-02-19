@@ -18,12 +18,26 @@ const VisionExercise = ({configName}) => {
         }
     }
 
+    function quadrantFilter(q) {
+        return i => {
+            const c = absNumToCell(i)
+            if (q == 1) {
+                return 0 <= c.x && c.x <= 3 && 0 <= c.y && c.y <= 3
+            } else if (q == 2) {
+                return 4 <= c.x && c.x <= 7 && 0 <= c.y && c.y <= 3
+            } else if (q == 3) {
+                return 0 <= c.x && c.x <= 3 && 4 <= c.y && c.y <= 7
+            } else if (q == 4) {
+                return 4 <= c.x && c.x <= 7 && 4 <= c.y && c.y <= 7
+            }
+        }
+    }
+
     function getNewRndElemSelector() {
         return randomElemSelector({
             allElems: ints(0,63)
-                // .map(i => [i,absNumToCell(i)])
-                // .filter(([i,c]) => 0<=c.x && c.x<=3 && 0<=c.y && c.y<=3)
-                // .map(([i,c]) => i)
+                // .filter(quadrantFilter(1))
+                // .filter(isWhiteCellI)
         })
     }
 

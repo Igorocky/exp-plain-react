@@ -108,6 +108,14 @@ function isWhiteCell(cell) {
     return !isBlackCell(cell)
 }
 
+function isBlackCellI(i) {
+    return isBlackCell(absNumToCell(i))
+}
+
+function isWhiteCellI(i) {
+    return isWhiteCell(absNumToCell(i))
+}
+
 function cellToAbsNum(cell) {
     return cell.y*8 + cell.x
 }
