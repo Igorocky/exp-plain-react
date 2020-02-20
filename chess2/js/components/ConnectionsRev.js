@@ -42,8 +42,11 @@ const ConnectionsRev = ({configName}) => {
     const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [selectedConnectionType, setSelectedConnectionType] = useState(ALL_CONNECTIONS)
 
-    const cellSize = "150px"
-    const divStyle = {width: cellSize, height: cellSize, fontSize: "120px",
+    const questionDivSize = 150
+    const questionDivSizePx = questionDivSize+"px"
+    const questionFontSize = questionDivSize*120/150
+    const questionFontSizePx = questionFontSize+"px"
+    const divStyle = {width: questionDivSizePx, height: questionDivSizePx, fontSize: questionFontSizePx,
         border:userInputIsCorrect?"none":"5px solid red"}
 
     function getNewRndElemSelector() {
