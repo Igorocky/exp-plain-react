@@ -49,7 +49,7 @@ function cellsOfSameType(blackBase) {
 
 const LEFT_FOOT = cellsOfSameType(A1)
 const RIGHT_FOOT = cellsOfSameType(C1)
-const BODY = cellsOfSameType(B2)
+const STOMACH = cellsOfSameType(B2)
 const LEFT_SHOULDER = cellsOfSameType(A3)
 const RIGHT_SHOULDER = cellsOfSameType(C3)
 const HEAD = cellsOfSameType(B4)
