@@ -72,8 +72,8 @@ const ConnectionsRev = ({configName}) => {
 
     function getNewRndElemSelector() {
         return randomElemSelector({
-            // allElems: BODY.map(cellToAbsNum)
-            allElems: ints(0,63)
+            allElems: [LEFT_FOOT].flatMap(arr => arr.map(cellToAbsNum))
+            // allElems: ints(0,63)
                 // .filter(i => i%12 == 0)
         })
     }
