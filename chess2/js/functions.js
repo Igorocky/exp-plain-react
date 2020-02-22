@@ -293,3 +293,52 @@ function getConnectionType(connectionNumber) {
 function cellNumToCellName(cellNum) {
     return getCellName(absNumToCell(cellNum))
 }
+
+function cellsOfSameType(blackBase) {
+    function rightCorrespondence({x,y}) {
+        return {x:x+4, y:y}
+    }
+    function centerSymmetry({x,y}) {
+        return {x: 7-x, y: 7-y}
+    }
+    const whiteBase = {x:3-blackBase.x, y:blackBase.y}
+    return [blackBase, whiteBase]
+        .flatMap(c => [c, rightCorrespondence(c), centerSymmetry(c), centerSymmetry(rightCorrespondence(c))])
+}
+
+const LEFT_FOOT = cellsOfSameType(A1)
+const RIGHT_FOOT = cellsOfSameType(C1)
+const STOMACH = cellsOfSameType(B2)
+const LEFT_SHOULDER = cellsOfSameType(A3)
+const RIGHT_SHOULDER = cellsOfSameType(C3)
+const HEAD = cellsOfSameType(B4)
+const HAND = cellsOfSameType(D2)
+const SHOVEL = cellsOfSameType(D4)
+
+const CELL_SHAPES = ints(0,7).map(i => [
+    LEFT_FOOT[i],
+    RIGHT_FOOT[i],
+    STOMACH[i],
+    LEFT_SHOULDER[i],
+    RIGHT_SHOULDER[i],
+    HEAD[i],
+    HAND[i],
+    SHOVEL[i],
+])
+
+function getCellsOfSameShape(cell) {
+    for (let i = 0; i < 8; i++) {
+        if (arrayOfCellsContainsCell(CELL_SHAPES[i], cell)) {
+            return CELL_SHAPES[i].map(({x,y}) => ({x:x,y:y}))
+        }
+    }
+}
+
+function arrayOfCellsContainsCell(arr, cell) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].x == cell.x && arr[i].y == cell.y) {
+            return true
+        }
+    }
+    return false
+}

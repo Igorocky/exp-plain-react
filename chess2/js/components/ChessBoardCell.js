@@ -11,7 +11,8 @@ const ChessBoardCell = React.memo( ({configName, coords, size, checked, showImag
             const cellName = getCellName(coords)
             return RE.img( {
                 src:"chess-board-configs/" + configName + "/" + cellName + ".png",
-                className: "cell-img"
+                className: "cell-img",
+                style: {transform: coords.y>3?"rotate(180deg)":""}
             })
         } else {
             return ""

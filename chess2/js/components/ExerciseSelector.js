@@ -7,6 +7,7 @@ const AVAILABLE_EXERCISES = [
     {name:"Knight Path", component: KnightPath},
     {name:"Connections", component: Connections},
     {name:"ConnectionsRev", component: ConnectionsRev},
+    {name:"SpaceExercise", component: SpaceExercise},
     {name:"Neighbors", component: Neighbors},
 ]
 

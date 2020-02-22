@@ -35,27 +35,6 @@ const LINE_CONNECTIONS = "LINE_CONNECTIONS"
 const DIAG_CONNECTIONS = "DIAG_CONNECTIONS"
 const KNIGHT_CONNECTIONS = "KNIGHT_CONNECTIONS"
 
-function cellsOfSameType(blackBase) {
-    function rightCorrespondence({x,y}) {
-        return {x:x+4, y:y}
-    }
-    function centerSymmetry({x,y}) {
-        return {x: 7-x, y: 7-y}
-    }
-    const whiteBase = {x:3-blackBase.x, y:blackBase.y}
-    return [blackBase, whiteBase]
-        .flatMap(c => [c, rightCorrespondence(c), centerSymmetry(c), centerSymmetry(rightCorrespondence(c))])
-}
-
-const LEFT_FOOT = cellsOfSameType(A1)
-const RIGHT_FOOT = cellsOfSameType(C1)
-const STOMACH = cellsOfSameType(B2)
-const LEFT_SHOULDER = cellsOfSameType(A3)
-const RIGHT_SHOULDER = cellsOfSameType(C3)
-const HEAD = cellsOfSameType(B4)
-const HAND = cellsOfSameType(D2)
-const SHOVEL = cellsOfSameType(D4)
-
 const ConnectionsRev = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [commandStr, setCommandStr] = useState(null)
@@ -112,15 +91,8 @@ const ConnectionsRev = ({configName}) => {
 
     function renderQuestion() {
         const currentCellAbsNumber = rndElemSelector.currentElem;
-        const curCell = absNumToCell(currentCellAbsNumber)
         return RE.div({style: {
             ...divStyle,
-                // backgroundImage: "url(chess-board-configs/" + configName
-                //     + "/" + cellNumToCellName(currentCellAbsNumber) + ".png)",
-                // backgroundSize:"cover",
-                // WebkitTextStrokeWidth: "1px",
-                // WebkitTextStrokeColor: "cyan",
-                // color:(curCell.x+curCell.y)%2==0?"black":"white"
             }}, RE.Container.row.center.top({},{},
             cellNumToCellName(currentCellAbsNumber)
         ))
