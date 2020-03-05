@@ -15,6 +15,10 @@ function hasValue(variable) {
     return typeof variable !== 'undefined' && variable != null
 }
 
+function randomInt(min, max) {
+    return min + Math.floor(Math.random()*((max-min)+1))
+}
+
 function ints(start, end) {
     let i = start
     const res = [];

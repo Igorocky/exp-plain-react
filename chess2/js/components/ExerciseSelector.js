@@ -9,6 +9,7 @@ const AVAILABLE_EXERCISES = [
     {name:"ConnectionsRev", component: ConnectionsRev},
     {name:"SpaceExercise", component: SpaceExercise},
     {name:"Neighbors", component: Neighbors},
+    {name:"MovementsExercise", component: MovementsExercise},
 ]
 
 const ExerciseSelector = ({}) => {
