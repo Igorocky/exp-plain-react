@@ -142,7 +142,7 @@ const MovementsExercise = ({configName}) => {
 
     function nextClicked() {
         let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
-        curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
+        // curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
         const {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts} = nextState(curState)
         setCurCell(nextCell)
         setCounts(newCounts)
