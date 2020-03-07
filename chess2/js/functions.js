@@ -182,20 +182,20 @@ function hourToDir(hour) {
     if (hour == 4 || hour == 5) return {dx:1, dy:-1}
 }
 
-function moveToCellRelatively(baseCell,dx,dy) {
-    return {x:baseCell.x+dx, y:baseCell.y+dy}
+function moveToCellRelatively(baseCell,dir) {
+    return {x:baseCell.x+dir.dx, y:baseCell.y+dir.dy}
 }
 
 function knightMovesFrom(cell) {
     return _.filter([
-        moveToCellRelatively(cell,-2,-1),
-        moveToCellRelatively(cell,-2,+1),
-        moveToCellRelatively(cell,-1,+2),
-        moveToCellRelatively(cell,+1,+2),
-        moveToCellRelatively(cell,+2,+1),
-        moveToCellRelatively(cell,+2,-1),
-        moveToCellRelatively(cell,+1,-2),
-        moveToCellRelatively(cell,-1,-2)
+        moveToCellRelatively(cell,{dx:-2,dy:-1}),
+        moveToCellRelatively(cell,{dx:-2,dy:+1}),
+        moveToCellRelatively(cell,{dx:-1,dy:+2}),
+        moveToCellRelatively(cell,{dx:+1,dy:+2}),
+        moveToCellRelatively(cell,{dx:+2,dy:+1}),
+        moveToCellRelatively(cell,{dx:+2,dy:-1}),
+        moveToCellRelatively(cell,{dx:+1,dy:-2}),
+        moveToCellRelatively(cell,{dx:-1,dy:-2})
     ], c => isValidCell(c))
 }
 
@@ -345,4 +345,20 @@ function arrayOfCellsContainsCell(arr, cell) {
         }
     }
     return false
+}
+
+function equalCells(c1, c2) {
+    return c1.x === c2.x && c1.y === c2.y
+}
+
+function arrMin(arr) {
+    return Math.min.apply(Math, arr)
+}
+
+function arrMax(arr) {
+    return Math.max.apply(Math, arr)
+}
+
+function arrSum(arr) {
+    return arr.reduce((a,b) => a+b)
 }
