@@ -72,11 +72,12 @@ const MovementsExercise = ({configName}) => {
         return calcDir(curCell, cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)])
     }
 
-    function nextValidDirConnections(curCell, conCounts) {
+    function nextValidDirConnections({prevCell, curCell, conCounts}) {
         const possibleNextCons = [12,3,6,9,2,4,8,10]
             .map(h => hourToDir(h))
             .map(d => (moveToCellRelatively(curCell, d)))
             .filter(isValidCell)
+            .filter(c => !equalCells(c, prevCell))
             .map(target => ({con:{from:curCell, to:target}, dir:calcDir(curCell, target)}))
             .map(({con, dir}) => ({con:con, dir:dir, cnt:conCounts[idxOfCon(con.from, dir)]}))
         const minCnt = arrMin(possibleNextCons.map(e => e.cnt))
@@ -132,10 +133,11 @@ const MovementsExercise = ({configName}) => {
     }
 
     function nextState({curCell, curDir, counts, conCounts}) {
+        const prevCell = curCell
         const nextCell = moveToCellRelatively(curCell, curDir)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
         // const nextDir = nextValidDirOnlyNeighbors(nextCell, newCounts);
-        const nextDir = nextValidDirConnections(nextCell, conCounts);
+        const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts});
         const newConCounts = inc(conCounts, idxOfCon(nextCell, nextDir));
         return {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts}
     }
