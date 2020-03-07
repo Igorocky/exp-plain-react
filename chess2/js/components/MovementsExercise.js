@@ -39,6 +39,21 @@ const MovementsExercise = ({configName}) => {
         const cellsWithMinDist = cellsWithMinCnt.filter(e => e.dst == minDist).map(e => e.cell)
         const randomCellWithMinDist = cellsWithMinDist[randomInt(0, cellsWithMinDist.length-1)]
         const target = randomCellWithMinDist
+        return calcDir(curCell, target)
+    }
+
+    function nextValidDirOnlyNeighbors(curCell, counts) {
+        const possibleNextCells = [12,3,6,9,2,4,8,10]
+            .map(h => hourToDir(h))
+            .map(d => ({x:curCell.x+d.dx, y:curCell.y+d.dy}))
+            .filter(c => isValidCell(c))
+            .map(c => ({cell:c, cnt:counts[cellToAbsNum(c)]}))
+        const minCnt = Math.min.apply(Math, possibleNextCells.map(e => e.cnt))
+        const cellsWithMinCnt = possibleNextCells.filter(e => e.cnt == minCnt).map(e => e.cell)
+        return calcDir(curCell, cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)])
+    }
+
+    function calcDir(curCell, target) {
         let resultDir
         if (target.x < curCell.x) {
             if (target.y < curCell.y) {
@@ -90,7 +105,7 @@ const MovementsExercise = ({configName}) => {
         setCurCell(nextCell)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
         setCounts(newCounts)
-        setCurDir(nextValidDir(nextCell, newCounts))
+        setCurDir(nextValidDirOnlyNeighbors(nextCell, newCounts))
     }
 
     return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
