@@ -125,8 +125,14 @@ const MovementsExercise = ({configName}) => {
         return resultDir
     }
 
-    function renderCell(content) {
-        return RE.td({style: tdStyle}, RE.Container.row.center.top({},{}, content))
+    function renderCell({dir, nextCellDir}) {
+        return RE.td({
+                style: {...tdStyle, backgroundColor: getBgColorForBorderCell({dir:dir, nextCellDir:nextCellDir})}
+            },
+            RE.Container.row.center.top({},{},
+                getContentForBorderCell({dir:dir, nextCellDir:nextCellDir})
+            )
+        )
     }
 
     function renderImage(cell) {
@@ -136,11 +142,20 @@ const MovementsExercise = ({configName}) => {
         })
     }
 
-    function getContentForBorderCell(dir, nextCellDir) {
+    function getContentForBorderCell({dir, nextCellDir}) {
         if (nextCellDir && dir.dx == nextCellDir.dx && dir.dy == nextCellDir.dy) {
             return RE.span({style:{fontSize: "80px"}}, MARKER)
         } else {
             return ""
+        }
+    }
+
+    function getBgColorForBorderCell({dir, nextCellDir}) {
+        if (nextCellDir && dir.dx == nextCellDir.dx && dir.dy == nextCellDir.dy) {
+            // return "cyan"
+            return "white"
+        } else {
+            return "white"
         }
     }
 
@@ -171,19 +186,19 @@ const MovementsExercise = ({configName}) => {
     return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
         RE.table({className: "chessboard"}, RE.tbody({},
             RE.tr({},
-                renderCell(getContentForBorderCell({dx:-1,dy:1}, curDir)),
-                renderCell(getContentForBorderCell({dx:0,dy:1}, curDir)),
-                renderCell(getContentForBorderCell({dx:1,dy:1}, curDir)),
+                renderCell({dir:{dx:-1,dy:1}, nextCellDir:curDir}),
+                renderCell({dir:{dx:0,dy:1}, nextCellDir:curDir}),
+                renderCell({dir:{dx:1,dy:1}, nextCellDir:curDir}),
             ),
             RE.tr({},
-                renderCell(getContentForBorderCell({dx:-1,dy:0}, curDir)),
+                renderCell({dir:{dx:-1,dy:0}, nextCellDir:curDir}),
                 RE.td({style: tdStyle}, renderImage(curCell)),
-                renderCell(getContentForBorderCell({dx:1,dy:0}, curDir)),
+                renderCell({dir:{dx:1,dy:0}, nextCellDir:curDir}),
             ),
             RE.tr({},
-                renderCell(getContentForBorderCell({dx:-1,dy:-1}, curDir)),
-                renderCell(getContentForBorderCell({dx:0,dy:-1}, curDir)),
-                renderCell(getContentForBorderCell({dx:1,dy:-1}, curDir)),
+                renderCell({dir:{dx:-1,dy:-1}, nextCellDir:curDir}),
+                renderCell({dir:{dx:0,dy:-1}, nextCellDir:curDir}),
+                renderCell({dir:{dx:1,dy:-1}, nextCellDir:curDir}),
             ),
         )),
         RE.span({},
