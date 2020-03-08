@@ -2,7 +2,10 @@
 
 const MOVEMENTS_STAGE_QUESTION = "MOVEMENTS_STAGE_QUESTION"
 const MOVEMENTS_STAGE_ANSWER = "MOVEMENTS_STAGE_ANSWER"
+
 const MARKER = String.fromCharCode(8226)
+const PAUSE_SYMBOL = String.fromCharCode(10074)+String.fromCharCode(10074)
+const RUN_SYMBOL = String.fromCharCode(9658)
 
 const MovementsExercise = ({configName}) => {
     const [curCell, setCurCell] = useState(() => ({x:randomInt(0,7),y:randomInt(0,7)}))
@@ -20,6 +23,20 @@ const MovementsExercise = ({configName}) => {
         inc(new Array(absNumToCon.length).fill(0), idxOfCon(curCell, curDir))
     )
     const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
+    const [autoNextCnt, setAutoNextCnt] = useState(null)
+    const [autoNextDelay, setAutoNextDelay] = useState(1500)
+
+    useEffect(() => {
+        if (autoNextCnt) {
+            setTimeout(
+                () => {
+                    nextClicked()
+                    setAutoNextCnt(c => c?c+1:null)
+                },
+                autoNextDelay
+            )
+        }
+    }, [autoNextCnt])
 
     const cellSize = "110px"
     const tdStyle = {width: cellSize, height: cellSize}
@@ -209,6 +226,15 @@ const MovementsExercise = ({configName}) => {
         }
     }
 
+    function startPauseClicked() {
+        if (!autoNextCnt) {
+            setAutoNextDelay(prompt("Repeat delay", autoNextDelay))
+            setAutoNextCnt(1)
+        } else {
+            setAutoNextCnt(null)
+        }
+    }
+
     function renderStat(counts) {
         return "min: " + arrMin(counts) + ", max: " + arrMax(counts) + ", all: " + arrSum(counts)
     }
@@ -239,6 +265,11 @@ const MovementsExercise = ({configName}) => {
             "Cells [ " + renderStat(counts) + "]"
             + ", Cons [ " + renderStat(conCounts) + "]"
         ),
-        RE.Button({onClick:nextClicked, style:{height:"100px", width:"100px"}}, "Next"),
+        RE.Container.row.center.top({},{style:{margin:"10px"}},
+            RE.Button({onClick:startPauseClicked, style:{height:"100px", width:"100px"}},
+                autoNextCnt?PAUSE_SYMBOL:RUN_SYMBOL
+            ),
+            RE.Button({onClick:nextClicked, style:{height:"100px", width:"100px"}}, "Next"),
+        )
     )
 }
