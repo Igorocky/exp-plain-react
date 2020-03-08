@@ -195,7 +195,7 @@ const MovementsExercise = ({configName}) => {
     }
 
     function nextClicked() {
-        if (stage == MOVEMENTS_STAGE_QUESTION) {
+        if (stage == MOVEMENTS_STAGE_QUESTION && false) {
             setStage(MOVEMENTS_STAGE_ANSWER)
         } else {
             let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
