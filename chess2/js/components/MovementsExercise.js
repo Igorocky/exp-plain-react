@@ -1,5 +1,9 @@
 "use strict";
 
+const MOVEMENTS_STAGE_QUESTION = "MOVEMENTS_STAGE_QUESTION"
+const MOVEMENTS_STAGE_ANSWER = "MOVEMENTS_STAGE_ANSWER"
+const MARKER = String.fromCharCode(8226)
+
 const MovementsExercise = ({configName}) => {
     const [curCell, setCurCell] = useState(() => ({x:randomInt(0,7),y:randomInt(0,7)}))
     const [curDir, setCurDir] = useState(() => nextValidRandomDir(curCell))
@@ -15,10 +19,10 @@ const MovementsExercise = ({configName}) => {
     const [conCounts, setConCounts] = useState(() =>
         inc(new Array(absNumToCon.length).fill(0), idxOfCon(curCell, curDir))
     )
+    const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
 
     const cellSize = "110px"
     const tdStyle = {width: cellSize, height: cellSize}
-    const MARKER = String.fromCharCode(8226)
 
     function idxOfCon(curCell, curDir) {
         const from = curCell
@@ -125,33 +129,54 @@ const MovementsExercise = ({configName}) => {
         return resultDir
     }
 
-    function renderCell({dir, nextCellDir}) {
+    function renderCell({dir}) {
         return RE.td({
-                style: {...tdStyle, backgroundColor: getBgColorForBorderCell({dir:dir, nextCellDir:nextCellDir})}
+                style: {...tdStyle, backgroundColor: getBgColorForBorderCell({dir:dir})}
             },
             RE.Container.row.center.top({},{},
-                getContentForBorderCell({dir:dir, nextCellDir:nextCellDir})
+                getContentForBorderCell({dir:dir})
             )
         )
     }
 
     function renderImage(cell) {
-        return RE.img({
-            src:"chess-board-configs/" + configName + "/" + getCellName(cell) + ".png",
-            className: "cell-img"
-        })
-    }
-
-    function getContentForBorderCell({dir, nextCellDir}) {
-        if (nextCellDir && dir.dx == nextCellDir.dx && dir.dy == nextCellDir.dy) {
-            return RE.span({style:{fontSize: "80px"}}, MARKER)
+        if (isValidCell(cell)) {
+            return RE.img({
+                src:"chess-board-configs/" + configName + "/" + getCellName(cell) + ".png",
+                className: "cell-img"
+            })
         } else {
             return ""
         }
     }
 
-    function getBgColorForBorderCell({dir, nextCellDir}) {
-        if (nextCellDir && dir.dx == nextCellDir.dx && dir.dy == nextCellDir.dy) {
+    function isSameDir(dir1, dir2) {
+        return dir1.dx == dir2.dx && dir1.dy == dir2.dy
+    }
+
+    function isNextDir(dir1, dir2) {
+        return dir1.dx == dir2.dx && Math.abs(dir1.dy - dir2.dy) == 1
+                || dir1.dy == dir2.dy && Math.abs(dir1.dx - dir2.dx) == 1
+    }
+
+    function getContentForBorderCell({dir}) {
+        if (stage == MOVEMENTS_STAGE_QUESTION) {
+            if (isSameDir(dir, curDir)) {
+                return RE.span({style:{fontSize: "80px"}}, MARKER)
+            } else {
+                return ""
+            }
+        } else if (stage == MOVEMENTS_STAGE_ANSWER) {
+            if (isSameDir(dir, curDir) || isNextDir(curDir, dir) || isNextDir(dir, curDir)) {
+                return renderImage(moveToCellRelatively(curCell, dir))
+            } else {
+                return ""
+            }
+        }
+    }
+
+    function getBgColorForBorderCell({dir}) {
+        if (dir.dx == curCell.dx && dir.dy == curDir.dy) {
             // return "cyan"
             return "white"
         } else {
@@ -170,21 +195,26 @@ const MovementsExercise = ({configName}) => {
     }
 
     function nextClicked() {
-        let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
-        // curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
-        const {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts} = nextState(curState)
-        setCurCell(nextCell)
-        setCounts(newCounts)
-        setConCounts(newConCounts)
-        setCurDir(nextDir)
+        if (stage == MOVEMENTS_STAGE_QUESTION) {
+            setStage(MOVEMENTS_STAGE_ANSWER)
+        } else {
+            let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
+            // curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
+            const {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts} = nextState(curState)
+            setCurCell(nextCell)
+            setCounts(newCounts)
+            setConCounts(newConCounts)
+            setCurDir(nextDir)
+            setStage(MOVEMENTS_STAGE_QUESTION)
+        }
     }
 
     function renderStat(counts) {
         return "min: " + arrMin(counts) + ", max: " + arrMax(counts) + ", all: " + arrSum(counts)
     }
 
-    return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-        RE.table({className: "chessboard"}, RE.tbody({},
+    function renderCells() {
+        return RE.table({className: "chessboard"}, RE.tbody({},
             RE.tr({},
                 renderCell({dir:{dx:-1,dy:1}, nextCellDir:curDir}),
                 renderCell({dir:{dx:0,dy:1}, nextCellDir:curDir}),
@@ -200,7 +230,11 @@ const MovementsExercise = ({configName}) => {
                 renderCell({dir:{dx:0,dy:-1}, nextCellDir:curDir}),
                 renderCell({dir:{dx:1,dy:-1}, nextCellDir:curDir}),
             ),
-        )),
+        ))
+    }
+
+    return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
+        renderCells(),
         RE.span({},
             "Cells [ " + renderStat(counts) + "]"
             + ", Cons [ " + renderStat(conCounts) + "]"
