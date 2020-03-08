@@ -72,7 +72,7 @@ const MovementsExercise = ({configName}) => {
         return calcDir(curCell, cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)])
     }
 
-    function nextValidDirConnections({prevCell, curCell, conCounts}) {
+    function nextValidDirConnections({prevCell, curCell, conCounts, counts}) {
         const possibleNextCons = [12,3,6,9,2,4,8,10]
             .map(h => hourToDir(h))
             .map(d => (moveToCellRelatively(curCell, d)))
@@ -82,7 +82,19 @@ const MovementsExercise = ({configName}) => {
             .map(({con, dir}) => ({con:con, dir:dir, cnt:conCounts[idxOfCon(con.from, dir)]}))
         const minCnt = arrMin(possibleNextCons.map(e => e.cnt))
         const consWithMinCnt = possibleNextCons.filter(e => e.cnt == minCnt)
-        return consWithMinCnt[randomInt(0, consWithMinCnt.length-1)].dir
+        return nextValidDirRestrictedNeighbors({
+            curCell:curCell,
+            counts:counts,
+            possibleCells:consWithMinCnt.map(e => e.con.to)
+        })
+    }
+
+    function nextValidDirRestrictedNeighbors({curCell, counts, possibleCells}) {
+        const possibleNextCells = possibleCells
+            .map(c => ({cell:c, cnt:counts[cellToAbsNum(c)]}))
+        const minCnt = arrMin(possibleNextCells.map(e => e.cnt))
+        const cellsWithMinCnt = possibleNextCells.filter(e => e.cnt == minCnt).map(e => e.cell)
+        return calcDir(curCell, cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)])
     }
 
     function calcDir(curCell, target) {
@@ -137,7 +149,7 @@ const MovementsExercise = ({configName}) => {
         const nextCell = moveToCellRelatively(curCell, curDir)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
         // const nextDir = nextValidDirOnlyNeighbors(nextCell, newCounts);
-        const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts});
+        const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts, counts:counts});
         const newConCounts = inc(conCounts, idxOfCon(nextCell, nextDir));
         return {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts}
     }
