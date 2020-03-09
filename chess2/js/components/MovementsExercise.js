@@ -23,20 +23,7 @@ const MovementsExercise = ({configName}) => {
         inc(new Array(absNumToCon.length).fill(0), idxOfCon(curCell, curDir))
     )
     const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
-    const [autoNextCnt, setAutoNextCnt] = useState(null)
-    const [autoNextDelay, setAutoNextDelay] = useState(1500)
-
-    useEffect(() => {
-        if (autoNextCnt) {
-            setTimeout(
-                () => {
-                    nextClicked()
-                    setAutoNextCnt(c => c?c+1:null)
-                },
-                autoNextDelay
-            )
-        }
-    }, [autoNextCnt])
+    const [startPauseTimer, timerIsOn] = useTimer({onTimer:nextClicked})
 
     const cellSize = "110px"
     const tdStyle = {width: cellSize, height: cellSize}
@@ -226,15 +213,6 @@ const MovementsExercise = ({configName}) => {
         }
     }
 
-    function startPauseClicked() {
-        if (!autoNextCnt) {
-            setAutoNextDelay(prompt("Repeat delay", autoNextDelay))
-            setAutoNextCnt(1)
-        } else {
-            setAutoNextCnt(null)
-        }
-    }
-
     function renderStat(counts) {
         return "min: " + arrMin(counts) + ", max: " + arrMax(counts) + ", all: " + arrSum(counts)
     }
@@ -266,8 +244,8 @@ const MovementsExercise = ({configName}) => {
             + ", Cons [ " + renderStat(conCounts) + "]"
         ),
         RE.Container.row.center.top({},{style:{margin:"10px"}},
-            RE.Button({onClick:startPauseClicked, style:{height:"100px", width:"100px"}},
-                autoNextCnt?PAUSE_SYMBOL:RUN_SYMBOL
+            RE.Button({onClick:startPauseTimer, style:{height:"100px", width:"100px"}},
+                timerIsOn?PAUSE_SYMBOL:RUN_SYMBOL
             ),
             RE.Button({onClick:nextClicked, style:{height:"100px", width:"100px"}}, "Next"),
         )

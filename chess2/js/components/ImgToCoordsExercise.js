@@ -18,6 +18,8 @@ const ImgToCoordsExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(getNewRndElemSelector())
     const [rndElemSelectorId, setRndElemSelectorId] = useState(1)
     const flipPhaseRef = useRef(null)
+    const [startPauseTimer, timerIsOn] = useTimer({onTimer:flipPhaseRef.current})
+
     const cellSize = "150px"
     const divStyle = {width: cellSize, height: cellSize, fontSize: "120px"}
 
@@ -92,7 +94,12 @@ const ImgToCoordsExercise = ({configName}) => {
         renderSettings(),
         renderExerciseDescription(),
         renderExercise(),
-        renderNextButton()
+        RE.Container.row.center.top({},{style:{margin:"10px"}},
+            RE.Button({onClick:startPauseTimer, style:{height:"100px", width:"100px"}},
+                timerIsOn?PAUSE_SYMBOL:RUN_SYMBOL
+            ),
+            renderNextButton(),
+        )
     )
 }
 

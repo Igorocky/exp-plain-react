@@ -362,3 +362,35 @@ function arrMax(arr) {
 function arrSum(arr) {
     return arr.reduce((a,b) => a+b)
 }
+
+function useTimer({onTimer, defaultDelay}) {
+    const [autoNextCnt, setAutoNextCnt] = useState(null)
+    const [autoNextDelay, setAutoNextDelay] = useState(defaultDelay?defaultDelay:1500)
+
+    useEffect(() => {
+        if (autoNextCnt) {
+            setTimeout(
+                () => {
+                    onTimer()
+                    setAutoNextCnt(c => c?c+1:null)
+                },
+                autoNextDelay
+            )
+        }
+    }, [autoNextCnt])
+
+    function startPauseTimer() {
+        if (!autoNextCnt) {
+            const newDelay = prompt("Repeat delay", autoNextDelay);
+            if (newDelay == null) {
+                return
+            }
+            setAutoNextDelay(newDelay)
+            setAutoNextCnt(1)
+        } else {
+            setAutoNextCnt(null)
+        }
+    }
+
+    return [startPauseTimer, autoNextCnt != null]
+}
