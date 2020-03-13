@@ -8,7 +8,11 @@ const PAUSE_SYMBOL = String.fromCharCode(10074)+String.fromCharCode(10074)
 const RUN_SYMBOL = String.fromCharCode(9658)
 
 const MovementsExercise = ({configName}) => {
-    const [curCell, setCurCell] = useState(() => ({x:randomInt(0,7),y:randomInt(0,7)}))
+    const [minX, setMinX] = useState(0)
+    const [maxX, setMaxX] = useState(1)
+    const [minY, setMinY] = useState(0)
+    const [maxY, setMaxY] = useState(1)
+    const [curCell, setCurCell] = useState(() => ({x:randomInt(minX,maxX),y:randomInt(minY,maxY)}))
     const [curDir, setCurDir] = useState(() => nextValidRandomDir(curCell))
     const [counts, setCounts] = useState(() => inc(new Array(64).fill(0), cellToAbsNum(curCell)))
     const [absNumToCon] = useState(() =>
@@ -44,40 +48,22 @@ const MovementsExercise = ({configName}) => {
         return {dx:randomInt(-1,1), dy:randomInt(-1,1)}
     }
 
+    function isCellInAllowedRange({x,y}) {
+        return minX <= x && x <= maxX && minY <= y && y <= maxY
+    }
+
+    function isConInAllowedRange({from, to}) {
+        return isCellInAllowedRange(from) && isCellInAllowedRange(to)
+    }
+
     function nextValidRandomDir(curCell) {
         let dir = randomDir()
-        while (!isValidCell({x: curCell.x + dir.dx, y: curCell.y + dir.dy}) || (dir.dx==0 && dir.dy==0)) {
+        let nextCell = moveToCellRelatively(curCell, dir)
+        while (!isValidCell(nextCell) || !isCellInAllowedRange(nextCell) || (dir.dx==0 && dir.dy==0)) {
             dir = randomDir()
+            nextCell = moveToCellRelatively(curCell, dir)
         }
         return dir
-    }
-
-    function nextValidDir(curCell, counts) {
-        const minCnt = Math.min.apply(Math, counts.filter((c,i) => i != cellToAbsNum(curCell)))
-        const cellsWithMinCnt = counts
-            .map((c,i) => ({cell:absNumToCell(i), cnt:c}))
-            .filter(({cell,cnt}) => cell.x != curCell.x || cell.y != curCell.y)
-            .filter(({cell,cnt}) => cnt == minCnt)
-            .map(({cell,cnt}) => ({
-                cell:cell,
-                dst:Math.floor(Math.pow(cell.x-curCell.x,2) + Math.pow(cell.y-curCell.y,2))
-            }))
-        const minDist = Math.min.apply(Math, cellsWithMinCnt.map(e => e.dst))
-        const cellsWithMinDist = cellsWithMinCnt.filter(e => e.dst == minDist).map(e => e.cell)
-        const randomCellWithMinDist = cellsWithMinDist[randomInt(0, cellsWithMinDist.length-1)]
-        const target = randomCellWithMinDist
-        return calcDir(curCell, target)
-    }
-
-    function nextValidDirOnlyNeighbors(curCell, counts) {
-        const possibleNextCells = [12,3,6,9,2,4,8,10]
-            .map(h => hourToDir(h))
-            .map(d => ({x:curCell.x+d.dx, y:curCell.y+d.dy}))
-            .filter(c => isValidCell(c))
-            .map(c => ({cell:c, cnt:counts[cellToAbsNum(c)]}))
-        const minCnt = Math.min.apply(Math, possibleNextCells.map(e => e.cnt))
-        const cellsWithMinCnt = possibleNextCells.filter(e => e.cnt == minCnt).map(e => e.cell)
-        return calcDir(curCell, cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)])
     }
 
     function nextValidDirConnections({prevCell, curCell, conCounts, counts}) {
@@ -85,6 +71,7 @@ const MovementsExercise = ({configName}) => {
             .map(h => hourToDir(h))
             .map(d => (moveToCellRelatively(curCell, d)))
             .filter(isValidCell)
+            .filter(isCellInAllowedRange)
             .filter(c => !equalCells(c, prevCell))
             .map(target => ({con:{from:curCell, to:target}, dir:calcDir(curCell, target)}))
             .map(({con, dir}) => ({con:con, dir:dir, cnt:conCounts[idxOfCon(con.from, dir)]}))
@@ -192,7 +179,6 @@ const MovementsExercise = ({configName}) => {
         const prevCell = curCell
         const nextCell = moveToCellRelatively(curCell, curDir)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
-        // const nextDir = nextValidDirOnlyNeighbors(nextCell, newCounts);
         const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts, counts:counts});
         const newConCounts = inc(conCounts, idxOfCon(nextCell, nextDir));
         return {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts}
@@ -240,8 +226,8 @@ const MovementsExercise = ({configName}) => {
     return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
         renderCells(),
         RE.span({},
-            "Cells [ " + renderStat(counts) + "]"
-            + ", Cons [ " + renderStat(conCounts) + "]"
+            "Cells [ " + renderStat(counts.filter((c,i)=>isCellInAllowedRange(absNumToCell(i)))) + "]"
+            + ", Cons [ " + renderStat(conCounts.filter((c,i)=>isConInAllowedRange(absNumToCon[i]))) + "]"
         ),
         RE.Container.row.center.top({},{style:{margin:"10px"}},
             RE.Button({onClick:startPauseTimer, style:{height:"100px", width:"100px"}},
