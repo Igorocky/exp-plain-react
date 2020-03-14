@@ -12,16 +12,20 @@ const ChessBoardCell = React.memo( ({configName, coords, size, checked, showImag
             return RE.img( {
                 src:"chess-board-configs/" + configName + "/" + cellName + ".png",
                 className: "cell-img",
-                style: {transform: coords.y>3?"rotate(180deg)":""}
             })
         } else {
             return ""
         }
     }
 
+    function calcOutline() {
+        const color = isWhite?"white":"black"
+        return (checked&&showImage)?("7px dashed " + color):""
+    }
+
     return RE.div({
         className:(checked?"checked-cell":(isWhite?"white-cell":"black-cell")),
-        style: {width: size, height: size, outline:(checked&&showImage)?"7px dashed red":""},
+        style: {width: size, height: size, outline:calcOutline()},
         onClick: () => onClick(coords)
     }, getContent())
 

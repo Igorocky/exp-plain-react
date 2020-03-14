@@ -53,7 +53,7 @@ function useChessboard({cellSize, configName}) {
             cellSize:cellSize,
             configName:configName,
             cellAttrsList: cellAttrsList,
-            onCellClicked:onCellClicked
+            onCellClicked:onCellClicked?onCellClicked:()=>null
         })
     }
 

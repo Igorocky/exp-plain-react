@@ -42,6 +42,13 @@ const ConnectionsRev = ({configName}) => {
     const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [selectedConnectionType, setSelectedConnectionType] = useState(ALL_CONNECTIONS)
 
+    const [pieces, setPieces] = useState([])
+    const [selectedCells, setSelectedCells] = useState([])
+    useEffect(() => prepareCells(rndElemSelector.currentElem), [])
+
+    const [useImgChessboard, setUseImgChessboard] = useState(true)
+    const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({cellSize:72, configName:configName})
+
     const questionDivSize = 150
     const questionDivSizePx = questionDivSize+"px"
     const questionFontSize = questionDivSize*120/150
@@ -69,9 +76,13 @@ const ConnectionsRev = ({configName}) => {
 
     function nextQuestion() {
         setUserInputIsCorrect(true)
-        setRndElemSelector(old => old.next())
         setCommandStr(null)
         setChessboardIsShown(false)
+        setRndElemSelector(old => {
+            const newRndElemSelector = old.next();
+            prepareCells(newRndElemSelector.currentElem)
+            return newRndElemSelector
+        })
     }
 
     function renderTextField() {
@@ -167,10 +178,10 @@ const ConnectionsRev = ({configName}) => {
         )
     }
 
-    function renderChessboard() {
+    function prepareCells(currentElem) {
         let pieces = []
         let selectedCells = []
-        const currCell = absNumToCell(rndElemSelector.currentElem);
+        const currCell = absNumToCell(currentElem);
 
         if (selectedConnectionType == ALL_CONNECTIONS) {
             pieces = [{cell: currCell, chCode:"Q".charCodeAt(0)}]
@@ -194,11 +205,30 @@ const ConnectionsRev = ({configName}) => {
             pieces = [{cell:currCell, chCode:"N".charCodeAt(0)}]
             selectedCells = knightMovesFrom(currCell)
         }
+        setPieces(pieces)
+        setSelectedCells(selectedCells)
 
-        return re(SvgChessBoard,{
-            pieces: pieces,
-            cellsWithDots: selectedCells
-        })
+        if (useImgChessboard) {
+            uncheckAllCells()
+            hideImageOnAllCells()
+            pieces.forEach(({cell}) => {
+                console.log("cell = " + JSON.stringify(cell));
+                checkCell(cell)
+                showImageOnCell(cell)
+            })
+            selectedCells.forEach(c => showImageOnCell(c))
+        }
+    }
+
+    function renderChessboardInner() {
+        if (useImgChessboard) {
+            return renderChessboard({})
+        } else {
+            return re(SvgChessBoard,{
+                pieces: pieces,
+                cellsWithDots: selectedCells
+            })
+        }
     }
 
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
@@ -209,7 +239,7 @@ const ConnectionsRev = ({configName}) => {
             renderTextField(),
             renderConnectionTypeSelector(),
         ),
-        chessboardIsShown?renderChessboard():null,
+        chessboardIsShown?renderChessboardInner():null,
     )
 }
 
