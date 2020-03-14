@@ -205,7 +205,7 @@ const MovementsExercise = ({configName}) => {
     }
 
     function renderCells() {
-        return RE.table({className: "chessboard", onClick: () => setSettingsOpened(true)}, RE.tbody({},
+        return RE.table({className: "chessboard"}, RE.tbody({},
             RE.tr({},
                 renderCell({dir:{dx:-1,dy:1}, nextCellDir:curDir}),
                 renderCell({dir:{dx:0,dy:1}, nextCellDir:curDir}),
@@ -213,7 +213,7 @@ const MovementsExercise = ({configName}) => {
             ),
             RE.tr({},
                 renderCell({dir:{dx:-1,dy:0}, nextCellDir:curDir}),
-                RE.td({style: tdStyle}, renderImage(curCell)),
+                RE.td({style: tdStyle, onClick: () => setSettingsOpened(true)}, renderImage(curCell)),
                 renderCell({dir:{dx:1,dy:0}, nextCellDir:curDir}),
             ),
             RE.tr({},
