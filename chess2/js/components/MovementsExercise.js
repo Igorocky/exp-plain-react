@@ -241,9 +241,8 @@ const MovementsExercise = ({configName}) => {
     }
 
     function renderRangeSelector({title, min, max, setMin, setMax}) {
-        return RE.Container.row.left.center({},{style:{marginRight:"20px"}},
-            RE.Typography({gutterBottom:true}, title),
-            RE.div({style:{width:"300px"}},
+        return RE.Container.col.top.left({},{style:{}},
+            RE.div({style:{width:"200px"}},
                 RE.Slider({
                     value:[min, max],
                     onChange: (event, newValue) => {
@@ -258,7 +257,8 @@ const MovementsExercise = ({configName}) => {
                     max:7,
                     valueLabelDisplay:"on"
                 })
-            )
+            ),
+            RE.Typography({gutterBottom:true}, title)
         )
     }
 
@@ -266,7 +266,7 @@ const MovementsExercise = ({configName}) => {
         if (settingsOpened) {
             return RE.Dialog({open:true, onClose:onSettingsClose},
                 RE.Container.col.top.left(
-                    {style:{paddingTop:"50px", paddingLeft:"50px", paddingRight:"50px"}},
+                    {style:{paddingTop:"50px", paddingLeft:"20px", paddingRight:"25px"}},
                     {style:{marginBottom: "50px"}},
                     renderRangeSelector({title: "y range", min:minY, max:maxY, setMin:setMinY, setMax:setMaxY}),
                     renderRangeSelector({title: "x range", min:minX, max:maxX, setMin:setMinX, setMax:setMaxX}),
