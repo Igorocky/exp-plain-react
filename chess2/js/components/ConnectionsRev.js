@@ -44,7 +44,10 @@ const ConnectionsRev = ({configName}) => {
 
     const [pieces, setPieces] = useState([])
     const [selectedCells, setSelectedCells] = useState([])
-    useEffect(() => prepareCells(rndElemSelector.currentElem), [])
+    useEffect(
+        () => prepareCells({currentElem: rndElemSelector.currentElem, selectedConnectionType:selectedConnectionType}),
+        []
+    )
 
     const [useImgChessboard, setUseImgChessboard] = useState(true)
     const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({cellSize:72, configName:configName})
@@ -80,7 +83,7 @@ const ConnectionsRev = ({configName}) => {
         setChessboardIsShown(false)
         setRndElemSelector(old => {
             const newRndElemSelector = old.next();
-            prepareCells(newRndElemSelector.currentElem)
+            prepareCells({currentElem:newRndElemSelector.currentElem, selectedConnectionType:selectedConnectionType})
             return newRndElemSelector
         })
     }
@@ -161,8 +164,14 @@ const ConnectionsRev = ({configName}) => {
             RE.RadioGroup({
                     value: selectedConnectionType,
                     onChange: event => {
-                        setSelectedConnectionType(event.target.value)
-                        setRndElemSelector(getNewRndElemSelector())
+                        const newSelectedConnectionType = event.target.value;
+                        setSelectedConnectionType(newSelectedConnectionType)
+                        const newRndElemSelector = getNewRndElemSelector();
+                        setRndElemSelector(newRndElemSelector)
+                        prepareCells({
+                            currentElem:newRndElemSelector.currentElem,
+                            selectedConnectionType:newSelectedConnectionType
+                        })
                         setChessboardIsShown(false)
                     }
                 },
@@ -178,7 +187,7 @@ const ConnectionsRev = ({configName}) => {
         )
     }
 
-    function prepareCells(currentElem) {
+    function prepareCells({currentElem, selectedConnectionType}) {
         let pieces = []
         let selectedCells = []
         const currCell = absNumToCell(currentElem);
