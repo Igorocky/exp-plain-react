@@ -9,9 +9,9 @@ const RUN_SYMBOL = String.fromCharCode(9658)
 
 const MovementsExercise = ({configName}) => {
     const [minX, setMinX] = useState(0)
-    const [maxX, setMaxX] = useState(1)
+    const [maxX, setMaxX] = useState(7)
     const [minY, setMinY] = useState(0)
-    const [maxY, setMaxY] = useState(1)
+    const [maxY, setMaxY] = useState(7)
     const [curCell, setCurCell] = useState(() => ({x:randomInt(minX,maxX),y:randomInt(minY,maxY)}))
     const [curDir, setCurDir] = useState(() => nextValidRandomDir(curCell))
     const [counts, setCounts] = useState(() => inc(new Array(64).fill(0), cellToAbsNum(curCell)))
@@ -28,6 +28,7 @@ const MovementsExercise = ({configName}) => {
     )
     const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
     const [startPauseTimer, timerIsOn] = useTimer({onTimer:nextClicked})
+    const [settingsOpened, setSettingsOpened] = useState(false)
 
     const cellSize = "110px"
     const tdStyle = {width: cellSize, height: cellSize}
@@ -204,7 +205,7 @@ const MovementsExercise = ({configName}) => {
     }
 
     function renderCells() {
-        return RE.table({className: "chessboard"}, RE.tbody({},
+        return RE.table({className: "chessboard", onClick: () => setSettingsOpened(true)}, RE.tbody({},
             RE.tr({},
                 renderCell({dir:{dx:-1,dy:1}, nextCellDir:curDir}),
                 renderCell({dir:{dx:0,dy:1}, nextCellDir:curDir}),
@@ -223,6 +224,59 @@ const MovementsExercise = ({configName}) => {
         ))
     }
 
+    function resetCurrentCellAndDir() {
+        const newCell = {x:randomInt(minX,maxX),y:randomInt(minY,maxY)};
+        const newDir = nextValidRandomDir(newCell);
+
+        setCurCell(newCell)
+        setCurDir(newDir)
+
+        setCounts(inc(counts, cellToAbsNum(newCell)))
+        setConCounts(inc(conCounts, idxOfCon(newCell, newDir)))
+    }
+
+    function onSettingsClose() {
+        resetCurrentCellAndDir()
+        setSettingsOpened(false)
+    }
+
+    function renderRangeSelector({title, min, max, setMin, setMax}) {
+        return RE.Container.row.left.center({},{style:{marginRight:"20px"}},
+            RE.Typography({gutterBottom:true}, title),
+            RE.div({style:{width:"300px"}},
+                RE.Slider({
+                    value:[min, max],
+                    onChange: (event, newValue) => {
+                        const [newMin,newMax] = newValue
+                        if (newMin < newMax) {
+                            setMin(newMin)
+                            setMax(newMax)
+                        }
+                    },
+                    step:1,
+                    min:0,
+                    max:7,
+                    valueLabelDisplay:"on"
+                })
+            )
+        )
+    }
+
+    function renderSettings() {
+        if (settingsOpened) {
+            return RE.Dialog({open:true, onClose:onSettingsClose},
+                RE.Container.col.top.left(
+                    {style:{paddingTop:"50px", paddingLeft:"50px", paddingRight:"50px"}},
+                    {style:{marginBottom: "50px"}},
+                    renderRangeSelector({title: "y range", min:minY, max:maxY, setMin:setMinY, setMax:setMaxY}),
+                    renderRangeSelector({title: "x range", min:minX, max:maxX, setMin:setMinX, setMax:setMaxX}),
+                )
+            )
+        } else {
+            return null
+        }
+    }
+
     return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
         renderCells(),
         RE.span({},
@@ -234,6 +288,7 @@ const MovementsExercise = ({configName}) => {
                 timerIsOn?PAUSE_SYMBOL:RUN_SYMBOL
             ),
             RE.Button({onClick:nextClicked, style:{height:"100px", width:"100px"}}, "Next"),
-        )
+        ),
+        renderSettings()
     )
 }
