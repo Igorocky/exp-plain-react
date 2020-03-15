@@ -13,7 +13,7 @@ function directionShortValueToBool(dirShortValue) {
 }
 
 const ImgToCoordsExercise = ({configName}) => {
-    const [settings, setSettings] = useState({dirImgToCoords:true})
+    const [settings, setSettings] = useState({dirImgToCoords:false})
     const [settingsDialogOpened, setSettingsDialogOpened] = useState(false)
     const [rndElemSelector, setRndElemSelector] = useState(getNewRndElemSelector())
     const [rndElemSelectorId, setRndElemSelectorId] = useState(1)

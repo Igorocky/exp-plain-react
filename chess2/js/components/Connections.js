@@ -10,7 +10,7 @@ const Connections = ({configName}) => {
             elems: FOOTPRINTS.filter(i => {
                 const type = getConnectionType(i)
 
-                return type.diagonal && type.length > 1
+                return type.diagonal && type.length > 1 || type.horizontal || type.vertical
                 // return type.horizontal || type.vertical
                 // return type.vertical
                 // return type.horizontal
