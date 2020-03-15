@@ -4,8 +4,9 @@ const DISTANCES_STAGE_QUESTION = "DISTANCES_STAGE_QUESTION"
 const DISTANCES_STAGE_ANSWER = "DISTANCES_STAGE_ANSWER"
 
 const DistancesExercise = ({configName}) => {
+    const [minDist, setMinDist] = useState(1)
     const [maxDist, setMaxDist] = useState(4)
-    const [cons, setCons] = useState(() => createConnections(maxDist))
+    const [cons, setCons] = useState(() => createConnections(minDist, maxDist))
     const [counts, setCounts] = useState(() => createCounts(cons))
     const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({
         cellSize:profVal(PROFILE_MOBILE, 40, PROFILE_FUJ, 72),
@@ -26,11 +27,11 @@ const DistancesExercise = ({configName}) => {
     const questionCellSize = profVal(PROFILE_MOBILE, 110, PROFILE_FUJ, 180) + "px"
     const tdStyle = {width: questionCellSize, height: questionCellSize}
 
-    function createConnections(maxDist) {
+    function createConnections(minDist, maxDist) {
         return ints(0,63).flatMap(i =>
             [12,2,3,4,6,8,9,10]
                 .map(h => ({from:absNumToCell(i), dir:hourToDir(h)}))
-                .flatMap(({from,dir}) => ints(1,maxDist).map(l => ({
+                .flatMap(({from,dir}) => ints(minDist,maxDist).map(l => ({
                     from:from,dir:dir,len:l,cells:createRay(from.x, from.y, dir.dx, dir.dy).filter((c,i) => i<=l)
                 })))
                 .filter(con => isValidCell({x:con.from.x+con.dir.dx*con.len, y:con.from.y+con.dir.dy*con.len}))
@@ -42,9 +43,10 @@ const DistancesExercise = ({configName}) => {
         return cons.map(c => 0)
     }
 
-    function init(maxDist) {
+    function init(minDist, maxDist) {
+        setMinDist(minDist)
         setMaxDist(maxDist)
-        const cons = createConnections(maxDist);
+        const cons = createConnections(minDist, maxDist);
         setCons(cons)
         const counts = createCounts(cons);
         const curCon = nextRandomConnection({cons:cons,counts:counts});
@@ -142,22 +144,24 @@ const DistancesExercise = ({configName}) => {
     function renderStat() {
         const minCnt = arrMin(counts)
         const remainingElems = counts.filter(c => c==minCnt).length
-        return "Iteration: " + (minCnt+1) + ", remains: " + remainingElems
+        return "Iteration: " + (minCnt+1) + ", remains: " + remainingElems + ", dist[" + minDist + "," + maxDist + "]"
     }
 
     function onSettingsClose() {
-        init(maxDist)
+        init(minDist,maxDist)
         setSettingsOpened(false)
     }
 
-    function renderDistSelector({title, value, min, max, setter}) {
+    function renderDistSelector({title, valueMin, valueMax, min, max, setMin, setMax}) {
         return RE.Container.col.top.left({},{style:{}},
             RE.div({style:{width:"200px"}},
                 RE.Slider({
-                    value:value,
+                    value:[valueMin, valueMax],
                     onChange: (event, newValue) => {
-                        if (min <= newValue && newValue <= max) {
-                            setter(newValue)
+                        const [newMin, newMax] = newValue
+                        if (min <= newMin && newMin <= newMax && newMax <= max) {
+                            setMin(newMin)
+                            setMax(newMax)
                         }
                     },
                     step:1,
@@ -176,7 +180,15 @@ const DistancesExercise = ({configName}) => {
                 RE.Container.col.top.left(
                     {style:{paddingTop:"50px", paddingLeft:"20px", paddingRight:"25px"}},
                     {style:{marginBottom: "50px"}},
-                    renderDistSelector({title: "Distance", value:maxDist, min:1, max:7, setter:setMaxDist}),
+                    renderDistSelector({
+                        title: "Distance",
+                        valueMin:minDist,
+                        valueMax:maxDist,
+                        min:1,
+                        max:7,
+                        setMin:setMinDist,
+                        setMax:setMaxDist,
+                    }),
                 )
             )
         } else {
