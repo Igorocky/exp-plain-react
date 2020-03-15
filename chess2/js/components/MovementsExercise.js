@@ -177,18 +177,18 @@ const MovementsExercise = ({configName}) => {
         }
     }
 
-    function nextRandomCell(counts) {
-        const minCnt = arrMin(counts)
-        const cellsWithMinCnt = counts
-            .map((c,i) => ({cell:absNumToCell(i), cnt:c}))
-            .filter(({cell,cnt}) => cnt == minCnt)
-            .map(({cell,cnt}) => cell)
-        return cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)]
+    function nextRandomCell(conCounts) {
+        const minCnt = arrMin(conCounts)
+        const consWithMinCnt = conCounts
+            .map((c,i) => ({con:absNumToCon[i], cnt:c}))
+            .filter(({con,cnt}) => cnt == minCnt)
+            .map(({con,cnt}) => con)
+        return consWithMinCnt[randomInt(0, consWithMinCnt.length-1)].from
     }
 
     function nextState({curCell, curDir, counts, conCounts}) {
         const prevCell = curCell
-        const nextCell = continuousMode?moveToCellRelatively(curCell, curDir):nextRandomCell(counts)
+        const nextCell = continuousMode?moveToCellRelatively(curCell, curDir):nextRandomCell(conCounts)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
         const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts, counts:counts});
         const newConCounts = inc(conCounts, idxOfCon(nextCell, nextDir));
