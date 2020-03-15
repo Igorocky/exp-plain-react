@@ -26,6 +26,7 @@ const MovementsExercise = ({configName}) => {
     const [conCounts, setConCounts] = useState(() =>
         inc(new Array(absNumToCon.length).fill(0), idxOfCon(curCell, curDir))
     )
+    const [continuousMode, setContinuousMode] = useState(false)
     const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
     const [startPauseTimer, timerIsOn] = useTimer({onTimer:nextClicked})
     const [settingsOpened, setSettingsOpened] = useState(false)
@@ -159,7 +160,7 @@ const MovementsExercise = ({configName}) => {
                 return ""
             }
         } else if (stage == MOVEMENTS_STAGE_ANSWER) {
-            if (isSameDir(dir, curDir) || isNextDir(curDir, dir) || isNextDir(dir, curDir)) {
+            if (isSameDir(dir, curDir)) {
                 return renderImage(moveToCellRelatively(curCell, dir))
             } else {
                 return ""
@@ -176,27 +177,40 @@ const MovementsExercise = ({configName}) => {
         }
     }
 
+    function nextRandomCell(counts) {
+        const minCnt = arrMin(counts)
+        const cellsWithMinCnt = counts
+            .map((c,i) => ({cell:absNumToCell(i), cnt:c}))
+            .filter(({cell,cnt}) => cnt == minCnt)
+            .map(({cell,cnt}) => cell)
+        return cellsWithMinCnt[randomInt(0, cellsWithMinCnt.length-1)]
+    }
+
     function nextState({curCell, curDir, counts, conCounts}) {
         const prevCell = curCell
-        const nextCell = moveToCellRelatively(curCell, curDir)
+        const nextCell = continuousMode?moveToCellRelatively(curCell, curDir):nextRandomCell(counts)
         const newCounts = inc(counts, cellToAbsNum(nextCell));
         const nextDir = nextValidDirConnections({prevCell:prevCell, curCell:nextCell, conCounts:conCounts, counts:counts});
         const newConCounts = inc(conCounts, idxOfCon(nextCell, nextDir));
         return {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts}
     }
 
+    function nextQuestion() {
+        let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
+        // curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
+        const {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts} = nextState(curState)
+        setCurCell(nextCell)
+        setCounts(newCounts)
+        setConCounts(newConCounts)
+        setCurDir(nextDir)
+        setStage(MOVEMENTS_STAGE_QUESTION)
+    }
+
     function nextClicked() {
-        if (stage == MOVEMENTS_STAGE_QUESTION && false) {
+        if (stage == MOVEMENTS_STAGE_QUESTION && !continuousMode) {
             setStage(MOVEMENTS_STAGE_ANSWER)
         } else {
-            let curState = {curCell:curCell, curDir:curDir, counts:counts, conCounts:conCounts}
-            // curState = ints(1,10000).reduce((s,i) => nextState(s), curState)
-            const {curCell:nextCell, curDir:nextDir, counts:newCounts, conCounts:newConCounts} = nextState(curState)
-            setCurCell(nextCell)
-            setCounts(newCounts)
-            setConCounts(newConCounts)
-            setCurDir(nextDir)
-            setStage(MOVEMENTS_STAGE_QUESTION)
+            nextQuestion()
         }
     }
 
@@ -240,6 +254,16 @@ const MovementsExercise = ({configName}) => {
         setSettingsOpened(false)
     }
 
+    function renderModeSelector() {
+        return RE.FormControlLabel({
+            control: RE.Checkbox({
+                checked: continuousMode,
+                onChange: event => setContinuousMode(event.target.checked)
+            }),
+            label: "Continuous mode"
+        })
+    }
+
     function renderRangeSelector({title, min, max, setMin, setMax}) {
         return RE.Container.col.top.left({},{style:{}},
             RE.div({style:{width:"200px"}},
@@ -268,8 +292,9 @@ const MovementsExercise = ({configName}) => {
                 RE.Container.col.top.left(
                     {style:{paddingTop:"50px", paddingLeft:"20px", paddingRight:"25px"}},
                     {style:{marginBottom: "50px"}},
-                    renderRangeSelector({title: "y range", min:minY, max:maxY, setMin:setMinY, setMax:setMaxY}),
-                    renderRangeSelector({title: "x range", min:minX, max:maxX, setMin:setMinX, setMax:setMaxX}),
+                    renderModeSelector(),
+                    renderRangeSelector({title: "x range", min:minY, max:maxY, setMin:setMinY, setMax:setMaxY}),
+                    renderRangeSelector({title: "y range", min:minX, max:maxX, setMin:setMinX, setMax:setMaxX}),
                 )
             )
         } else {
