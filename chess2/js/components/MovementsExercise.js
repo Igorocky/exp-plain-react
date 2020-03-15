@@ -26,7 +26,7 @@ const MovementsExercise = ({configName}) => {
     const [conCounts, setConCounts] = useState(() =>
         inc(new Array(absNumToCon.length).fill(0), idxOfCon(curCell, curDir))
     )
-    const [continuousMode, setContinuousMode] = useState(false)
+    const [continuousMode, setContinuousMode] = useState(true)
     const [stage, setStage] = useState(MOVEMENTS_STAGE_QUESTION)
     const [startPauseTimer, timerIsOn] = useTimer({onTimer:nextClicked})
     const [settingsOpened, setSettingsOpened] = useState(false)
