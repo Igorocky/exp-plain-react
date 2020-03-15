@@ -1,5 +1,10 @@
 'use strict';
 
+const PROFILE_FUJ = "PROFILE_FUJ"
+const PROFILE_MOBILE = "PROFILE_MOBILE"
+
+const PROFILE = PROFILE_MOBILE
+
 const ENTER_KEY_CODE = 13
 const ESC_KEY_CODE = 27
 const UP_KEY_CODE = 38
@@ -410,4 +415,14 @@ function useTimer({onTimer, defaultDelay}) {
     }
 
     return [startPauseTimer, autoNextCnt != null]
+}
+
+function profVal(...values) {
+    const pairsNum = values.length / 2;
+    for (let i = 0; i < pairsNum; i++) {
+        const pairIdx = i*2;
+        if (values[pairIdx] === PROFILE) {
+            return values[pairIdx+1]
+        }
+    }
 }

@@ -16,12 +16,12 @@ const DistancesExercise = ({configName}) => {
         )
     )
     const [counts, setCounts] = useState(() => cons.map(c => 0))
-    const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({cellSize:72, configName:configName})
+    const {renderChessboard, checkCell, uncheckAllCells, showImageOnCell, hideImageOnAllCells} = useChessboard({
+        cellSize:profVal(PROFILE_MOBILE, 40, PROFILE_FUJ, 72),
+        configName:configName
+    })
     const [curCon, setCurCon] = useState(() => nextRandomConnection())
     const [stage, setStage] = useState(DISTANCES_STAGE_QUESTION)
-
-    const cellSize = "110px"
-    const tdStyle = {width: cellSize, height: cellSize}
 
     useEffect(
         () => {
@@ -30,6 +30,9 @@ const DistancesExercise = ({configName}) => {
         },
         []
     )
+
+    const questionCellSize = profVal(PROFILE_MOBILE, 110, PROFILE_FUJ, 180) + "px"
+    const tdStyle = {width: questionCellSize, height: questionCellSize}
 
     function nextRandomConnection() {
         const minCnt = arrMin(counts)
