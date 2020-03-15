@@ -31,7 +31,7 @@ const MovementsExercise = ({configName}) => {
     const [startPauseTimer, timerIsOn] = useTimer({onTimer:nextClicked})
     const [settingsOpened, setSettingsOpened] = useState(false)
 
-    const cellSize = "110px"
+    const cellSize = profVal(PROFILE_MOBILE, 110, PROFILE_FUJ, 180) + "px"
     const tdStyle = {width: cellSize, height: cellSize}
 
     function idxOfCon(curCell, curDir) {
