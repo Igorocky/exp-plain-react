@@ -351,6 +351,15 @@ function equalCells(c1, c2) {
     return c1.x === c2.x && c1.y === c2.y
 }
 
+function isSameDir(dir1, dir2) {
+    return dir1.dx == dir2.dx && dir1.dy == dir2.dy
+}
+
+function isNextDir(dir1, dir2) {
+    return dir1.dx == dir2.dx && Math.abs(dir1.dy - dir2.dy) == 1
+        || dir1.dy == dir2.dy && Math.abs(dir1.dx - dir2.dx) == 1
+}
+
 function arrMin(arr) {
     return Math.min.apply(Math, arr)
 }
@@ -361,6 +370,14 @@ function arrMax(arr) {
 
 function arrSum(arr) {
     return arr.reduce((a,b) => a+b)
+}
+
+function inc(arr, idx) {
+    return modify(arr, idx, i => i+1)
+}
+
+function modify(arr, idx, modifier) {
+    return [...arr.slice(0,idx), modifier(arr[idx]), ...(idx >= arr.length-1 ? [] : arr.slice(idx+1,arr.length))]
 }
 
 function useTimer({onTimer, defaultDelay}) {

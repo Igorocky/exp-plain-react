@@ -10,6 +10,7 @@ const AVAILABLE_EXERCISES = [
     {name:"SpaceExercise", component: SpaceExercise},
     {name:"Neighbors", component: Neighbors},
     {name:"MovementsExercise", component: MovementsExercise},
+    {name:"DistancesExercise", component: DistancesExercise},
 ]
 
 const ExerciseSelector = ({}) => {

@@ -42,10 +42,6 @@ const MovementsExercise = ({configName}) => {
             .map(({con,idx}) => idx)[0]
     }
 
-    function inc(arr, idx) {
-        return [...arr.slice(0,idx), arr[idx]+1, ...(idx >= arr.length-1 ? [] : arr.slice(idx+1,arr.length))]
-    }
-
     function randomDir() {
         return {dx:randomInt(-1,1), dy:randomInt(-1,1)}
     }
@@ -141,15 +137,6 @@ const MovementsExercise = ({configName}) => {
         } else {
             return ""
         }
-    }
-
-    function isSameDir(dir1, dir2) {
-        return dir1.dx == dir2.dx && dir1.dy == dir2.dy
-    }
-
-    function isNextDir(dir1, dir2) {
-        return dir1.dx == dir2.dx && Math.abs(dir1.dy - dir2.dy) == 1
-                || dir1.dy == dir2.dy && Math.abs(dir1.dx - dir2.dx) == 1
     }
 
     function getContentForBorderCell({dir}) {

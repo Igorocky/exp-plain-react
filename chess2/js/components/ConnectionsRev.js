@@ -221,7 +221,6 @@ const ConnectionsRev = ({configName}) => {
             uncheckAllCells()
             hideImageOnAllCells()
             pieces.forEach(({cell}) => {
-                console.log("cell = " + JSON.stringify(cell));
                 checkCell(cell)
                 showImageOnCell(cell)
             })
