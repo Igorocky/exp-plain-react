@@ -72,7 +72,7 @@ const ImgToCoordsExercise = ({configName}) => {
             renderQuestion: card => settings.dirImgToCoords?renderImage(card):renderCoords(card),
             renderAnswer: card => settings.dirImgToCoords?renderCoords(card):renderImage(card),
             flipPhaseRef:flipPhaseRef,
-            onIterationComplete: () => setSettingsDialogOpened(true)
+            onIterationComplete: null
         })
     }
     
