@@ -13,7 +13,7 @@ const VisionExercise = ({configName}) => {
     }, [rndElemSelector])
 
     function onKeyDown(event) {
-        if (event.keyCode == SPACE_KEY_CODE) {
+        if (event.keyCode == SPACE_KEY_CODE || event.keyCode == ENTER_KEY_CODE) {
             questionAreaClicked()
         }
     }
