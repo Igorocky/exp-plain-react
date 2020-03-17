@@ -1,14 +1,11 @@
 "use strict";
 
-const svgCellSize = 50;
-const svgCellSizeHalf = svgCellSize/2;
-const selectedCellDotR = svgCellSize*0.2;
-function xCoordFromChessboardToSvg(x) {
-    return x*svgCellSize
+function xCoordFromChessboardToSvg(x,cellSize) {
+    return x*cellSize
 }
 
-function yCoordFromChessboardToSvg(y) {
-    return (7-y)*svgCellSize
+function yCoordFromChessboardToSvg(y,cellSize) {
+    return (7-y)*cellSize
 }
 
 const chCodeToImg = {
@@ -26,7 +23,7 @@ const chCodeToImg = {
     ["k".charCodeAt(0)]:"Chess_kdt45",
 }
 
-const SvgChessBoardCell = ({chCode,x,y,withDot,onLeftClicked}) => {
+const SvgChessBoardCell = ({cellSize,chCode,x,y,withDot,onLeftClicked}) => {
 
     function codeToImg(code) {
         if (code == 0) {
@@ -36,16 +33,19 @@ const SvgChessBoardCell = ({chCode,x,y,withDot,onLeftClicked}) => {
         }
     }
 
-    const cellXPos = xCoordFromChessboardToSvg(x)
-    const cellYPos = yCoordFromChessboardToSvg(y)
+    const svgCellSizeHalf = cellSize/2;
+    const selectedCellDotR = cellSize*0.2;
+
+    const cellXPos = xCoordFromChessboardToSvg(x, cellSize)
+    const cellYPos = yCoordFromChessboardToSvg(y, cellSize)
     return RE.Fragment({},
         SVG.rect({
-            x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
+            x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
             style:{fill:(x + y) % 2 == 0 ? "rgb(181,136,99)" : "rgb(240,217,181)"},
             onClick: () => onLeftClicked?onLeftClicked():null
         }),
         chCode? SVG.image({
-            x:cellXPos, y:cellYPos, width:svgCellSize, height:svgCellSize,
+            x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
             href:codeToImg(chCode),
         }):null,
         withDot? SVG.circle({

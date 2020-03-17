@@ -233,6 +233,7 @@ const ConnectionsRev = ({configName}) => {
             return renderChessboard({})
         } else {
             return re(SvgChessBoard,{
+                cellSize: 50,
                 pieces: pieces,
                 cellsWithDots: selectedCells
             })

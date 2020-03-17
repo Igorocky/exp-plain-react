@@ -1,6 +1,6 @@
 "use strict";
 
-const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
+const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
                            onCellLeftClicked}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
@@ -18,7 +18,7 @@ const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow,
         return flipped?7-coord:coord
     }
 
-    const cellSizeFromFenCoeff = svgCellSize/45
+    const cellSizeFromFenCoeff = cellSize/45
     const triangleLength = 35*cellSizeFromFenCoeff
     const triangleHeight = triangleLength
     const lineWidth = 15*cellSizeFromFenCoeff
@@ -75,32 +75,32 @@ const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow,
 
         return {
             from: {
-                x: xCoordFromChessboardToSvg(fromX)+svgCellSize/2,
-                y: yCoordFromChessboardToSvg(fromY)+svgCellSize/2,
+                x: xCoordFromChessboardToSvg(fromX, cellSize)+cellSize/2,
+                y: yCoordFromChessboardToSvg(fromY, cellSize)+cellSize/2,
             },
             to: {
-                x: xCoordFromChessboardToSvg(toX)+svgCellSize/2,
-                y: yCoordFromChessboardToSvg(toY)+svgCellSize/2,
+                x: xCoordFromChessboardToSvg(toX, cellSize)+cellSize/2,
+                y: yCoordFromChessboardToSvg(toY, cellSize)+cellSize/2,
             }
         }
     }
 
     function hLine({dist, color, width}) {
         return SVG.line({
-            x1: xCoordFromChessboardToSvg(0),
-            y1:yCoordFromChessboardToSvg(-1+dist),
-            x2:xCoordFromChessboardToSvg(8),
-            y2:yCoordFromChessboardToSvg(-1+dist),
+            x1: xCoordFromChessboardToSvg(0, cellSize),
+            y1:yCoordFromChessboardToSvg(-1+dist, cellSize),
+            x2:xCoordFromChessboardToSvg(8, cellSize),
+            y2:yCoordFromChessboardToSvg(-1+dist, cellSize),
             style:{stroke: color, strokeWidth: width?width:1},
         })
     }
 
     function vLine({dist, color, width}) {
         return SVG.line({
-            x1: xCoordFromChessboardToSvg(dist),
-            y1:yCoordFromChessboardToSvg(-1),
-            x2:xCoordFromChessboardToSvg(dist),
-            y2:yCoordFromChessboardToSvg(7),
+            x1: xCoordFromChessboardToSvg(dist, cellSize),
+            y1:yCoordFromChessboardToSvg(-1, cellSize),
+            x2:xCoordFromChessboardToSvg(dist, cellSize),
+            y2:yCoordFromChessboardToSvg(7, cellSize),
             style:{stroke: color, strokeWidth: width?width:1},
         })
     }
@@ -134,10 +134,11 @@ const SvgChessBoard = ({pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow,
     const lowerPlayer = flipped?bPlayer:wPlayer
     return RE.Container.col.top.left({},{},
         upperPlayer,
-        RE.svg({width:svgCellSize*8, height:svgCellSize*8},
+        RE.svg({width:cellSize*8, height:cellSize*8},
             _.range(7, -1, -1).map(y =>
                 _.range(0, 8).map(x => re(SvgChessBoardCell, {
                     key:x+"-"+y,
+                    cellSize:cellSize,
                     chCode:board[x][y].chCode,
                     x:board[x][y].x,
                     y:board[x][y].y,

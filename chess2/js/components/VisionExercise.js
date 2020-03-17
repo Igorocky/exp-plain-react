@@ -111,6 +111,7 @@ const VisionExercise = ({configName}) => {
 
     function renderChessboard() {
         return re(SvgChessBoard,{
+            cellSize: 75,
             onCellLeftClicked: onCellClicked
         })
     }
