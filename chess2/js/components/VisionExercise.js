@@ -44,8 +44,10 @@ const VisionExercise = ({configName}) => {
         return getCellName(absNumToCell(cellNum))
     }
 
-    const onCellClicked = cell => {
-        const userAnswerIsCorrect = getCellName(cell) == cellNumToCellName(question)
+    const onCellClicked = (cell,event) => {
+        const userSelectsBlack = event.nativeEvent.shiftKey
+        const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
+        const userAnswerIsCorrect = (getCellName(cell) == cellNumToCellName(question)) && userColorIsCorrect
         setUserAnswerIsIncorrect(!userAnswerIsCorrect)
         if (userAnswerIsCorrect) {
             setRndElemSelector(oldRndElemSelector => {
@@ -114,7 +116,8 @@ const VisionExercise = ({configName}) => {
             cellSize: cellSize,
             onCellLeftClicked: onCellClicked,
             cellNameToShow: cellNumToCellName(rndElemSelector.currentElem),
-            colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green"
+            colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green",
+            drawCells: false
         })
     }
 

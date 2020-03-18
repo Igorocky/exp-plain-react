@@ -16,7 +16,7 @@ const SvgChessBoardCellClickHandler = ({cellSize,x,y,onLeftClicked}) => {
         SVG.rect({
             x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
             style:{opacity:0},
-            onClick: () => onLeftClicked?onLeftClicked():null
+            onClick: event => onLeftClicked?onLeftClicked(event):null
         }),
     )
 }

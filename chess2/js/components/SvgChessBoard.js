@@ -1,7 +1,7 @@
 "use strict";
 
 const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
-                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow}) => {
+                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow, drawCells}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
         x:cellCoordsAfterFlip(flipped,x),
@@ -139,9 +139,20 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
                 x:board[x][y].x,
                 y:board[x][y].y,
                 withDot:board[x][y].withDot,
-                onLeftClicked: () => onCellLeftClicked?onCellLeftClicked({x:x,y:y}):null
+                onLeftClicked: event => onCellLeftClicked?onCellLeftClicked({x:x,y:y}, event):null,
             }))
         )
+    }
+
+    function renderFrame() {
+        if (drawCells===false) {
+            return RE.Fragment({},
+                vLine({dist: 0, color: "black", width:1}),
+                vLine({dist: 8, color: "black", width:1}),
+                hLine({dist: 0, color: "black", width:1}),
+                hLine({dist: 8, color: "black", width:1}),
+            )
+        }
     }
 
     const upperPlayer = flipped?wPlayer:bPlayer
@@ -149,7 +160,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
     return RE.Container.col.top.left({},{},
         upperPlayer,
         RE.svg({width:cellSize*8, height:cellSize*8},
-            renderCells(SvgChessBoardCell),
+            (drawCells===false)?renderFrame():renderCells(SvgChessBoardCell),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,
             showAxes?renderAxes():null,
             cellNameToShow?SVG.text({
