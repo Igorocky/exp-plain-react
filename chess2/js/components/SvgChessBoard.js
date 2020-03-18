@@ -148,8 +148,22 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
         if (drawCells===false) {
             return RE.Fragment({},
                 vLine({dist: 0, color: "black", width:1}),
+                vLine({dist: 1, color: "black", width:0.5}),
+                vLine({dist: 2, color: "black", width:0.5}),
+                vLine({dist: 3, color: "black", width:0.5}),
+                vLine({dist: 4, color: "black", width:0.5}),
+                vLine({dist: 5, color: "black", width:0.5}),
+                vLine({dist: 6, color: "black", width:0.5}),
+                vLine({dist: 7, color: "black", width:0.5}),
                 vLine({dist: 8, color: "black", width:1}),
                 hLine({dist: 0, color: "black", width:1}),
+                hLine({dist: 1, color: "black", width:0.5}),
+                hLine({dist: 2, color: "black", width:0.5}),
+                hLine({dist: 3, color: "black", width:0.5}),
+                hLine({dist: 4, color: "black", width:0.5}),
+                hLine({dist: 5, color: "black", width:0.5}),
+                hLine({dist: 6, color: "black", width:0.5}),
+                hLine({dist: 7, color: "black", width:0.5}),
                 hLine({dist: 8, color: "black", width:1}),
             )
         }
