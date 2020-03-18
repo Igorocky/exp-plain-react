@@ -45,7 +45,7 @@ const VisionExercise = ({configName}) => {
     }
 
     const onCellClicked = (cell,event) => {
-        const userSelectsBlack = event.nativeEvent.shiftKey
+        const userSelectsBlack = event.nativeEvent.button==1
         const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
         const userAnswerIsCorrect = (getCellName(cell) == cellNumToCellName(question)) && userColorIsCorrect
         setUserAnswerIsIncorrect(!userAnswerIsCorrect)

@@ -426,3 +426,9 @@ function profVal(...values) {
         }
     }
 }
+
+function disableScrollOnMouseDown(event) {
+    if(event.button==1){
+        event.preventDefault()
+    }
+}
