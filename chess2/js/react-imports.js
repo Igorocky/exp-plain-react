@@ -88,4 +88,5 @@ const SVG = {
     image: reFactory('image'),
     path: reFactory('path'),
     g: reFactory('g'),
+    text: reFactory('text'),
 }

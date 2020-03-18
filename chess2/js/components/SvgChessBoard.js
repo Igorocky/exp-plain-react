@@ -1,7 +1,7 @@
 "use strict";
 
 const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
-                           onCellLeftClicked}) => {
+                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
         x:cellCoordsAfterFlip(flipped,x),
@@ -130,24 +130,36 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
         )
     }
 
+    function renderCells(cellComponent) {
+        return _.range(7, -1, -1).map(y =>
+            _.range(0, 8).map(x => re(cellComponent, {
+                key:x+"-"+y,
+                cellSize:cellSize,
+                chCode:board[x][y].chCode,
+                x:board[x][y].x,
+                y:board[x][y].y,
+                withDot:board[x][y].withDot,
+                onLeftClicked: () => onCellLeftClicked?onCellLeftClicked({x:x,y:y}):null
+            }))
+        )
+    }
+
     const upperPlayer = flipped?wPlayer:bPlayer
     const lowerPlayer = flipped?bPlayer:wPlayer
     return RE.Container.col.top.left({},{},
         upperPlayer,
         RE.svg({width:cellSize*8, height:cellSize*8},
-            _.range(7, -1, -1).map(y =>
-                _.range(0, 8).map(x => re(SvgChessBoardCell, {
-                    key:x+"-"+y,
-                    cellSize:cellSize,
-                    chCode:board[x][y].chCode,
-                    x:board[x][y].x,
-                    y:board[x][y].y,
-                    withDot:board[x][y].withDot,
-                    onLeftClicked: () => onCellLeftClicked?onCellLeftClicked({x:x,y:y}):null
-                }))
-            ),
+            renderCells(SvgChessBoardCell),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,
-            showAxes?renderAxes():null
+            showAxes?renderAxes():null,
+            cellNameToShow?SVG.text({
+                x:xCoordFromChessboardToSvg(3.35, cellSize),
+                y:yCoordFromChessboardToSvg(2.6, cellSize),
+                fill:colorOfCellNameToShow,
+                opacity:0.3,
+                fontSize:cellSize*1.5
+            }, cellNameToShow):null,
+            renderCells(SvgChessBoardCellClickHandler),
         ),
         lowerPlayer
     )

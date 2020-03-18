@@ -4,7 +4,6 @@ const VisionExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [question, setQuestion] = useState(rndElemSelector.currentElem)
     const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
-    const [chessboardIsShown, setChessboardIsShown] = useState(false)
     const [isCoordsMode, setIsCoordsMode] = useState(true)
 
     useEffect(() => {
@@ -52,7 +51,6 @@ const VisionExercise = ({configName}) => {
             setRndElemSelector(oldRndElemSelector => {
                 const newRndElemSelector = oldRndElemSelector.next();
                 setQuestion(newRndElemSelector.currentElem)
-                setChessboardIsShown(false)
                 return newRndElemSelector
             })
         }
@@ -109,21 +107,23 @@ const VisionExercise = ({configName}) => {
         }
     }
 
+    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75)
+
     function renderChessboard() {
         return re(SvgChessBoard,{
-            cellSize: 75,
-            onCellLeftClicked: onCellClicked
+            cellSize: cellSize,
+            onCellLeftClicked: onCellClicked,
+            cellNameToShow: cellNumToCellName(rndElemSelector.currentElem),
+            colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green"
         })
     }
 
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            // renderModeSelector(),
-            renderQuestion(),
+            renderChessboard({onCellClicked:onCellClicked}),
             RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
             RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
-        ),
-        chessboardIsShown?renderChessboard({onCellClicked:onCellClicked}):null,
+        )
     )
 }
 
