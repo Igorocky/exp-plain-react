@@ -2,6 +2,7 @@
 
 const AVAILABLE_EXERCISES = [
     {name:"Img To Coords", component: ImgToCoordsExercise},
+    {name:"CellColorsExercise", component: CellColorsExercise},
     {name:"Vision", component: VisionExercise},
     {name:"Vision Rev", component: VisionExerciseRev},
     {name:"Knight Path", component: KnightPath},
