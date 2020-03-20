@@ -48,6 +48,20 @@ const CellColorsExercise = ({configName}) => {
         )
     }
 
+    function renderAnswerButton(isBlack) {
+        return RE.Button({
+            onClick:() => onCellClicked({nativeEvent:{button:isBlack?1:0}}),
+            style:{
+                height:"100px",
+                width:"100px",
+                hidden: true,
+                ...(isBlack
+                    ?{backgroundColor:"black", color: "white"}
+                    :{border: "1px solid black"}
+                ),
+            },
+        }, "")
+    }
 
     return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
         renderQuestion(),
@@ -55,15 +69,9 @@ const CellColorsExercise = ({configName}) => {
             "Iteration: " + rndElemSelector.iterationNumber
             + ", Remaining elements: " + rndElemSelector.remainingElems.length
         ),
-        RE.Container.row.center.top({},{style:{margin:"10px"}},
-            RE.Button({
-                onClick:() => onCellClicked({nativeEvent:{button:0}}),
-                style:{height:"100px", width:"100px", border: "1px solid black"}
-                }, ""),
-            RE.Button({
-                onClick:() => onCellClicked({nativeEvent:{button:1}}),
-                style:{height:"100px", width:"100px", backgroundColor:"black", color: "white"}
-                }, ""),
+        RE.Container.col.top.left({style:{paddingLeft:"200px"}},{style:{margin:"10px"}},
+            renderAnswerButton(false),
+            renderAnswerButton(true),
         )
     )
 }
