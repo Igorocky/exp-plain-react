@@ -48,11 +48,22 @@ const CellColorsExercise = ({configName}) => {
         )
     }
 
-    return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
-        RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            renderQuestion(),
-            RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
-            RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
+
+    return RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
+        renderQuestion(),
+        RE.span({},
+            "Iteration: " + rndElemSelector.iterationNumber
+            + ", Remaining elements: " + rndElemSelector.remainingElems.length
+        ),
+        RE.Container.row.center.top({},{style:{margin:"10px"}},
+            RE.Button({
+                onClick:() => onCellClicked({nativeEvent:{button:0}}),
+                style:{height:"100px", width:"100px", border: "1px solid black"}
+                }, ""),
+            RE.Button({
+                onClick:() => onCellClicked({nativeEvent:{button:1}}),
+                style:{height:"100px", width:"100px", backgroundColor:"black", color: "white"}
+                }, ""),
         )
     )
 }
