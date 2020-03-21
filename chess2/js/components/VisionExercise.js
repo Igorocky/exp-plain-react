@@ -2,6 +2,8 @@
 
 const VISION_EXERCISE_STAGE_ASK = "VISION_EXERCISE_STAGE_ASK"
 const VISION_EXERCISE_STAGE_ANSWER = "VISION_EXERCISE_STAGE_ANSWER"
+const VISION_EXERCISE_STAGE_REPEAT_ASK = "VISION_EXERCISE_STAGE_REPEAT_ASK"
+const VISION_EXERCISE_STAGE_REPEAT_ANSWER = "VISION_EXERCISE_STAGE_REPEAT_ANSWER"
 
 const VisionExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
@@ -9,6 +11,9 @@ const VisionExercise = ({configName}) => {
     const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
     const [isCoordsMode, setIsCoordsMode] = useState(true)
     const [stage, setStage] = useState(VISION_EXERCISE_STAGE_ASK)
+    const [recentCells, setRecentCells] = useState([])
+
+    const numOfCellsToRemember = 3
 
     useEffect(() => {
         document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
@@ -48,23 +53,66 @@ const VisionExercise = ({configName}) => {
         return getCellName(absNumToCell(cellNum))
     }
 
-    const onCellClicked = (cell,event) => {
+    function isUserInputCorrect(correctCell, cell, event) {
+        const userSelectsBlack = event.nativeEvent.button==1
+        const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
+        return equalCells(correctCell, cell) && userColorIsCorrect
+    }
+
+    function nextQuestion() {
+        setRndElemSelector(oldRndElemSelector => {
+            const newRndElemSelector = oldRndElemSelector.next();
+            setQuestion(newRndElemSelector.currentElem)
+            setStage(VISION_EXERCISE_STAGE_ASK)
+            return newRndElemSelector
+        })
+    }
+
+    function onCellClicked(cell,event) {
+        if (stage == VISION_EXERCISE_STAGE_ASK || stage == VISION_EXERCISE_STAGE_ANSWER) {
+            onCellClickedNormalMode(cell, event)
+        } else {
+            onCellClickedRepeatMode(cell, event)
+        }
+    }
+
+    function onCellClickedNormalMode(cell,event) {
         if (stage == VISION_EXERCISE_STAGE_ASK) {
-            const userSelectsBlack = event.nativeEvent.button==1
-            const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
-            const userAnswerIsCorrect = (getCellName(cell) == cellNumToCellName(question)) && userColorIsCorrect
+            const userAnswerIsCorrect = isUserInputCorrect(absNumToCell(question), cell, event)
             setUserAnswerIsIncorrect(!userAnswerIsCorrect)
             if (userAnswerIsCorrect) {
+                setRecentCells(old => [...old, cell])
                 setStage(VISION_EXERCISE_STAGE_ANSWER)
             }
         } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
-            setRndElemSelector(oldRndElemSelector => {
-                const newRndElemSelector = oldRndElemSelector.next();
-                setQuestion(newRndElemSelector.currentElem)
-                setStage(VISION_EXERCISE_STAGE_ASK)
-                return newRndElemSelector
-            })
+            if (recentCells.length >= numOfCellsToRemember) {
+                setStage(VISION_EXERCISE_STAGE_REPEAT_ASK)
+            } else {
+                nextQuestion()
+            }
         }
+    }
+
+    function onCellClickedRepeatMode(cell,event) {
+        if (stage == VISION_EXERCISE_STAGE_REPEAT_ASK) {
+            const userAnswerIsCorrect = isUserInputCorrect(recentCells[0], cell, event)
+            setUserAnswerIsIncorrect(!userAnswerIsCorrect)
+            if (userAnswerIsCorrect) {
+                setStage(VISION_EXERCISE_STAGE_REPEAT_ANSWER)
+            }
+        } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER) {
+            if (recentCells.length > 1) {
+                setRecentCells(old => old.slice(1,old.length))
+                setStage(VISION_EXERCISE_STAGE_REPEAT_ASK)
+            } else {
+                resetRecentCells()
+            }
+        }
+    }
+
+    function resetRecentCells() {
+        nextQuestion()
+        setRecentCells([])
     }
 
     function renderModeSelector() {
@@ -120,14 +168,29 @@ const VisionExercise = ({configName}) => {
 
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
-    function getWhiteBlackCells(currCell) {
-        if (stage == VISION_EXERCISE_STAGE_ASK) {
-            return {}
-        } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
+    function getWhiteBlackCells() {
+        if (stage == VISION_EXERCISE_STAGE_ANSWER) {
+            const currCell = absNumToCell(rndElemSelector.currentElem)
             return {
                 whiteCells:isWhiteCell(currCell)?[currCell]:null,
                 blackCells:isBlackCell(currCell)?[currCell]:null,
             }
+        } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER && recentCells.length > 0) {
+            const currCell = recentCells[0]
+            return {
+                whiteCells:isWhiteCell(currCell)?[currCell]:null,
+                blackCells:isBlackCell(currCell)?[currCell]:null,
+            }
+        } else {
+            return {}
+        }
+    }
+
+    function getTextToShowOnChessboard(currCell) {
+        if (stage == VISION_EXERCISE_STAGE_ASK || stage == VISION_EXERCISE_STAGE_ANSWER) {
+            return getCellName(currCell)
+        } else {
+            return recentCells.length
         }
     }
 
@@ -136,10 +199,10 @@ const VisionExercise = ({configName}) => {
         return re(SvgChessBoard,{
             cellSize: cellSize,
             onCellLeftClicked: onCellClicked,
-            cellNameToShow: getCellName(currCell),
+            cellNameToShow: getTextToShowOnChessboard(currCell),
             colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green",
             drawCells: false,
-            ...getWhiteBlackCells(currCell),
+            ...getWhiteBlackCells(),
         })
     }
 
@@ -148,7 +211,8 @@ const VisionExercise = ({configName}) => {
             renderChessboard({onCellClicked:onCellClicked}),
             RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
             RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
-        )
+        ),
+        RE.Button({onClick: resetRecentCells}, "Reset recent cells")
     )
 }
 
