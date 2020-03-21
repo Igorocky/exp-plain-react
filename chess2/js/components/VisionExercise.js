@@ -118,7 +118,7 @@ const VisionExercise = ({configName}) => {
         }
     }
 
-    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75)
+    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
     function getWhiteBlackCells(currCell) {
         if (stage == VISION_EXERCISE_STAGE_ASK) {

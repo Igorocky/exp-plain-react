@@ -1,7 +1,9 @@
 'use strict';
 
-const PROFILE_FUJ = "PROFILE_FUJ"
-const PROFILE_MOBILE = "PROFILE_MOBILE"
+const profile = (prof, superProf) => [prof, ...(superProf?superProf:[])]
+const PROFILE_MOBILE = profile("PROFILE_MOBILE")
+const PROFILE_FUJ = profile("PROFILE_FUJ")
+const PROFILE_FUJ_FULL = profile("PROFILE_FUJ_FULL", PROFILE_FUJ)
 
 const PROFILE = PROFILE_MOBILE
 
@@ -418,12 +420,17 @@ function useTimer({onTimer, defaultDelay}) {
 }
 
 function profVal(...values) {
-    const pairsNum = values.length / 2;
-    for (let i = 0; i < pairsNum; i++) {
-        const pairIdx = i*2;
-        if (values[pairIdx] === PROFILE) {
-            return values[pairIdx+1]
+    const numOfPairs = values.length / 2
+    let profIdx = 0
+    while (profIdx < PROFILE.length) {
+        const profName = PROFILE[profIdx]
+        for (let i = 0; i < numOfPairs; i++) {
+            const pairIdx = i*2
+            if (values[pairIdx][0] === profName) {
+                return values[pairIdx+1]
+            }
         }
+        profIdx++
     }
 }
 
