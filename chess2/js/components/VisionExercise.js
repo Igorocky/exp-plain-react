@@ -12,13 +12,23 @@ const VisionExercise = ({configName}) => {
     const [isCoordsMode, setIsCoordsMode] = useState(true)
     const [stage, setStage] = useState(VISION_EXERCISE_STAGE_ASK)
     const [recentCells, setRecentCells] = useState([])
+    const [cons] = useState(() => getAllPossibleConnections())
+    const [conCounts, setConCounts] = useState(() => ints(0,cons.length-1).map(i => 0))
 
-    const numOfCellsToRemember = 3
+    const numOfCellsToRemember = 1
 
     useEffect(() => {
         document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
         return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
     }, [rndElemSelector])
+
+    function getAllPossibleConnections() {
+        return ints(0,63).map(i => absNumToCell(i)).flatMap(from =>
+            knightMovesFrom(from)
+                .map(to => ({from:from, to:to}))
+                .filter(con => isValidCell(con.to))
+        )
+    }
 
     function onKeyDown(event) {
         if (event.keyCode == SPACE_KEY_CODE || event.keyCode == ENTER_KEY_CODE) {
@@ -76,16 +86,73 @@ const VisionExercise = ({configName}) => {
         }
     }
 
+    function absNumToCon(i) {
+        return cons[i]
+    }
+
+    function idxOfCon(from,to) {
+        return cons
+            .map((con,idx) => ({con:con, idx:idx}))
+            .filter(conIdx => equalCells(conIdx.con.from, from) && equalCells(conIdx.con.to, to))
+            .map(conIdx => conIdx.idx)[0]
+    }
+
+    function calcHDir(from, to) {
+        if (from.x+1 < to.x) {//right
+            if (from.y < to.y) {
+                return 2
+            } else {
+                return 4
+            }
+        } else if (to.x+1 < from.x) {//left
+            if (from.y < to.y) {
+                return 10
+            } else {
+                return 8
+            }
+        } if (from.y+1 < to.y) {//top
+            if (from.x < to.x) {
+                return 1
+            } else {
+                return 11
+            }
+        } else if (to.y+1 < from.y) {//bottom
+            if (from.x < to.x) {
+                return 5
+            } else {
+                return 7
+            }
+        }
+    }
+
+    function getRandomKnightMoveFrom(baseCell) {
+        const possibleNightMoves = knightMovesFrom(baseCell)
+        const possibleConnections = conCounts
+            .map((c,i) => ({cnt:c,idx:i,...absNumToCon(i)}))
+            .filter(conInfo => possibleNightMoves.find(to => equalCells(to, conInfo.to)))
+        const minCnt = arrMin(
+            possibleConnections.map(conInfo => conInfo.cnt)
+        )
+        const destCellsWithMinCnt = possibleConnections
+            .filter(conInfo => conInfo.cnt == minCnt)
+        return destCellsWithMinCnt[randomInt(0, destCellsWithMinCnt.length-1)]
+    }
+
     function onCellClickedNormalMode(cell,event) {
         if (stage == VISION_EXERCISE_STAGE_ASK) {
-            const userAnswerIsCorrect = isUserInputCorrect(absNumToCell(question), cell, event)
+            const correctCell = absNumToCell(question);
+            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, event)
             setUserAnswerIsIncorrect(!userAnswerIsCorrect)
             if (userAnswerIsCorrect) {
-                setRecentCells(old => [...old, cell])
+                const randomConnection = getRandomKnightMoveFrom(correctCell);
+                randomConnection.hDir = calcHDir(correctCell, randomConnection.to)
+                if (numOfCellsToRemember > 0) {
+                    setRecentCells(old => [...old, randomConnection])
+                }
                 setStage(VISION_EXERCISE_STAGE_ANSWER)
             }
         } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
-            if (recentCells.length >= numOfCellsToRemember) {
+            if (numOfCellsToRemember > 0 && recentCells.length >= numOfCellsToRemember) {
                 setStage(VISION_EXERCISE_STAGE_REPEAT_ASK)
             } else {
                 nextQuestion()
@@ -95,9 +162,10 @@ const VisionExercise = ({configName}) => {
 
     function onCellClickedRepeatMode(cell,event) {
         if (stage == VISION_EXERCISE_STAGE_REPEAT_ASK) {
-            const userAnswerIsCorrect = isUserInputCorrect(recentCells[0], cell, event)
+            const userAnswerIsCorrect = isUserInputCorrect(recentCells[0].to, cell, event)
             setUserAnswerIsIncorrect(!userAnswerIsCorrect)
             if (userAnswerIsCorrect) {
+                setConCounts(inc(conCounts, idxOfCon(recentCells[0].from, recentCells[0].to)))
                 setStage(VISION_EXERCISE_STAGE_REPEAT_ANSWER)
             }
         } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER) {
@@ -176,7 +244,7 @@ const VisionExercise = ({configName}) => {
                 blackCells:isBlackCell(currCell)?[currCell]:null,
             }
         } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER && recentCells.length > 0) {
-            const currCell = recentCells[0]
+            const currCell = recentCells[0].to
             return {
                 whiteCells:isWhiteCell(currCell)?[currCell]:null,
                 blackCells:isBlackCell(currCell)?[currCell]:null,
@@ -190,7 +258,11 @@ const VisionExercise = ({configName}) => {
         if (stage == VISION_EXERCISE_STAGE_ASK || stage == VISION_EXERCISE_STAGE_ANSWER) {
             return getCellName(currCell)
         } else {
-            return recentCells.length
+            if (recentCells.length > 0) {
+                return recentCells.length + ":" + recentCells[0].hDir
+            } else {
+                return recentCells.length
+            }
         }
     }
 
@@ -211,6 +283,10 @@ const VisionExercise = ({configName}) => {
             renderChessboard({onCellClicked:onCellClicked}),
             RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
             RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
+            RE.div({},
+                "Counts: min=" + arrMin(conCounts)
+                + ", max=" + arrMax(conCounts)
+                + ", sum=" + arrSum(conCounts)),
         ),
         RE.Button({onClick: resetRecentCells}, "Reset recent cells")
     )
