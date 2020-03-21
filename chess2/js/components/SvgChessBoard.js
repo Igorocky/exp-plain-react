@@ -1,7 +1,8 @@
 "use strict";
 
 const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
-                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow, drawCells}) => {
+                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow, drawCells,
+                       whiteCells, blackCells}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
         x:cellCoordsAfterFlip(flipped,x),
@@ -130,7 +131,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
         )
     }
 
-    function renderCells(cellComponent) {
+    function renderCells({cellComponent}) {
         return _.range(7, -1, -1).map(y =>
             _.range(0, 8).map(x => re(cellComponent, {
                 key:x+"-"+y,
@@ -144,29 +145,49 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
         )
     }
 
+    function renderCell({cell, color}) {
+        return re(SvgChessBoardCell, {
+            key:cell.x+"-"+cell.y,
+            cellSize:cellSize,
+            x:cell.x,
+            y:cell.y,
+            color: color
+        })
+    }
+
+    function renderWhiteBlackCells({whiteCells, blackCells}) {
+        return RE.Fragment({},[
+            ...(whiteCells
+                    ? whiteCells.map(c => renderCell({cell: c, color: "white"}))
+                    : []),
+            ...(blackCells
+                    ? blackCells.map(c => renderCell({cell: c, color: "black"}))
+                    : []),
+        ])
+    }
+
     function renderFrame() {
-        if (drawCells===false) {
-            return RE.Fragment({},
-                vLine({dist: 0, color: "black", width:1}),
-                vLine({dist: 1, color: "black", width:0.5}),
-                vLine({dist: 2, color: "black", width:0.5}),
-                vLine({dist: 3, color: "black", width:0.5}),
-                vLine({dist: 4, color: "black", width:0.5}),
-                vLine({dist: 5, color: "black", width:0.5}),
-                vLine({dist: 6, color: "black", width:0.5}),
-                vLine({dist: 7, color: "black", width:0.5}),
-                vLine({dist: 8, color: "black", width:1}),
-                hLine({dist: 0, color: "black", width:1}),
-                hLine({dist: 1, color: "black", width:0.5}),
-                hLine({dist: 2, color: "black", width:0.5}),
-                hLine({dist: 3, color: "black", width:0.5}),
-                hLine({dist: 4, color: "black", width:0.5}),
-                hLine({dist: 5, color: "black", width:0.5}),
-                hLine({dist: 6, color: "black", width:0.5}),
-                hLine({dist: 7, color: "black", width:0.5}),
-                hLine({dist: 8, color: "black", width:1}),
-            )
-        }
+        return
+        return RE.Fragment({},
+            vLine({dist: 0, color: "black", width:1}),
+            vLine({dist: 1, color: "black", width:0.5}),
+            vLine({dist: 2, color: "black", width:0.5}),
+            vLine({dist: 3, color: "black", width:0.5}),
+            vLine({dist: 4, color: "black", width:0.5}),
+            vLine({dist: 5, color: "black", width:0.5}),
+            vLine({dist: 6, color: "black", width:0.5}),
+            vLine({dist: 7, color: "black", width:0.5}),
+            vLine({dist: 8, color: "black", width:1}),
+            hLine({dist: 0, color: "black", width:1}),
+            hLine({dist: 1, color: "black", width:0.5}),
+            hLine({dist: 2, color: "black", width:0.5}),
+            hLine({dist: 3, color: "black", width:0.5}),
+            hLine({dist: 4, color: "black", width:0.5}),
+            hLine({dist: 5, color: "black", width:0.5}),
+            hLine({dist: 6, color: "black", width:0.5}),
+            hLine({dist: 7, color: "black", width:0.5}),
+            hLine({dist: 8, color: "black", width:1}),
+        )
     }
 
     const upperPlayer = flipped?wPlayer:bPlayer
@@ -174,7 +195,14 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
     return RE.Container.col.top.left({},{},
         upperPlayer,
         RE.svg({width:cellSize*8, height:cellSize*8},
-            (drawCells===false)?renderFrame():renderCells(SvgChessBoardCell),
+            SVG.rect({
+                x:0, y:0, width:cellSize*8, height:cellSize*8,
+                style:{fill:"rgb(220,220,220)"},
+            }),
+            (drawCells===false)
+                ?renderFrame()
+                :renderCells({cellComponent:SvgChessBoardCell}),
+            renderWhiteBlackCells({whiteCells:whiteCells, blackCells:blackCells}),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,
             showAxes?renderAxes():null,
             cellNameToShow?SVG.text({
@@ -184,7 +212,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
                 opacity:0.3,
                 fontSize:cellSize*1.5
             }, cellNameToShow):null,
-            renderCells(SvgChessBoardCellClickHandler),
+            renderCells({cellComponent:SvgChessBoardCellClickHandler}),
         ),
         lowerPlayer
     )

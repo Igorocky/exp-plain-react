@@ -1,10 +1,14 @@
 'use strict';
 
+const VISION_EXERCISE_STAGE_ASK = "VISION_EXERCISE_STAGE_ASK"
+const VISION_EXERCISE_STAGE_ANSWER = "VISION_EXERCISE_STAGE_ANSWER"
+
 const VisionExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [question, setQuestion] = useState(rndElemSelector.currentElem)
     const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
     const [isCoordsMode, setIsCoordsMode] = useState(true)
+    const [stage, setStage] = useState(VISION_EXERCISE_STAGE_ASK)
 
     useEffect(() => {
         document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
@@ -45,14 +49,19 @@ const VisionExercise = ({configName}) => {
     }
 
     const onCellClicked = (cell,event) => {
-        const userSelectsBlack = event.nativeEvent.button==1
-        const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
-        const userAnswerIsCorrect = (getCellName(cell) == cellNumToCellName(question)) && userColorIsCorrect
-        setUserAnswerIsIncorrect(!userAnswerIsCorrect)
-        if (userAnswerIsCorrect) {
+        if (stage == VISION_EXERCISE_STAGE_ASK) {
+            const userSelectsBlack = event.nativeEvent.button==1
+            const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
+            const userAnswerIsCorrect = (getCellName(cell) == cellNumToCellName(question)) && userColorIsCorrect
+            setUserAnswerIsIncorrect(!userAnswerIsCorrect)
+            if (userAnswerIsCorrect) {
+                setStage(VISION_EXERCISE_STAGE_ANSWER)
+            }
+        } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
             setRndElemSelector(oldRndElemSelector => {
                 const newRndElemSelector = oldRndElemSelector.next();
                 setQuestion(newRndElemSelector.currentElem)
+                setStage(VISION_EXERCISE_STAGE_ASK)
                 return newRndElemSelector
             })
         }
@@ -111,13 +120,26 @@ const VisionExercise = ({configName}) => {
 
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75)
 
+    function getWhiteBlackCells(currCell) {
+        if (stage == VISION_EXERCISE_STAGE_ASK) {
+            return {}
+        } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
+            return {
+                whiteCells:isWhiteCell(currCell)?[currCell]:null,
+                blackCells:isBlackCell(currCell)?[currCell]:null,
+            }
+        }
+    }
+
     function renderChessboard() {
+        const currCell = absNumToCell(rndElemSelector.currentElem);
         return re(SvgChessBoard,{
             cellSize: cellSize,
             onCellLeftClicked: onCellClicked,
-            cellNameToShow: cellNumToCellName(rndElemSelector.currentElem),
+            cellNameToShow: getCellName(currCell),
             colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green",
-            drawCells: false
+            drawCells: false,
+            ...getWhiteBlackCells(currCell),
         })
     }
 
