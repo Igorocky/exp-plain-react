@@ -197,41 +197,22 @@ const VisionExercise = ({configName}) => {
         )
     }
 
-    function questionAreaClicked() {
-        setChessboardIsShown(true)
-    }
-
     function renderQuestion() {
         const questionFontSize = 100
         const questionFontSizePx = questionFontSize + "px"
         const questionDivSizePx = questionFontSize*1.5 + "px"
-        const cellName = cellNumToCellName(rndElemSelector.currentElem);
-        if (isCoordsMode) {
-            return RE.Container.row.center.center({
-                    style:{
-                        color: userAnswerIsIncorrect?"red":"black",
-                        border: userAnswerIsIncorrect?"solid 3px red":null,
-                        fontSize:questionFontSizePx,
-                        cursor:"pointer",
-                        width: questionDivSizePx,
-                        height: questionDivSizePx,
-                    },
-                    className: "lightgrey-background-on-hover",
-                    onClick: questionAreaClicked
-                }, {},
-                cellName
-            )
-        } else {
-            const size = "120px"
-            return RE.div({
-                style: {width: size, height: size, border: userAnswerIsIncorrect?"solid 3px red":null},
-                onClick: () => onClick(coords)
-            }, RE.img( {
-                    src:"chess-board-configs/" + configName + "/" + cellName + ".png",
-                    className: "cell-img"
-                })
-            )
-        }
+        const currCell = absNumToCell(question);
+        return RE.Container.row.center.center({
+                style:{
+                    color: userAnswerIsIncorrect?"red":"black",
+                    border: userAnswerIsIncorrect?"solid 3px red":null,
+                    fontSize:questionFontSizePx,
+                    width: questionDivSizePx,
+                    height: questionDivSizePx,
+                },
+            }, {},
+            getTextToShowOnChessboard(currCell)
+        )
     }
 
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
@@ -267,11 +248,9 @@ const VisionExercise = ({configName}) => {
     }
 
     function renderChessboard() {
-        const currCell = absNumToCell(rndElemSelector.currentElem);
         return re(SvgChessBoard,{
             cellSize: cellSize,
             onCellLeftClicked: onCellClicked,
-            cellNameToShow: getTextToShowOnChessboard(currCell),
             colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green",
             drawCells: false,
             ...getWhiteBlackCells(),
@@ -288,7 +267,10 @@ const VisionExercise = ({configName}) => {
                 + ", max=" + arrMax(conCounts)
                 + ", sum=" + arrSum(conCounts)),
         ),
-        RE.Button({onClick: resetRecentCells}, "Reset recent cells")
+        RE.Container.col.top.left({},{},
+            RE.Button({onClick: resetRecentCells}, "Reset recent cells"),
+            renderQuestion()
+        )
     )
 }
 
