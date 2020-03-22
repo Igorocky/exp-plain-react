@@ -33,14 +33,14 @@ const VisionExercise = ({configName}) => {
 
     const [state, setState] = useState(() => createState({
         connectionTypes:[
-            CONNECTION_TYPE_SAME_CELL,
-            CONNECTION_TYPE_KNIGHT,
+            // CONNECTION_TYPE_SAME_CELL,
+            // CONNECTION_TYPE_KNIGHT,
             CONNECTION_TYPE_LINE,
         ],
-        lineLengthMin:1,
-        lineLengthMax:7,
-        pathLength:5,
-        numOfCellsToRemember:0
+        lineLengthMin:2,
+        lineLengthMax:3,
+        pathLength:2,
+        numOfCellsToRemember:1
     }))
 
     function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
@@ -91,7 +91,7 @@ const VisionExercise = ({configName}) => {
                 [11,12,1,9,3,7,6,5].flatMap(h => {
                     const ray = rayHFrom(from.x, from.y, h)
                     return ray
-                        .map((to,idx) => ({from:from, to:to, len:idx+1}))
+                        .map((to,idx) => ({from:from, to:to, len:idx+1, dir:hourToDir(h)}))
                         .filter(con => lineLengthMin <= con.len && con.len <= lineLengthMax)
                         .map(con => ({...con, relSym:calcSymbolForLineMove(con.from,con.to)+con.len}))
                 })
@@ -159,8 +159,15 @@ const VisionExercise = ({configName}) => {
         return equalCells(correctCell, cell) && userColorIsCorrect
     }
 
-    function selectRandomConnection({from, cons, counts}) {
-        const possibleCons = cons.filter(con => equalCells(con.from, from))
+    function conCanBeChosen({prevCon, from, con}) {
+        return equalCells(from, con.from)
+            && (!prevCon || !prevCon.dir || !con.dir || !isOppositeDir(prevCon.dir, con.dir))
+            && (!prevCon || !equalCells(prevCon.from, con.to))
+    }
+
+    function selectRandomConnection({prevCon, from, cons, counts}) {
+        const possibleCons = cons
+            .filter(con => conCanBeChosen({prevCon:prevCon, from:from, con:con}))
         if (possibleCons.length == 0) {
             throw "possibleCons.length == 0"
         }
@@ -171,9 +178,11 @@ const VisionExercise = ({configName}) => {
 
     function selectSequenceOfConnections({length, from, cons, counts}) {
         const result = []
+        let prevCon
         while (result.length < length) {
-            const con = selectRandomConnection({from:from, cons:cons, counts:counts});
+            const con = selectRandomConnection({prevCon:prevCon, from:from, cons:cons, counts:counts});
             result.push(con)
+            prevCon = con
             from = con.to
             counts = inc(counts, con.idx)
         }

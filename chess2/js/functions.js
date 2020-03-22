@@ -5,7 +5,7 @@ const PROFILE_MOBILE = profile("PROFILE_MOBILE")
 const PROFILE_FUJ = profile("PROFILE_FUJ")
 const PROFILE_FUJ_FULL = profile("PROFILE_FUJ_FULL", PROFILE_FUJ)
 
-const PROFILE = PROFILE_MOBILE
+const PROFILE = PROFILE_FUJ
 
 const ENTER_KEY_CODE = 13
 const ESC_KEY_CODE = 27
@@ -360,6 +360,10 @@ function equalCells(c1, c2) {
 
 function isSameDir(dir1, dir2) {
     return dir1.dx == dir2.dx && dir1.dy == dir2.dy
+}
+
+function isOppositeDir(dir1, dir2) {
+    return dir1.dx == -dir2.dx && dir1.dy == -dir2.dy
 }
 
 function isNextDir(dir1, dir2) {
