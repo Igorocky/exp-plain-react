@@ -6,10 +6,18 @@ const VisionExercise = ({configName}) => {
     const STAGE_REPEAT_ASK = "STAGE_REPEAT_ASK"
     const STAGE_REPEAT_ANSWER = "STAGE_REPEAT_ANSWER"
 
-    const UP = String.fromCharCode(9653)
-    const DOWN = String.fromCharCode(9663)
-    const LEFT = String.fromCharCode(9667)
-    const RIGHT = String.fromCharCode(9657)
+    const TR_UP = String.fromCharCode(9653)
+    const TR_DOWN = String.fromCharCode(9663)
+    const TR_LEFT = String.fromCharCode(9667)
+    const TR_RIGHT = String.fromCharCode(9657)
+    const RIGHT = String.fromCharCode(8594);
+    const RIGHT_UP = String.fromCharCode(8599);
+    const RIGHT_DOWN = String.fromCharCode(8600);
+    const UP = String.fromCharCode(8593);
+    const DOWN = String.fromCharCode(8595);
+    const LEFT = String.fromCharCode(8592);
+    const LEFT_UP = String.fromCharCode(8598);
+    const LEFT_DOWN = String.fromCharCode(8601);
     const N3 = String.fromCharCode(8867)
     const N9 = String.fromCharCode(8866)
     const N12 = String.fromCharCode(8868)
@@ -34,7 +42,7 @@ const VisionExercise = ({configName}) => {
     const [state, setState] = useState(() => createState({
         connectionTypes:[
             // CONNECTION_TYPE_SAME_CELL,
-            // CONNECTION_TYPE_KNIGHT,
+            CONNECTION_TYPE_KNIGHT,
             CONNECTION_TYPE_LINE,
         ],
         lineLengthMin:2,
@@ -102,23 +110,15 @@ const VisionExercise = ({configName}) => {
         if (from.x+1 < to.x) {//right
             return from.y < to.y ? N3+UP : N3+DOWN
         } else if (to.x+1 < from.x) {//left
-            return from.y < to.y ? UP+N9 : DOWN+N9
+            return from.y < to.y ? N9+UP : N9+DOWN
         } if (from.y+1 < to.y) {//top
-            return from.x < to.x ? N12+RIGHT : LEFT+N12
+            return from.x < to.x ? N12+RIGHT : N12+LEFT
         } else if (to.y+1 < from.y) {//bottom
-            return from.x < to.x ? N6+RIGHT : LEFT+N6
+            return from.x < to.x ? N6+RIGHT : N6+LEFT
         }
     }
 
     function calcSymbolForLineMove(from, to) {
-        const RIGHT = String.fromCharCode(8594);
-        const RIGHT_UP = String.fromCharCode(8599);
-        const RIGHT_DOWN = String.fromCharCode(8600);
-        const UP = String.fromCharCode(8593);
-        const DOWN = String.fromCharCode(8595);
-        const LEFT = String.fromCharCode(8592);
-        const LEFT_UP = String.fromCharCode(8598);
-        const LEFT_DOWN = String.fromCharCode(8601);
         if (from.x < to.x) {
             if (from.y < to.y) {
                 return RIGHT_UP
