@@ -42,7 +42,6 @@ const VisionExercise = ({configName}) => {
         pathLength:5,
         numOfCellsToRemember:0
     }))
-    console.log(state)
 
     function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
         const allConnections = createAllConnections({
@@ -325,7 +324,10 @@ const VisionExercise = ({configName}) => {
                 + ", sum=" + arrSum(state[COUNTS])),
         ),
         RE.Container.col.top.left({},{},
-            RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
+            RE.Container.row.left.top({},{},
+                RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
+                RE.Button({onClick: () => console.log(state)}, "View State"),
+            ),
             renderQuestion()
         )
     )
