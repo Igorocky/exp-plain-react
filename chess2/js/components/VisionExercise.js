@@ -46,8 +46,8 @@ const VisionExercise = ({configName}) => {
             CONNECTION_TYPE_LINE,
         ],
         lineLengthMin:2,
-        lineLengthMax:3,
-        pathLength:2,
+        lineLengthMax:5,
+        pathLength:3,
         numOfCellsToRemember:1
     }))
 
@@ -254,6 +254,7 @@ const VisionExercise = ({configName}) => {
     function resetRecentCells(state) {
         state = nextQuestion(state)
         state = set(state, RECENT_CELLS, [])
+        state = set(state, USER_ANSWER_IS_CORRECT, true)
         return state
     }
 
