@@ -5,6 +5,15 @@ const VISION_EXERCISE_STAGE_ANSWER = "VISION_EXERCISE_STAGE_ANSWER"
 const VISION_EXERCISE_STAGE_REPEAT_ASK = "VISION_EXERCISE_STAGE_REPEAT_ASK"
 const VISION_EXERCISE_STAGE_REPEAT_ANSWER = "VISION_EXERCISE_STAGE_REPEAT_ANSWER"
 
+const VISION_EXERCISE_UP = String.fromCharCode(9653)
+const VISION_EXERCISE_DOWN = String.fromCharCode(9663)
+const VISION_EXERCISE_LEFT = String.fromCharCode(9667)
+const VISION_EXERCISE_RIGHT = String.fromCharCode(9657)
+const VISION_EXERCISE_N3 = String.fromCharCode(8867)
+const VISION_EXERCISE_N9 = String.fromCharCode(8866)
+const VISION_EXERCISE_N12 = String.fromCharCode(8868)
+const VISION_EXERCISE_N6 = String.fromCharCode(8869)
+
 const VisionExercise = ({configName}) => {
     const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
     const [question, setQuestion] = useState(rndElemSelector.currentElem)
@@ -100,27 +109,27 @@ const VisionExercise = ({configName}) => {
     function calcHDir(from, to) {
         if (from.x+1 < to.x) {//right
             if (from.y < to.y) {
-                return 2
+                return VISION_EXERCISE_N3+VISION_EXERCISE_UP
             } else {
-                return 4
+                return VISION_EXERCISE_N3+VISION_EXERCISE_DOWN
             }
         } else if (to.x+1 < from.x) {//left
             if (from.y < to.y) {
-                return 10
+                return VISION_EXERCISE_UP+VISION_EXERCISE_N9
             } else {
-                return 8
+                return VISION_EXERCISE_DOWN+VISION_EXERCISE_N9
             }
         } if (from.y+1 < to.y) {//top
             if (from.x < to.x) {
-                return 1
+                return VISION_EXERCISE_N12+VISION_EXERCISE_RIGHT
             } else {
-                return 11
+                return VISION_EXERCISE_LEFT+VISION_EXERCISE_N12
             }
         } else if (to.y+1 < from.y) {//bottom
             if (from.x < to.x) {
-                return 5
+                return VISION_EXERCISE_N6+VISION_EXERCISE_RIGHT
             } else {
-                return 7
+                return VISION_EXERCISE_LEFT+VISION_EXERCISE_N6
             }
         }
     }
@@ -240,7 +249,7 @@ const VisionExercise = ({configName}) => {
             return getCellName(currCell)
         } else {
             if (recentCells.length > 0) {
-                return recentCells.length + ":" + recentCells[0].hDir
+                return recentCells.length + recentCells[0].hDir
             } else {
                 return recentCells.length
             }
