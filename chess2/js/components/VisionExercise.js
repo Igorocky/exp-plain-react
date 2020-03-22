@@ -217,7 +217,7 @@ const VisionExercise = ({configName}) => {
     }
 
     function getCorrectAnswerForRecentCells(recentCells) {
-        const curPath = recentCells[recentCells.length-1].seq
+        const curPath = recentCells[0].seq
         return curPath[curPath.length-1].to
     }
 
