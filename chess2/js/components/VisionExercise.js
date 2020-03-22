@@ -24,7 +24,7 @@ const VisionExercise = ({configName}) => {
     const [cons] = useState(() => getAllPossibleConnections())
     const [conCounts, setConCounts] = useState(() => ints(0,cons.length-1).map(i => 0))
 
-    const numOfCellsToRemember = 1
+    const numOfCellsToRemember = 4
 
     useEffect(() => {
         document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
@@ -249,7 +249,7 @@ const VisionExercise = ({configName}) => {
             return getCellName(currCell)
         } else {
             if (recentCells.length > 0) {
-                return recentCells.length + recentCells[0].hDir
+                return (numOfCellsToRemember-recentCells.length+1) + recentCells[0].hDir
             } else {
                 return recentCells.length
             }
