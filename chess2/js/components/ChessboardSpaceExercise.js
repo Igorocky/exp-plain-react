@@ -21,34 +21,81 @@ const ChessboardSpaceExercise = ({configName}) => {
     const RECENT_CELLS = "RECENT_CELLS"
     const CONNECTIONS = "CONNECTIONS"
     const COUNTS = "COUNTS"
-    const numOfCellsToRemember = 1
+    const NUM_OF_CELLS_TO_REMEMBER = "NUM_OF_CELLS_TO_REMEMBER"
+    const PATH_LENGTH = "PATH_LENGTH"
+    const CONNECTION_TYPES = "CONNECTION_TYPES"
+    const CONNECTION_TYPE_SAME_CELL = "CONNECTION_TYPE_SAME_CELL"
+    const CONNECTION_TYPE_KNIGHT = "CONNECTION_TYPE_KNIGHT"
+    const CONNECTION_TYPE_LINE = "CONNECTION_TYPE_LINE"
+    const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
+    const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
-    const [state, setState] = useState(() => createState())
+    const [state, setState] = useState(() => createState({
+        connectionTypes:[
+            CONNECTION_TYPE_SAME_CELL,
+            CONNECTION_TYPE_KNIGHT,
+            CONNECTION_TYPE_LINE,
+        ],
+        lineLengthMin:1,
+        lineLengthMax:7,
+        pathLength:5,
+        numOfCellsToRemember:0
+    }))
+    console.log(state)
 
-    function createState() {
-        const allConnections = createAllConnections();
+    function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+        const allConnections = createAllConnections({
+            connectionTypes:connectionTypes,
+            lineLengthMin:lineLengthMin,
+            lineLengthMax:lineLengthMax,
+        })
         return {
             [STAGE]: STAGE_ASK,
             [RND_ELEM_SELECTOR]: randomElemSelector({allElems: ints(0,63)}),
             [USER_ANSWER_IS_CORRECT]: true,
+            [NUM_OF_CELLS_TO_REMEMBER]: numOfCellsToRemember,
+            [PATH_LENGTH]: pathLength,
             [RECENT_CELLS]: [],
+            [CONNECTION_TYPES]: connectionTypes,
+            [LINE_LENGTH_MIN]: lineLengthMin,
+            [LINE_LENGTH_MAX]: lineLengthMax,
             [CONNECTIONS]: allConnections,
             [COUNTS]: ints(0, allConnections.length-1).map(i => 0)
         }
     }
 
-    function createAllConnections() {
+    function createAllConnections({connectionTypes, lineLengthMin, lineLengthMax}) {
         return [
-            ...createKnightConnections()
+            ...(connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)?createSameCellConnections():[]),
+            ...(connectionTypes.includes(CONNECTION_TYPE_KNIGHT)?createKnightConnections():[]),
+            ...(connectionTypes.includes(CONNECTION_TYPE_LINE)?createLineConnections(lineLengthMin, lineLengthMax):[]),
         ].map((con, idx) => ({...con, idx:idx}))
 
+    }
+
+    function createSameCellConnections() {
+        return ints(0,63).map(absNumToCell)
+            .map(from => ({from:from, to:from, relSym:"o"}))
     }
 
     function createKnightConnections() {
         return ints(0,63).map(absNumToCell)
             .flatMap(from =>
                 knightMovesFrom(from).map(to => ({from:from, to:to, relSym:calcSymbolForKnightMove(from,to)}))
+            )
+    }
+
+    function createLineConnections(lineLengthMin, lineLengthMax) {
+        return ints(0,63).map(absNumToCell)
+            .flatMap(from =>
+                [11,12,1,9,3,7,6,5].flatMap(h => {
+                    const ray = rayHFrom(from.x, from.y, h)
+                    return ray
+                        .map((to,idx) => ({from:from, to:to, len:idx+1}))
+                        .filter(con => lineLengthMin <= con.len && con.len <= lineLengthMax)
+                        .map(con => ({...con, relSym:calcSymbolForLineMove(con.from,con.to)+con.len}))
+                })
             )
     }
 
@@ -61,6 +108,40 @@ const ChessboardSpaceExercise = ({configName}) => {
             return from.x < to.x ? N12+RIGHT : LEFT+N12
         } else if (to.y+1 < from.y) {//bottom
             return from.x < to.x ? N6+RIGHT : LEFT+N6
+        }
+    }
+
+    function calcSymbolForLineMove(from, to) {
+        const RIGHT = String.fromCharCode(8594);
+        const RIGHT_UP = String.fromCharCode(8599);
+        const RIGHT_DOWN = String.fromCharCode(8600);
+        const UP = String.fromCharCode(8593);
+        const DOWN = String.fromCharCode(8595);
+        const LEFT = String.fromCharCode(8592);
+        const LEFT_UP = String.fromCharCode(8598);
+        const LEFT_DOWN = String.fromCharCode(8601);
+        if (from.x < to.x) {
+            if (from.y < to.y) {
+                return RIGHT_UP
+            } else if (from.y == to.y) {
+                return RIGHT
+            } else {
+                return RIGHT_DOWN
+            }
+        } else if (from.x == to.x) {
+            if (from.y < to.y) {
+                return UP
+            } else {
+                return DOWN
+            }
+        } else {
+            if (from.y < to.y) {
+                return LEFT_UP
+            } else if (from.y == to.y) {
+                return LEFT
+            } else {
+                return LEFT_DOWN
+            }
         }
     }
 
@@ -81,6 +162,9 @@ const ChessboardSpaceExercise = ({configName}) => {
 
     function selectRandomConnection({from, cons, counts}) {
         const possibleCons = cons.filter(con => equalCells(con.from, from))
+        if (possibleCons.length == 0) {
+            throw "possibleCons.length == 0"
+        }
         const minCnt = arrMin(possibleCons.map(con => counts[con.idx]))
         const consWithMinCnt = possibleCons.filter(con => counts[con.idx] == minCnt)
         return consWithMinCnt[randomInt(0, consWithMinCnt.length-1)]
@@ -101,7 +185,7 @@ const ChessboardSpaceExercise = ({configName}) => {
         return set(state, RECENT_CELLS, [...(state[RECENT_CELLS]),
                 {
                     seq:selectSequenceOfConnections({
-                        length: 2,
+                        length: state[PATH_LENGTH],
                         from: cell,
                         cons: state[CONNECTIONS],
                         counts: state[COUNTS]
@@ -112,6 +196,7 @@ const ChessboardSpaceExercise = ({configName}) => {
 
     function onCellClickedNormalMode(state, cell, nativeEvent) {
         const stage = state[STAGE]
+        const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
         if (stage == STAGE_ASK) {
             const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
             const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
@@ -191,6 +276,7 @@ const ChessboardSpaceExercise = ({configName}) => {
         } else if (stage == STAGE_REPEAT_ASK || stage == STAGE_REPEAT_ANSWER) {
             const recentCells = state[RECENT_CELLS]
             const currPath = recentCells[0].seq
+            const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
             return RE.Container.col.top.left({}, {},
                 RE.span({style: questionStyle},numOfCellsToRemember - recentCells.length + 1),
                 currPath.map(con => RE.span({style:{fontSize:questionFontSize*0.5+"px",}}, con.relSym))
@@ -233,10 +319,10 @@ const ChessboardSpaceExercise = ({configName}) => {
             renderChessboard(),
             RE.div({}, "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber),
             RE.div({}, "Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length),
-            // RE.div({},
-            //     "Counts: min=" + arrMin(conCounts)
-            //     + ", max=" + arrMax(conCounts)
-            //     + ", sum=" + arrSum(conCounts)),
+            RE.div({},
+                "Counts: min=" + arrMin(state[COUNTS])
+                + ", max=" + arrMax(state[COUNTS])
+                + ", sum=" + arrSum(state[COUNTS])),
         ),
         RE.Container.col.top.left({},{},
             RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
