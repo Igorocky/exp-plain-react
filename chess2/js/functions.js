@@ -194,7 +194,7 @@ function moveToCellRelatively(baseCell,dir) {
 }
 
 function knightMovesFrom(cell) {
-    return _.filter([
+    return [
         moveToCellRelatively(cell,{dx:-2,dy:-1}),
         moveToCellRelatively(cell,{dx:-2,dy:+1}),
         moveToCellRelatively(cell,{dx:-1,dy:+2}),
@@ -203,7 +203,7 @@ function knightMovesFrom(cell) {
         moveToCellRelatively(cell,{dx:+2,dy:-1}),
         moveToCellRelatively(cell,{dx:+1,dy:-2}),
         moveToCellRelatively(cell,{dx:-1,dy:-2})
-    ], c => isValidCell(c))
+    ].filter(isValidCell)
 }
 
 function createCellsByConnectionNumber(connectionNumber) {
@@ -438,4 +438,8 @@ function disableScrollOnMouseDown(event) {
     if(event.button==1){
         event.preventDefault()
     }
+}
+
+function set(obj, attrName, newValue) {
+    return {...obj, [attrName]:newValue}
 }

@@ -140,7 +140,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
                 x:board[x][y].x,
                 y:board[x][y].y,
                 withDot:board[x][y].withDot,
-                onLeftClicked: event => onCellLeftClicked?onCellLeftClicked({x:x,y:y}, event):null,
+                onLeftClicked: nativeEvent => onCellLeftClicked?onCellLeftClicked({x:x,y:y}, nativeEvent):null,
             }))
         )
     }

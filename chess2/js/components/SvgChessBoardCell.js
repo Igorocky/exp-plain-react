@@ -50,7 +50,7 @@ const SvgChessBoardCell = ({cellSize,chCode,x,y,withDot,onLeftClicked,color}) =>
         SVG.rect({
             x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
             style:{fill: getColor()},
-            onMouseDown: event => onLeftClicked?onLeftClicked(event):null
+            onMouseDown: event => onLeftClicked?onLeftClicked(event.nativeEvent):null
         }),
         chCode? SVG.image({
             x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
