@@ -1,240 +1,300 @@
 'use strict';
 
-const VISION_EXERCISE_STAGE_ASK = "VISION_EXERCISE_STAGE_ASK"
-const VISION_EXERCISE_STAGE_ANSWER = "VISION_EXERCISE_STAGE_ANSWER"
-const VISION_EXERCISE_STAGE_REPEAT_ASK = "VISION_EXERCISE_STAGE_REPEAT_ASK"
-const VISION_EXERCISE_STAGE_REPEAT_ANSWER = "VISION_EXERCISE_STAGE_REPEAT_ANSWER"
-
-const VISION_EXERCISE_UP = String.fromCharCode(9653)
-const VISION_EXERCISE_DOWN = String.fromCharCode(9663)
-const VISION_EXERCISE_LEFT = String.fromCharCode(9667)
-const VISION_EXERCISE_RIGHT = String.fromCharCode(9657)
-const VISION_EXERCISE_N3 = String.fromCharCode(8867)
-const VISION_EXERCISE_N9 = String.fromCharCode(8866)
-const VISION_EXERCISE_N12 = String.fromCharCode(8868)
-const VISION_EXERCISE_N6 = String.fromCharCode(8869)
-
 const VisionExercise = ({configName}) => {
-    const [rndElemSelector, setRndElemSelector] = useState(() => getNewRndElemSelector())
-    const [question, setQuestion] = useState(rndElemSelector.currentElem)
-    const [userAnswerIsIncorrect, setUserAnswerIsIncorrect] = useState(false)
-    const [isCoordsMode, setIsCoordsMode] = useState(true)
-    const [stage, setStage] = useState(VISION_EXERCISE_STAGE_ASK)
-    const [recentCells, setRecentCells] = useState([])
-    const [cons] = useState(() => getAllPossibleConnections())
-    const [conCounts, setConCounts] = useState(() => ints(0,cons.length-1).map(i => 0))
+    const STAGE_ASK = "STAGE_ASK"
+    const STAGE_ANSWER = "STAGE_ANSWER"
+    const STAGE_REPEAT_ASK = "STAGE_REPEAT_ASK"
+    const STAGE_REPEAT_ANSWER = "STAGE_REPEAT_ANSWER"
 
-    const numOfCellsToRemember = 4
+    const UP = String.fromCharCode(9653)
+    const DOWN = String.fromCharCode(9663)
+    const LEFT = String.fromCharCode(9667)
+    const RIGHT = String.fromCharCode(9657)
+    const N3 = String.fromCharCode(8867)
+    const N9 = String.fromCharCode(8866)
+    const N12 = String.fromCharCode(8868)
+    const N6 = String.fromCharCode(8869)
 
-    useEffect(() => {
-        document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
-        return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
-    }, [rndElemSelector])
+    const STAGE = "STAGE"
+    const RND_ELEM_SELECTOR = "RND_ELEM_SELECTOR"
+    const USER_ANSWER_IS_CORRECT = "USER_ANSWER_IS_CORRECT"
+    const RECENT_CELLS = "RECENT_CELLS"
+    const CONNECTIONS = "CONNECTIONS"
+    const COUNTS = "COUNTS"
+    const NUM_OF_CELLS_TO_REMEMBER = "NUM_OF_CELLS_TO_REMEMBER"
+    const PATH_LENGTH = "PATH_LENGTH"
+    const CONNECTION_TYPES = "CONNECTION_TYPES"
+    const CONNECTION_TYPE_SAME_CELL = "CONNECTION_TYPE_SAME_CELL"
+    const CONNECTION_TYPE_KNIGHT = "CONNECTION_TYPE_KNIGHT"
+    const CONNECTION_TYPE_LINE = "CONNECTION_TYPE_LINE"
+    const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
+    const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
+    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
-    function getAllPossibleConnections() {
-        return ints(0,63).map(i => absNumToCell(i)).flatMap(from =>
-            knightMovesFrom(from)
-                .map(to => ({from:from, to:to}))
-                .filter(con => isValidCell(con.to))
-        )
-    }
+    const [state, setState] = useState(() => createState({
+        connectionTypes:[
+            CONNECTION_TYPE_SAME_CELL,
+            CONNECTION_TYPE_KNIGHT,
+            CONNECTION_TYPE_LINE,
+        ],
+        lineLengthMin:1,
+        lineLengthMax:7,
+        pathLength:5,
+        numOfCellsToRemember:0
+    }))
+    console.log(state)
 
-    function onKeyDown(event) {
-        if (event.keyCode == SPACE_KEY_CODE || event.keyCode == ENTER_KEY_CODE) {
-            questionAreaClicked()
+    function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+        const allConnections = createAllConnections({
+            connectionTypes:connectionTypes,
+            lineLengthMin:lineLengthMin,
+            lineLengthMax:lineLengthMax,
+        })
+        return {
+            [STAGE]: STAGE_ASK,
+            [RND_ELEM_SELECTOR]: randomElemSelector({allElems: ints(0,63)}),
+            [USER_ANSWER_IS_CORRECT]: true,
+            [NUM_OF_CELLS_TO_REMEMBER]: numOfCellsToRemember,
+            [PATH_LENGTH]: pathLength,
+            [RECENT_CELLS]: [],
+            [CONNECTION_TYPES]: connectionTypes,
+            [LINE_LENGTH_MIN]: lineLengthMin,
+            [LINE_LENGTH_MAX]: lineLengthMax,
+            [CONNECTIONS]: allConnections,
+            [COUNTS]: ints(0, allConnections.length-1).map(i => 0)
         }
     }
 
-    function quadrantFilter(q) {
-        return i => {
-            const c = absNumToCell(i)
-            if (q == 1) {
-                return 0 <= c.x && c.x <= 3 && 0 <= c.y && c.y <= 3
-            } else if (q == 2) {
-                return 4 <= c.x && c.x <= 7 && 0 <= c.y && c.y <= 3
-            } else if (q == 3) {
-                return 0 <= c.x && c.x <= 3 && 4 <= c.y && c.y <= 7
-            } else if (q == 4) {
-                return 4 <= c.x && c.x <= 7 && 4 <= c.y && c.y <= 7
+    function createAllConnections({connectionTypes, lineLengthMin, lineLengthMax}) {
+        return [
+            ...(connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)?createSameCellConnections():[]),
+            ...(connectionTypes.includes(CONNECTION_TYPE_KNIGHT)?createKnightConnections():[]),
+            ...(connectionTypes.includes(CONNECTION_TYPE_LINE)?createLineConnections(lineLengthMin, lineLengthMax):[]),
+        ].map((con, idx) => ({...con, idx:idx}))
+
+    }
+
+    function createSameCellConnections() {
+        return ints(0,63).map(absNumToCell)
+            .map(from => ({from:from, to:from, relSym:"o"}))
+    }
+
+    function createKnightConnections() {
+        return ints(0,63).map(absNumToCell)
+            .flatMap(from =>
+                knightMovesFrom(from).map(to => ({from:from, to:to, relSym:calcSymbolForKnightMove(from,to)}))
+            )
+    }
+
+    function createLineConnections(lineLengthMin, lineLengthMax) {
+        return ints(0,63).map(absNumToCell)
+            .flatMap(from =>
+                [11,12,1,9,3,7,6,5].flatMap(h => {
+                    const ray = rayHFrom(from.x, from.y, h)
+                    return ray
+                        .map((to,idx) => ({from:from, to:to, len:idx+1}))
+                        .filter(con => lineLengthMin <= con.len && con.len <= lineLengthMax)
+                        .map(con => ({...con, relSym:calcSymbolForLineMove(con.from,con.to)+con.len}))
+                })
+            )
+    }
+
+    function calcSymbolForKnightMove(from, to) {
+        if (from.x+1 < to.x) {//right
+            return from.y < to.y ? N3+UP : N3+DOWN
+        } else if (to.x+1 < from.x) {//left
+            return from.y < to.y ? UP+N9 : DOWN+N9
+        } if (from.y+1 < to.y) {//top
+            return from.x < to.x ? N12+RIGHT : LEFT+N12
+        } else if (to.y+1 < from.y) {//bottom
+            return from.x < to.x ? N6+RIGHT : LEFT+N6
+        }
+    }
+
+    function calcSymbolForLineMove(from, to) {
+        const RIGHT = String.fromCharCode(8594);
+        const RIGHT_UP = String.fromCharCode(8599);
+        const RIGHT_DOWN = String.fromCharCode(8600);
+        const UP = String.fromCharCode(8593);
+        const DOWN = String.fromCharCode(8595);
+        const LEFT = String.fromCharCode(8592);
+        const LEFT_UP = String.fromCharCode(8598);
+        const LEFT_DOWN = String.fromCharCode(8601);
+        if (from.x < to.x) {
+            if (from.y < to.y) {
+                return RIGHT_UP
+            } else if (from.y == to.y) {
+                return RIGHT
+            } else {
+                return RIGHT_DOWN
+            }
+        } else if (from.x == to.x) {
+            if (from.y < to.y) {
+                return UP
+            } else {
+                return DOWN
+            }
+        } else {
+            if (from.y < to.y) {
+                return LEFT_UP
+            } else if (from.y == to.y) {
+                return LEFT
+            } else {
+                return LEFT_DOWN
             }
         }
     }
 
-    function getNewRndElemSelector() {
-        return randomElemSelector({
-            allElems: ints(0,63)
-                // .filter(quadrantFilter(1))
-                // .filter(isWhiteCellI)
-        })
+    function onCellClicked(state,cell,nativeEvent) {
+        const stage = state[STAGE]
+        if (stage == STAGE_ASK || stage == STAGE_ANSWER) {
+            return onCellClickedNormalMode(state, cell, nativeEvent)
+        } else {
+            return onCellClickedRepeatMode(state, cell, nativeEvent)
+        }
     }
 
-    function cellNumToCellName(cellNum) {
-        return getCellName(absNumToCell(cellNum))
-    }
-
-    function isUserInputCorrect(correctCell, cell, event) {
-        const userSelectsBlack = event.nativeEvent.button==1
-        const userColorIsCorrect = userSelectsBlack?isBlackCell(cell):isWhiteCell(cell)
+    function isUserInputCorrect(correctCell, cell, nativeEvent) {
+        const userSelectsBlack = nativeEvent.button==1
+        const userColorIsCorrect = userSelectsBlack?isBlackCell(correctCell):isWhiteCell(correctCell)
         return equalCells(correctCell, cell) && userColorIsCorrect
     }
 
-    function nextQuestion() {
-        setRndElemSelector(oldRndElemSelector => {
-            const newRndElemSelector = oldRndElemSelector.next();
-            setQuestion(newRndElemSelector.currentElem)
-            setStage(VISION_EXERCISE_STAGE_ASK)
-            return newRndElemSelector
-        })
-    }
-
-    function onCellClicked(cell,event) {
-        if (stage == VISION_EXERCISE_STAGE_ASK || stage == VISION_EXERCISE_STAGE_ANSWER) {
-            onCellClickedNormalMode(cell, event)
-        } else {
-            onCellClickedRepeatMode(cell, event)
+    function selectRandomConnection({from, cons, counts}) {
+        const possibleCons = cons.filter(con => equalCells(con.from, from))
+        if (possibleCons.length == 0) {
+            throw "possibleCons.length == 0"
         }
+        const minCnt = arrMin(possibleCons.map(con => counts[con.idx]))
+        const consWithMinCnt = possibleCons.filter(con => counts[con.idx] == minCnt)
+        return consWithMinCnt[randomInt(0, consWithMinCnt.length-1)]
     }
 
-    function absNumToCon(i) {
-        return cons[i]
-    }
-
-    function idxOfCon(from,to) {
-        return cons
-            .map((con,idx) => ({con:con, idx:idx}))
-            .filter(conIdx => equalCells(conIdx.con.from, from) && equalCells(conIdx.con.to, to))
-            .map(conIdx => conIdx.idx)[0]
-    }
-
-    function calcHDir(from, to) {
-        if (from.x+1 < to.x) {//right
-            if (from.y < to.y) {
-                return VISION_EXERCISE_N3+VISION_EXERCISE_UP
-            } else {
-                return VISION_EXERCISE_N3+VISION_EXERCISE_DOWN
-            }
-        } else if (to.x+1 < from.x) {//left
-            if (from.y < to.y) {
-                return VISION_EXERCISE_UP+VISION_EXERCISE_N9
-            } else {
-                return VISION_EXERCISE_DOWN+VISION_EXERCISE_N9
-            }
-        } if (from.y+1 < to.y) {//top
-            if (from.x < to.x) {
-                return VISION_EXERCISE_N12+VISION_EXERCISE_RIGHT
-            } else {
-                return VISION_EXERCISE_LEFT+VISION_EXERCISE_N12
-            }
-        } else if (to.y+1 < from.y) {//bottom
-            if (from.x < to.x) {
-                return VISION_EXERCISE_N6+VISION_EXERCISE_RIGHT
-            } else {
-                return VISION_EXERCISE_LEFT+VISION_EXERCISE_N6
-            }
+    function selectSequenceOfConnections({length, from, cons, counts}) {
+        const result = []
+        while (result.length < length) {
+            const con = selectRandomConnection({from:from, cons:cons, counts:counts});
+            result.push(con)
+            from = con.to
+            counts = inc(counts, con.idx)
         }
+        return result
     }
 
-    function getRandomKnightMoveFrom(baseCell) {
-        const possibleNightMoves = knightMovesFrom(baseCell)
-        const possibleConnections = conCounts
-            .map((c,i) => ({cnt:c,idx:i,...absNumToCon(i)}))
-            .filter(conInfo => possibleNightMoves.find(to => equalCells(to, conInfo.to)))
-        const minCnt = arrMin(
-            possibleConnections.map(conInfo => conInfo.cnt)
-        )
-        const destCellsWithMinCnt = possibleConnections
-            .filter(conInfo => conInfo.cnt == minCnt)
-        return destCellsWithMinCnt[randomInt(0, destCellsWithMinCnt.length-1)]
-    }
-
-    function onCellClickedNormalMode(cell,event) {
-        if (stage == VISION_EXERCISE_STAGE_ASK) {
-            const correctCell = absNumToCell(question);
-            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, event)
-            setUserAnswerIsIncorrect(!userAnswerIsCorrect)
-            if (userAnswerIsCorrect) {
-                const randomConnection = getRandomKnightMoveFrom(correctCell);
-                randomConnection.hDir = calcHDir(correctCell, randomConnection.to)
-                if (numOfCellsToRemember > 0) {
-                    setRecentCells(old => [...old, randomConnection])
+    function putCellToRecentCells(state, cell) {
+        return set(state, RECENT_CELLS, [...(state[RECENT_CELLS]),
+                {
+                    seq:selectSequenceOfConnections({
+                        length: state[PATH_LENGTH],
+                        from: cell,
+                        cons: state[CONNECTIONS],
+                        counts: state[COUNTS]
+                    })
                 }
-                setStage(VISION_EXERCISE_STAGE_ANSWER)
-            }
-        } else if (stage == VISION_EXERCISE_STAGE_ANSWER) {
-            if (numOfCellsToRemember > 0 && recentCells.length >= numOfCellsToRemember) {
-                setStage(VISION_EXERCISE_STAGE_REPEAT_ASK)
-            } else {
-                nextQuestion()
-            }
-        }
+        ])
     }
 
-    function onCellClickedRepeatMode(cell,event) {
-        if (stage == VISION_EXERCISE_STAGE_REPEAT_ASK) {
-            const userAnswerIsCorrect = isUserInputCorrect(recentCells[0].to, cell, event)
-            setUserAnswerIsIncorrect(!userAnswerIsCorrect)
+    function onCellClickedNormalMode(state, cell, nativeEvent) {
+        const stage = state[STAGE]
+        const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
+        if (stage == STAGE_ASK) {
+            const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
+            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
+            state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
             if (userAnswerIsCorrect) {
-                setConCounts(inc(conCounts, idxOfCon(recentCells[0].from, recentCells[0].to)))
-                setStage(VISION_EXERCISE_STAGE_REPEAT_ANSWER)
+                if (numOfCellsToRemember > 0) {
+                    state = putCellToRecentCells(state, correctCell)
+                }
+                state = set(state, STAGE, STAGE_ANSWER)
             }
-        } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER) {
-            if (recentCells.length > 1) {
-                setRecentCells(old => old.slice(1,old.length))
-                setStage(VISION_EXERCISE_STAGE_REPEAT_ASK)
+        } else if (stage == STAGE_ANSWER) {
+            if (numOfCellsToRemember > 0 && state[RECENT_CELLS].length >= numOfCellsToRemember) {
+                state = set(state, STAGE, STAGE_REPEAT_ASK)
             } else {
-                resetRecentCells()
+                state = nextQuestion(state)
             }
         }
+        return state
     }
 
-    function resetRecentCells() {
-        nextQuestion()
-        setRecentCells([])
+    function getCorrectAnswerForRecentCells(recentCells) {
+        const curPath = recentCells[recentCells.length-1].seq
+        return curPath[curPath.length-1].to
     }
 
-    function renderModeSelector() {
-        return RE.FormControl({component:"fieldset"},
-            RE.FormLabel({component:"legend"},"Mode"),
-            RE.RadioGroup({
-                    row: true,
-                    value: isCoordsMode+"",
-                    onChange: event => setIsCoordsMode(event.target.value == "true")
-                },
-                RE.FormControlLabel({label: "Coords", value: "true", control: RE.Radio({})}),
-                RE.FormControlLabel({label: "Img", value: "false", control: RE.Radio({})}),
-            )
-        )
+    function onCellClickedRepeatMode(state, cell, nativeEvent) {
+        const stage = state[STAGE]
+        const recentCells = state[RECENT_CELLS];
+        if (stage == STAGE_REPEAT_ASK) {
+            const correctCell = getCorrectAnswerForRecentCells(recentCells)
+            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
+            state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
+            if (userAnswerIsCorrect) {
+                state = set(state, STAGE, STAGE_REPEAT_ANSWER)
+            }
+        } else if (stage == STAGE_REPEAT_ANSWER) {
+            if (recentCells.length > 1) {
+                state = set(state, RECENT_CELLS, recentCells.slice(1,recentCells.length))
+                state = set(state, STAGE, STAGE_REPEAT_ASK)
+            } else {
+                state = resetRecentCells(state)
+            }
+        }
+        return state
+    }
+
+    function resetRecentCells(state) {
+        state = nextQuestion(state)
+        state = set(state, RECENT_CELLS, [])
+        return state
+    }
+
+    function nextQuestion(state) {
+        state = set(state, RND_ELEM_SELECTOR, state[RND_ELEM_SELECTOR].next())
+        state = set(state, STAGE, STAGE_ASK)
+        return state
     }
 
     function renderQuestion() {
         const questionFontSize = 100
         const questionFontSizePx = questionFontSize + "px"
         const questionDivSizePx = questionFontSize*1.5 + "px"
-        const currCell = absNumToCell(question);
-        return RE.Container.row.center.center({
-                style:{
-                    color: userAnswerIsIncorrect?"red":"black",
-                    border: userAnswerIsIncorrect?"solid 3px red":null,
-                    fontSize:questionFontSizePx,
-                    width: questionDivSizePx,
-                    height: questionDivSizePx,
-                },
-            }, {},
-            getTextToShowOnChessboard(currCell)
-        )
+        const currCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem);
+        const stage = state[STAGE]
+        const userAnswerIsCorrect = state[USER_ANSWER_IS_CORRECT];
+        const questionStyle = {
+            color: userAnswerIsCorrect?"black":"red",
+            border: userAnswerIsCorrect?null:"solid 3px red",
+            fontSize:questionFontSizePx,
+            width: questionDivSizePx,
+            height: questionDivSizePx,
+        }
+        if (stage == STAGE_ASK || stage == STAGE_ANSWER) {
+            return RE.Container.row.center.center({style:questionStyle,}, {},
+                getCellName(currCell)
+            )
+        } else if (stage == STAGE_REPEAT_ASK || stage == STAGE_REPEAT_ANSWER) {
+            const recentCells = state[RECENT_CELLS]
+            const currPath = recentCells[0].seq
+            const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
+            return RE.Container.col.top.left({}, {},
+                RE.span({style: questionStyle},numOfCellsToRemember - recentCells.length + 1),
+                currPath.map(con => RE.span({style:{fontSize:questionFontSize*0.5+"px",}}, con.relSym))
+            )
+        }
     }
 
-    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
-
     function getWhiteBlackCells() {
-        if (stage == VISION_EXERCISE_STAGE_ANSWER) {
-            const currCell = absNumToCell(rndElemSelector.currentElem)
+        const stage = state[STAGE]
+        const recentCells = state[RECENT_CELLS]
+        if (stage == STAGE_ANSWER) {
+            const currCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
             return {
                 whiteCells:isWhiteCell(currCell)?[currCell]:null,
                 blackCells:isBlackCell(currCell)?[currCell]:null,
             }
-        } else if (stage == VISION_EXERCISE_STAGE_REPEAT_ANSWER && recentCells.length > 0) {
-            const currCell = recentCells[0].to
+        } else if (stage == STAGE_REPEAT_ANSWER && recentCells.length > 0) {
+            const currCell = getCorrectAnswerForRecentCells(recentCells)
             return {
                 whiteCells:isWhiteCell(currCell)?[currCell]:null,
                 blackCells:isBlackCell(currCell)?[currCell]:null,
@@ -244,23 +304,11 @@ const VisionExercise = ({configName}) => {
         }
     }
 
-    function getTextToShowOnChessboard(currCell) {
-        if (stage == VISION_EXERCISE_STAGE_ASK || stage == VISION_EXERCISE_STAGE_ANSWER) {
-            return getCellName(currCell)
-        } else {
-            if (recentCells.length > 0) {
-                return (numOfCellsToRemember-recentCells.length+1) + recentCells[0].hDir
-            } else {
-                return recentCells.length
-            }
-        }
-    }
-
     function renderChessboard() {
         return re(SvgChessBoard,{
             cellSize: cellSize,
-            onCellLeftClicked: onCellClicked,
-            colorOfCellNameToShow: userAnswerIsIncorrect?"red":"green",
+            onCellLeftClicked: (cell,nativeEvent) => setState(old => onCellClicked(old,cell,nativeEvent)),
+            colorOfCellNameToShow: state[USER_ANSWER_IS_CORRECT]?"green":"blue",
             drawCells: false,
             ...getWhiteBlackCells(),
         })
@@ -268,18 +316,19 @@ const VisionExercise = ({configName}) => {
 
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            renderChessboard({onCellClicked:onCellClicked}),
-            RE.div({}, "Iteration: " + rndElemSelector.iterationNumber),
-            RE.div({}, "Remaining elements: " + rndElemSelector.remainingElems.length),
+            renderChessboard(),
+            RE.div({}, "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber),
+            RE.div({}, "Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length),
             RE.div({},
-                "Counts: min=" + arrMin(conCounts)
-                + ", max=" + arrMax(conCounts)
-                + ", sum=" + arrSum(conCounts)),
+                "Counts: min=" + arrMin(state[COUNTS])
+                + ", max=" + arrMax(state[COUNTS])
+                + ", sum=" + arrSum(state[COUNTS])),
         ),
         RE.Container.col.top.left({},{},
-            RE.Button({onClick: resetRecentCells}, "Reset recent cells"),
+            RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
             renderQuestion()
         )
     )
+
 }
 
