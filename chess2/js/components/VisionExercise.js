@@ -41,17 +41,20 @@ const VisionExercise = ({configName}) => {
 
     const [state, setState] = useState(() => createState({
         connectionTypes:[
-            // CONNECTION_TYPE_SAME_CELL,
-            CONNECTION_TYPE_KNIGHT,
-            CONNECTION_TYPE_LINE,
+            CONNECTION_TYPE_SAME_CELL,
+            // CONNECTION_TYPE_KNIGHT,
+            // CONNECTION_TYPE_LINE,
         ],
         lineLengthMin:2,
         lineLengthMax:5,
-        pathLength:3,
-        numOfCellsToRemember:1
+        pathLength:1,
+        numOfCellsToRemember:4
     }))
 
     function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+        if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
+            pathLength = 1
+        }
         const allConnections = createAllConnections({
             connectionTypes:connectionTypes,
             lineLengthMin:lineLengthMin,
