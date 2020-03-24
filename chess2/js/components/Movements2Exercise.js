@@ -100,8 +100,8 @@ const Movements2Exercise = ({configName}) => {
                 : {relSym:N6+LEFT, dir: hourToDir(9), cellContent:DOWN}
         }
         result.renderQuestion = () => renderCells({
-            centralContent:getCellName(from),
-            contents:[{dir:result.dir, content:result.cellContent}]
+            centralContent:() => renderImage(from),
+            contents:[{dir:result.dir, content:() => result.cellContent}]
         })
         return result
     }
@@ -132,8 +132,8 @@ const Movements2Exercise = ({configName}) => {
             }
         }
         result.renderQuestion = () => renderCells({
-            centralContent:getCellName(from),
-            contents:[{dir:result.dir, content:length}]
+            centralContent:() => renderImage(from),
+            contents:[{dir:result.dir, content:() => length}]
         })
         return result
     }
@@ -174,13 +174,24 @@ const Movements2Exercise = ({configName}) => {
         if (availableContents.length > 0) {
             return availableContents[0].content
         } else {
+            return () => ""
+        }
+    }
+
+    function renderImage(cell) {
+        if (isValidCell(cell)) {
+            return RE.img({
+                src:"chess-board-configs/" + configName + "/" + getCellName(cell) + ".png",
+                className: "cell-img"
+            })
+        } else {
             return ""
         }
     }
 
     function renderCell(content) {
         return RE.td({style: tdStyle},
-            RE.Container.row.center.top({},{}, content)
+            RE.Container.row.center.top({},{}, content())
         )
     }
 
