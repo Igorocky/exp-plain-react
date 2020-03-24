@@ -26,7 +26,7 @@ const Movements2Exercise = ({configName}) => {
     const [state, setState] = useState(() => createState({
         connectionTypes:[
             CONNECTION_TYPE_KNIGHT,
-            CONNECTION_TYPE_LINE,
+            // CONNECTION_TYPE_LINE,
         ],
         lineLengthMin:2,
         lineLengthMax:5,

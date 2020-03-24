@@ -244,6 +244,9 @@ const VisionExercise = ({configName}) => {
                 state = set(state, STAGE, STAGE_REPEAT_ANSWER)
             }
         } else if (stage == STAGE_REPEAT_ANSWER) {
+            recentCells[0].seq.forEach(con => {
+                state = set(state, COUNTS, inc(state[COUNTS], con.idx))
+            })
             if (recentCells.length > 1) {
                 state = set(state, RECENT_CELLS, recentCells.slice(1,recentCells.length))
                 state = set(state, STAGE, STAGE_REPEAT_ASK)
