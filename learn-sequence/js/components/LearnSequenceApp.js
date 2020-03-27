@@ -158,10 +158,10 @@ const LearnSequenceApp = () => {
 
     function renderElemsRangeSelector() {
         return RE.Fragment({},
-            renderTextField({label:"from", value: state[MIN_ELEM_IDX_UI], width:60,
+            renderTextField({label:"от", value: state[MIN_ELEM_IDX_UI], width:60,
                 onChange: e => setElemIdxBoundary("minElemIdxUi", e.target.value)
             }),
-            renderTextField({label:"to", value: state[MAX_ELEM_IDX_UI], width:60,
+            renderTextField({label:"до", value: state[MAX_ELEM_IDX_UI], width:60,
                 onChange: e => setElemIdxBoundary("maxElemIdxUi", e.target.value)
             })
         )
@@ -177,10 +177,10 @@ const LearnSequenceApp = () => {
                     style:{...commonStyle, color:"white"}
                 },
                 RE.MenuItem({value:MODE_SEQ, style:{...commonStyle, color:"black"}},
-                    "Sequential"
+                    "Последовательно"
                 ),
                 RE.MenuItem({value:MODE_RND, style:{...commonStyle, color:"black"}},
-                    "Random"
+                    "Случайно"
                 )
             ),
             state[MODE]==MODE_RND
