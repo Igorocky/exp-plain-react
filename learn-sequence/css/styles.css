@@ -9,7 +9,7 @@
 }
 
 .with-yellow-outline-on-hover:hover {
-    outline: 3px solid yellow;
+    outline: 3px solid black;
 }
 
 .with-red-outline-on-hover:hover {

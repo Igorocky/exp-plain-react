@@ -4,8 +4,11 @@ const ELEM_CELL_SIZE = 45
 const ELEM_CELL_SIZE_PX = ELEM_CELL_SIZE+"px"
 const ELEM_CELL_FONT_SIZE_PX = ELEM_CELL_SIZE*0.6+"px"
 
-const TableOfElems = ({numberOfHundreds, elems, focusedElemIdx,
-                          onElemLeftClicked, onRowLeftClicked, onDigitLeftClicked}) => {
+const TableOfElems = ({
+                          numberOfHundreds, elems,
+                          focusedElemIdx, minElemIdx, maxElemIdx,
+                          onElemLeftClicked, onRowLeftClicked, onDigitLeftClicked
+                      }) => {
 
     function getElemIndex(rowNum, colNum) {
         return numberOfHundreds*100 + (rowNum-1)*10 + colNum - 1
@@ -14,7 +17,7 @@ const TableOfElems = ({numberOfHundreds, elems, focusedElemIdx,
     function renderCellContent(rowNum, colNum, elemIndex) {
         if (rowNum == 0) {
             if (colNum > 0) {
-                return colNum - 1
+                return colNum%10
             } else {
                 return ""
             }
@@ -35,10 +38,12 @@ const TableOfElems = ({numberOfHundreds, elems, focusedElemIdx,
                 } else {
                     return "orange"
                 }
+            } else if (elemIndex < minElemIdx || maxElemIdx < elemIndex) {
+                return "rgb(181,136,99)"
             } else if (!elems[elemIndex].opened) {
-                return "rgb(150,150,150)"
+                return "rgb(240,217,181)"
             } else if (elems[elemIndex].opened && elems[elemIndex].failed) {
-                return "pink"
+                return "red"
             }
         } else {
             return "rgb(200,200,200)"
