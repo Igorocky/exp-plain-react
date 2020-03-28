@@ -44,8 +44,7 @@ const LearnSequenceApp = () => {
 
     useEffect(() => {
         document.addEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
-        return () => document.removeEventListener(KEYDOWN_LISTENER_NAME, onKeyDown)
-    }, [state])
+    }, [])
 
     function calcUserInputDigit(keyCode) {
         if (48 <= keyCode && keyCode <= 57) {
