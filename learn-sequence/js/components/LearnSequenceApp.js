@@ -134,10 +134,15 @@ const LearnSequenceApp = () => {
             RE.Typography({key:"Typography", edge: "start"}, label),
             RE.InputBase({
                 key: "InputBase",
-                onKeyDown: onKeyDown,
                 value: value,
                 variant: "outlined",
                 onChange: onChange?onChange:()=>null,
+                onKeyDown: event => {
+                    if (event.keyCode == ENTER_KEY_CODE){
+                        event.target.blur()
+                        setState(nextFocusedElemIdx)
+                    }
+                },
                 style: {
                     background: "white",
                     padding:"0px 5px",
@@ -173,7 +178,14 @@ const LearnSequenceApp = () => {
         return RE.Fragment({},
             RE.Select({
                     value:state[MODE],
-                    onChange: event => setState(old => createState({prevState:old, mode:event.target.value})),
+                    onChange: event => setState(old => {
+                        const newMode = event.target.value;
+                        let state = createState({prevState:old, mode: newMode})
+                        if (newMode == MODE_RND) {
+                            state = nextFocusedElemIdx(state)
+                        }
+                        return state
+                    }),
                     style:{...commonStyle, color:"white"}
                 },
                 RE.MenuItem({value:MODE_SEQ, style:{...commonStyle, color:"black"}},
