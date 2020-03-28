@@ -86,7 +86,7 @@ const TableOfElems = ({
                     } else if (colNum == 0 && rowNum > 0) {
                         onRowLeftClicked(elemIndex+1)
                     } else if (colNum > 0 && rowNum == 0) {
-                        onDigitLeftClicked(colNum-1)
+                        onDigitLeftClicked(colNum%10)
                     }
                 },
             },
