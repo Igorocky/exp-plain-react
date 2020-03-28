@@ -447,3 +447,11 @@ function disableScrollOnMouseDown(event) {
 function set(obj, attrName, newValue) {
     return {...obj, [attrName]:newValue}
 }
+
+function nvl(...args) {
+    for (let i = 0; i < args.length; i++) {
+        if (hasValue(args[i])) {
+            return args[i]
+        }
+    }
+}

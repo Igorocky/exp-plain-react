@@ -37,21 +37,36 @@ const VisionExercise = ({configName}) => {
     const CONNECTION_TYPE_LINE = "CONNECTION_TYPE_LINE"
     const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
     const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
+    const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER,]
+    const SETTINGS_DIALOG_OPENED = "SETTINGS_DIALOG_OPENED"
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
     const [state, setState] = useState(() => createState({
         connectionTypes:[
             CONNECTION_TYPE_SAME_CELL,
-            // CONNECTION_TYPE_KNIGHT,
-            // CONNECTION_TYPE_LINE,
+            CONNECTION_TYPE_KNIGHT,
+            CONNECTION_TYPE_LINE,
         ],
         lineLengthMin:2,
-        lineLengthMax:5,
-        pathLength:1,
-        numOfCellsToRemember:4
+        lineLengthMax:4,
+        pathLength:6,
+        numOfCellsToRemember:1
     }))
+    const [settings, setSettings] = useState(state)
 
-    function createState({connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+    useEffect(() => restoreSettingsFromLocalStorage(), [])
+
+    function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+        function firstDefined(value, attrName) {
+            return hasValue(value)?value:prevState[attrName]
+        }
+
+        connectionTypes = firstDefined(connectionTypes, CONNECTION_TYPES)
+        lineLengthMin = firstDefined(lineLengthMin, LINE_LENGTH_MIN)
+        lineLengthMax = firstDefined(lineLengthMax, LINE_LENGTH_MAX)
+        pathLength = firstDefined(pathLength, PATH_LENGTH)
+        numOfCellsToRemember = firstDefined(numOfCellsToRemember, NUM_OF_CELLS_TO_REMEMBER)
+
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
         }
@@ -71,7 +86,8 @@ const VisionExercise = ({configName}) => {
             [LINE_LENGTH_MIN]: lineLengthMin,
             [LINE_LENGTH_MAX]: lineLengthMax,
             [CONNECTIONS]: allConnections,
-            [COUNTS]: ints(0, allConnections.length-1).map(i => 0)
+            [COUNTS]: ints(0, allConnections.length-1).map(i => 0),
+            [SETTINGS_DIALOG_OPENED]: false,
         }
     }
 
@@ -329,6 +345,179 @@ const VisionExercise = ({configName}) => {
         })
     }
 
+    function saveSettingsToLocalStorage(settings) {
+        const settingsToStore = SETTINGS_TO_STORE_TO_LOCAL_STORAGE
+            .reduce((m,e) => ({...m, [e]:settings[e]}), {})
+        window.localStorage.setItem("VisionExercise.settings", JSON.stringify(settingsToStore))
+    }
+
+    function restoreSettingsFromLocalStorage() {
+        const settingsStr = window.localStorage.getItem("VisionExercise.settings")
+        if (settingsStr) {
+            const settingsFromLocalStorage = JSON.parse(settingsStr)
+            setSettings(oldSettings => {
+                function getSettingsValue(propName) {
+                    return {[propName]:nvl(settingsFromLocalStorage[propName], oldSettings[propName])}
+                }
+                const newSettings = {
+                    ...oldSettings,
+                    ...getSettingsValue(CONNECTION_TYPES),
+                    ...getSettingsValue(LINE_LENGTH_MIN),
+                    ...getSettingsValue(LINE_LENGTH_MAX),
+                    ...getSettingsValue(PATH_LENGTH),
+                    ...getSettingsValue(NUM_OF_CELLS_TO_REMEMBER),
+                }
+                updateStateFromSettings(newSettings)
+                return newSettings
+            })
+        }
+    }
+
+    function updateStateFromSettings(settings) {
+        function intOrUndef(value) {
+            if (value != "") {
+                return value
+            }
+        }
+        setState(old => createState({
+            prevState:old,
+            connectionTypes: settings[CONNECTION_TYPES],
+            lineLengthMin: intOrUndef(settings[LINE_LENGTH_MIN]),
+            lineLengthMax: intOrUndef(settings[LINE_LENGTH_MAX]),
+            pathLength: intOrUndef(settings[PATH_LENGTH]),
+            numOfCellsToRemember: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
+        }))
+        saveSettingsToLocalStorage(settings)
+    }
+
+    function renderSettings() {
+        return RE.Dialog({fullScreen:true, open:true},
+            RE.AppBar({},
+                RE.Toolbar({},
+                    RE.Button({
+                        edge:"start",
+                        variant:"contained",
+                        onClick: () => openCloseSettingsDialog(false),
+                        style: {marginRight: "20px"}},
+                        "Close"
+                    ),
+                    RE.Button({
+                        variant:"contained",
+                        onClick: () => updateStateFromSettings(settings),
+                    },
+                        "Save"
+                    ),
+                )
+            ),
+            RE.table({style:{marginTop:"80px"}},
+                RE.tbody({},
+                    RE.tr({},
+                        RE.td({},"Connection types"),
+                        RE.td({},
+                            renderConnectionTypeCheckbox(CONNECTION_TYPE_SAME_CELL, "Same cell"),
+                            renderConnectionTypeCheckbox(CONNECTION_TYPE_LINE, "Line"),
+                            renderConnectionTypeCheckbox(CONNECTION_TYPE_KNIGHT, "Knight"),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Min line length"),
+                        RE.td({},
+                            renderIntPropTextField({propName: LINE_LENGTH_MIN, value:settings[LINE_LENGTH_MIN]}),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Max line length"),
+                        RE.td({},
+                            renderIntPropTextField({propName: LINE_LENGTH_MAX, value:settings[LINE_LENGTH_MAX]}),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Path length"),
+                        RE.td({},
+                            renderIntPropTextField({propName: PATH_LENGTH, value:settings[PATH_LENGTH]}),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Num of cells to remember"),
+                        RE.td({},
+                            renderIntPropTextField({propName: NUM_OF_CELLS_TO_REMEMBER,
+                                value:settings[NUM_OF_CELLS_TO_REMEMBER]}),
+                        ),
+                    ),
+                )
+            )
+        )
+    }
+
+    function renderConnectionTypeCheckbox(type, label) {
+        return RE.FormControlLabel({
+            label:label,
+            control:RE.Checkbox({
+                checked:settings[CONNECTION_TYPES].includes(type),
+                onChange: () => setSettings(old => checkConnectionType(settings, type))
+            })
+        })
+    }
+
+    function checkConnectionType(settings, type) {
+        const connectionTypes = settings[CONNECTION_TYPES];
+        if (connectionTypes.includes(type)) {
+            settings = set(settings, CONNECTION_TYPES, connectionTypes.filter(t => t!=type))
+        } else {
+            settings = set(settings, CONNECTION_TYPES, [...connectionTypes, type])
+        }
+        if (settings[CONNECTION_TYPES].length == 0) {
+            settings = set(settings, CONNECTION_TYPES, connectionTypes)
+        }
+        return settings
+    }
+
+    function openCloseSettingsDialog(opened) {
+        if (opened) {
+            setSettings(state)
+        }
+        setState(old => set(old, SETTINGS_DIALOG_OPENED, opened))
+    }
+
+    function getIntValue({minValue, maxValue, defaultValue, value}) {
+        minValue = nvl(minValue, -1000)
+        maxValue = nvl(maxValue, 1000)
+        defaultValue = nvl(defaultValue, "")
+        value = value.replace(/\D/g, "")
+        if (value == "") {
+            return defaultValue
+        } else {
+            const valueInt = parseInt(value)
+            if (minValue <= valueInt && valueInt <= maxValue) {
+                return valueInt
+            } else {
+                return defaultValue
+            }
+        }
+    }
+
+    function renderTextField({value, onChange, width}) {
+        return RE.TextField({
+            value: value,
+            variant: "outlined",
+            onChange: onChange?onChange:()=>null,
+            style: {
+                borderRadius: "5px",
+                width: (width?width:100)+"px"
+            }
+        })
+    }
+
+    function renderIntPropTextField({propName, value}) {
+        return renderTextField({
+            value: value,
+            onChange: e => {
+                const newValue = e.target.value
+                setSettings(old => set(old, propName, getIntValue({value:newValue})))
+            },
+        })
+    }
+
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderChessboard(),
@@ -343,9 +532,11 @@ const VisionExercise = ({configName}) => {
             RE.Container.row.left.top({},{},
                 RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
                 RE.Button({onClick: () => console.log(state)}, "View State"),
+                RE.Button({onClick: () => openCloseSettingsDialog(true)}, "Settings"),
             ),
             renderQuestion()
-        )
+        ),
+        state[SETTINGS_DIALOG_OPENED]?renderSettings():null,
     )
 
 }
