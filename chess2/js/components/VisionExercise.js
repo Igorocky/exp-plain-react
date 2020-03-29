@@ -63,7 +63,7 @@ const VisionExercise = ({configName}) => {
     function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember,
                          mobileMode}) {
         function firstDefined(value, attrName) {
-            return hasValue(value)?value:prevState[attrName]
+            return value !== undefined ? value : prevState[attrName]
         }
 
         connectionTypes = firstDefined(connectionTypes, CONNECTION_TYPES)
@@ -381,7 +381,7 @@ const VisionExercise = ({configName}) => {
 
     function updateStateFromSettings(settings) {
         function intOrUndef(value) {
-            if (value != "") {
+            if (value !== "") {
                 return value
             }
         }
@@ -478,7 +478,7 @@ const VisionExercise = ({configName}) => {
     function checkConnectionType(settings, type) {
         const connectionTypes = settings[CONNECTION_TYPES];
         if (connectionTypes.includes(type)) {
-            settings = set(settings, CONNECTION_TYPES, connectionTypes.filter(t => t!=type))
+            settings = set(settings, CONNECTION_TYPES, connectionTypes.filter(t => t!==type))
         } else {
             settings = set(settings, CONNECTION_TYPES, [...connectionTypes, type])
         }
