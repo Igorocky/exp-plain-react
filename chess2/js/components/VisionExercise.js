@@ -37,7 +37,10 @@ const VisionExercise = ({configName}) => {
     const CONNECTION_TYPE_LINE = "CONNECTION_TYPE_LINE"
     const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
     const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
-    const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER,]
+    const MOBILE_MODE = "MOBILE_MODE"
+    const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [
+        CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER, MOBILE_MODE,
+    ]
     const SETTINGS_DIALOG_OPENED = "SETTINGS_DIALOG_OPENED"
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
@@ -50,13 +53,15 @@ const VisionExercise = ({configName}) => {
         lineLengthMin:2,
         lineLengthMax:4,
         pathLength:6,
-        numOfCellsToRemember:1
+        numOfCellsToRemember:1,
+        mobileMode:true
     }))
     const [settings, setSettings] = useState(state)
 
     useEffect(() => restoreSettingsFromLocalStorage(), [])
 
-    function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember}) {
+    function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember,
+                         mobileMode}) {
         function firstDefined(value, attrName) {
             return hasValue(value)?value:prevState[attrName]
         }
@@ -66,6 +71,7 @@ const VisionExercise = ({configName}) => {
         lineLengthMax = firstDefined(lineLengthMax, LINE_LENGTH_MAX)
         pathLength = firstDefined(pathLength, PATH_LENGTH)
         numOfCellsToRemember = firstDefined(numOfCellsToRemember, NUM_OF_CELLS_TO_REMEMBER)
+        mobileMode = firstDefined(mobileMode, MOBILE_MODE)
 
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
@@ -87,6 +93,7 @@ const VisionExercise = ({configName}) => {
             [LINE_LENGTH_MAX]: lineLengthMax,
             [CONNECTIONS]: allConnections,
             [COUNTS]: ints(0, allConnections.length-1).map(i => 0),
+            [MOBILE_MODE]: mobileMode,
             [SETTINGS_DIALOG_OPENED]: false,
         }
     }
@@ -361,11 +368,10 @@ const VisionExercise = ({configName}) => {
                 }
                 const newSettings = {
                     ...oldSettings,
-                    ...getSettingsValue(CONNECTION_TYPES),
-                    ...getSettingsValue(LINE_LENGTH_MIN),
-                    ...getSettingsValue(LINE_LENGTH_MAX),
-                    ...getSettingsValue(PATH_LENGTH),
-                    ...getSettingsValue(NUM_OF_CELLS_TO_REMEMBER),
+                    ...(
+                        SETTINGS_TO_STORE_TO_LOCAL_STORAGE
+                            .reduce((m,e) => ({...m, ...getSettingsValue(e)}), {})
+                    )
                 }
                 updateStateFromSettings(newSettings)
                 return newSettings
@@ -386,6 +392,7 @@ const VisionExercise = ({configName}) => {
             lineLengthMax: intOrUndef(settings[LINE_LENGTH_MAX]),
             pathLength: intOrUndef(settings[PATH_LENGTH]),
             numOfCellsToRemember: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
+            mobileMode: settings[MOBILE_MODE],
         }))
         saveSettingsToLocalStorage(settings)
     }
@@ -442,6 +449,15 @@ const VisionExercise = ({configName}) => {
                         RE.td({},
                             renderIntPropTextField({propName: NUM_OF_CELLS_TO_REMEMBER,
                                 value:settings[NUM_OF_CELLS_TO_REMEMBER]}),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Mobile mode"),
+                        RE.td({},
+                            RE.Checkbox({
+                                checked:settings[MOBILE_MODE],
+                                onChange: () => setSettings(old => set(old, MOBILE_MODE, !settings[MOBILE_MODE]))
+                            })
                         ),
                     ),
                 )
