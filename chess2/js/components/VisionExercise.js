@@ -38,8 +38,11 @@ const VisionExercise = ({configName}) => {
     const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
     const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
     const MOBILE_MODE = "MOBILE_MODE"
+    const ALWAYS_SHOW_QUESTION_CELL_NAME = "ALWAYS_SHOW_QUESTION_CELL_NAME"
+    const QUESTION_CELL_NAME_IS_SHOWN = "QUESTION_CELL_NAME_IS_SHOWN"
     const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [
         CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER, MOBILE_MODE,
+        ALWAYS_SHOW_QUESTION_CELL_NAME
     ]
     const SETTINGS_DIALOG_OPENED = "SETTINGS_DIALOG_OPENED"
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
@@ -61,9 +64,9 @@ const VisionExercise = ({configName}) => {
     useEffect(() => restoreSettingsFromLocalStorage(), [])
 
     function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember,
-                         mobileMode}) {
-        function firstDefined(value, attrName) {
-            return value !== undefined ? value : prevState[attrName]
+                         mobileMode, alwaysShowQuestionCellName}) {
+        function firstDefined(value, attrName, defVal) {
+            return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
         }
 
         connectionTypes = firstDefined(connectionTypes, CONNECTION_TYPES)
@@ -72,6 +75,7 @@ const VisionExercise = ({configName}) => {
         pathLength = firstDefined(pathLength, PATH_LENGTH)
         numOfCellsToRemember = firstDefined(numOfCellsToRemember, NUM_OF_CELLS_TO_REMEMBER)
         mobileMode = firstDefined(mobileMode, MOBILE_MODE)
+        alwaysShowQuestionCellName = firstDefined(alwaysShowQuestionCellName, ALWAYS_SHOW_QUESTION_CELL_NAME, false)
 
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
@@ -95,6 +99,8 @@ const VisionExercise = ({configName}) => {
             [COUNTS]: ints(0, allConnections.length-1).map(i => 0),
             [MOBILE_MODE]: mobileMode,
             [SETTINGS_DIALOG_OPENED]: false,
+            [QUESTION_CELL_NAME_IS_SHOWN]: false,
+            [ALWAYS_SHOW_QUESTION_CELL_NAME]: alwaysShowQuestionCellName,
         }
     }
 
@@ -290,7 +296,12 @@ const VisionExercise = ({configName}) => {
     function nextQuestion(state) {
         state = set(state, RND_ELEM_SELECTOR, state[RND_ELEM_SELECTOR].next())
         state = set(state, STAGE, STAGE_ASK)
+        state = set(state, QUESTION_CELL_NAME_IS_SHOWN, false)
         return state
+    }
+
+    function showQuestionCellName() {
+        return state[ALWAYS_SHOW_QUESTION_CELL_NAME] || state[MOBILE_MODE] || state[QUESTION_CELL_NAME_IS_SHOWN]
     }
 
     function renderQuestion() {
@@ -315,8 +326,18 @@ const VisionExercise = ({configName}) => {
             const recentCells = state[RECENT_CELLS]
             const currPath = recentCells[0].seq
             const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
+            const question = showQuestionCellName()
+                ? getCellName(currPath[0].from)
+                : numOfCellsToRemember - recentCells.length + 1
             return RE.Container.col.top.left({}, {},
-                RE.span({style: questionStyle},numOfCellsToRemember - recentCells.length + 1),
+                RE.span({style: questionStyle},
+                    RE.span({
+                            onClick:() => setState(old => set(old, QUESTION_CELL_NAME_IS_SHOWN, true)),
+                            style: {cursor:"pointer"}
+                        },
+                        question
+                    )
+                ),
                 currPath.map(con => RE.span({style:{fontSize:questionFontSize*0.5+"px",}}, con.relSym))
             )
         }
@@ -393,6 +414,7 @@ const VisionExercise = ({configName}) => {
             pathLength: intOrUndef(settings[PATH_LENGTH]),
             numOfCellsToRemember: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
             mobileMode: settings[MOBILE_MODE],
+            alwaysShowQuestionCellName: settings[ALWAYS_SHOW_QUESTION_CELL_NAME],
         }))
         saveSettingsToLocalStorage(settings)
     }
@@ -457,6 +479,17 @@ const VisionExercise = ({configName}) => {
                             RE.Checkbox({
                                 checked:settings[MOBILE_MODE],
                                 onChange: () => setSettings(old => set(old, MOBILE_MODE, !settings[MOBILE_MODE]))
+                            })
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Always show cell name in question"),
+                        RE.td({},
+                            RE.Checkbox({
+                                checked:settings[ALWAYS_SHOW_QUESTION_CELL_NAME],
+                                onChange: () => setSettings(old => set(
+                                    old, ALWAYS_SHOW_QUESTION_CELL_NAME, !settings[ALWAYS_SHOW_QUESTION_CELL_NAME]
+                                ))
                             })
                         ),
                     ),
