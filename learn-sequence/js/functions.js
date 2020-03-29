@@ -8,7 +8,7 @@ const DOWN_KEY_CODE = 40
 const KEYDOWN_LISTENER_NAME = 'keydown'
 
 function hasValue(variable) {
-    return typeof variable !== 'undefined' && variable != null
+    return variable !== undefined && variable !== null
 }
 
 function ints(start, end) {

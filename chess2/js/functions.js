@@ -19,7 +19,7 @@ const XX = ["a","b","c","d","e","f","g","h"]
 const YY = ["1","2","3","4","5","6","7","8"]
 
 function hasValue(variable) {
-    return typeof variable !== undefined && variable !== null
+    return variable !== undefined && variable !== null
 }
 
 function randomInt(min, max) {
