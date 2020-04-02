@@ -455,3 +455,18 @@ function nvl(...args) {
         }
     }
 }
+
+function saveSettingsToLocalStorage({settings, attrsToSave, localStorageKey}) {
+    const settingsToSave = attrsToSave.reduce((acc,attr) => ({...acc, [attr]:settings[attr]}), {})
+    window.localStorage.setItem(localStorageKey, JSON.stringify(settingsToSave))
+}
+
+function readSettingsFromLocalStorage({localStorageKey, attrsToRead}) {
+    const settingsStr = window.localStorage.getItem(localStorageKey)
+    if (settingsStr) {
+        const settingsFromLocalStorage = JSON.parse(settingsStr)
+        return attrsToRead.reduce((acc,attr) => ({...acc, [attr]:settingsFromLocalStorage[attr]}), {})
+    } else {
+        return {}
+    }
+}
