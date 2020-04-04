@@ -14,7 +14,44 @@ const MorseExercise = ({}) => {
     const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, GROUPS_TO_LEARN, SYMBOL_DELAY, DASH_DURATION]
     const ELEMS_IN_GROUP_TO_LEARN = 6
 
-    const MORSE = [{sym:"0", code:"-----"}, {sym:"1", code:".----"}, {sym:"2", code:"..---"}, {sym:"3", code:"...--"}, {sym:"4", code:"....-"}, {sym:"5", code:"....."}, {sym:"6", code:"-...."}, {sym:"7", code:"--..."}, {sym:"8", code:"---.."}, {sym:"9", code:"----."}, {sym:"A", code:".-"}, {sym:"B", code:"-..."}, {sym:"C", code:"-.-."}, {sym:"D", code:"-.."}, {sym:"E", code:"."}, {sym:"F", code:"..-."}, {sym:"G", code:"--."}, {sym:"H", code:"...."}, {sym:"I", code:".."}, {sym:"J", code:".---"}, {sym:"K", code:"-.-"}, {sym:"L", code:".-.."}, {sym:"M", code:"--"}, {sym:"N", code:"-."}, {sym:"O", code:"---"}, {sym:"P", code:".--."}, {sym:"Q", code:"--.-"}, {sym:"R", code:".-."}, {sym:"S", code:"..."}, {sym:"T", code:"-"}, {sym:"U", code:"..-"}, {sym:"V", code:"...-"}, {sym:"W", code:".--"}, {sym:"X", code:"-..-"}, {sym:"Y", code:"-.--"}, {sym:"Z", code:"--.."}]
+    const MORSE = [
+        {sym:"0", word:"zero", code:"-----"},
+        {sym:"1", word:"one", code:".----"},
+        {sym:"2", word:"two", code:"..---"},
+        {sym:"3", word:"three", code:"...--"},
+        {sym:"4", word:"four", code:"....-"},
+        {sym:"5", word:"five", code:"....."},
+        {sym:"6", word:"six", code:"-...."},
+        {sym:"7", word:"seven", code:"--..."},
+        {sym:"8", word:"eight", code:"---.."},
+        {sym:"9", word:"nine", code:"----."},
+        {sym:"A", word:"alpha", code:".-"},
+        {sym:"B", word:"bravo", code:"-..."},
+        {sym:"C", word:"charlie", code:"-.-."},
+        {sym:"D", word:"delta", code:"-.."},
+        {sym:"E", word:"echo", code:"."},
+        {sym:"F", word:"foxtrot", code:"..-."},
+        {sym:"G", word:"golf", code:"--."},
+        {sym:"H", word:"hotel", code:"...."},
+        {sym:"I", word:"india", code:".."},
+        {sym:"J", word:"juliet", code:".---"},
+        {sym:"K", word:"kilo", code:"-.-"},
+        {sym:"L", word:"lima", code:".-.."},
+        {sym:"M", word:"mike", code:"--"},
+        {sym:"N", word:"november", code:"-."},
+        {sym:"O", word:"oscar", code:"---"},
+        {sym:"P", word:"papa", code:".--."},
+        {sym:"Q", word:"quebec", code:"--.-"},
+        {sym:"R", word:"romeo", code:".-."},
+        {sym:"S", word:"sierra", code:"..."},
+        {sym:"T", word:"tango", code:"-"},
+        {sym:"U", word:"uniform", code:"..-"},
+        {sym:"V", word:"victor", code:"...-"},
+        {sym:"W", word:"whiskey", code:".--"},
+        {sym:"X", word:"x-ray", code:"-..-"},
+        {sym:"Y", word:"yankee", code:"-.--"},
+        {sym:"Z", word:"zulu", code:"--.."}
+        ]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
@@ -83,10 +120,10 @@ const MorseExercise = ({}) => {
         const found = MORSE.filter(m => m.code == code)
         if (found.length && found[0].sym == state[RND].currentElem.sym) {
             state[RND] = state[RND].next()
-            say(state[RND].currentElem.sym)
+            say(state[RND].currentElem.word)
         } else {
             sayCode(state[RND].currentElem.code)
-            say(state[RND].currentElem.sym)
+            say(state[RND].currentElem.word)
         }
     }
 
