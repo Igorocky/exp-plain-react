@@ -8,16 +8,18 @@ const MorseExercise = ({}) => {
     const PITCH = "PITCH"
     const GROUPS_TO_LEARN = "GROUPS_TO_LEARN"
     const RND = "RND"
+    const SYMBOL_DELAY = "SYMBOL_DELAY"
+    const DASH_DURATION = "DASH_DURATION"
 
-    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, GROUPS_TO_LEARN]
+    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, GROUPS_TO_LEARN, SYMBOL_DELAY, DASH_DURATION]
     const ELEMS_IN_GROUP_TO_LEARN = 6
 
-    const SYMBOL_DELAY = 800
-    const DASH_DURATION = 200
     const MORSE = [{sym:"0", code:"-----"}, {sym:"1", code:".----"}, {sym:"2", code:"..---"}, {sym:"3", code:"...--"}, {sym:"4", code:"....-"}, {sym:"5", code:"....."}, {sym:"6", code:"-...."}, {sym:"7", code:"--..."}, {sym:"8", code:"---.."}, {sym:"9", code:"----."}, {sym:"A", code:".-"}, {sym:"B", code:"-..."}, {sym:"C", code:"-.-."}, {sym:"D", code:"-.."}, {sym:"E", code:"."}, {sym:"F", code:"..-."}, {sym:"G", code:"--."}, {sym:"H", code:"...."}, {sym:"I", code:".."}, {sym:"J", code:".---"}, {sym:"K", code:"-.-"}, {sym:"L", code:".-.."}, {sym:"M", code:"--"}, {sym:"N", code:"-."}, {sym:"O", code:"---"}, {sym:"P", code:".--."}, {sym:"Q", code:"--.-"}, {sym:"R", code:".-."}, {sym:"S", code:"..."}, {sym:"T", code:"-"}, {sym:"U", code:"..-"}, {sym:"V", code:"...-"}, {sym:"W", code:".--"}, {sym:"X", code:"-..-"}, {sym:"Y", code:"-.--"}, {sym:"Z", code:"--.."}]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
+
+    const touchDiv = useRef(null)
     const inputLog = useRef([])
     const inputView = useRef(null)
     const timeout = useRef(null)
@@ -49,7 +51,7 @@ const MorseExercise = ({}) => {
         const curTime = getCurrentTime()
         if (inputLog.current.length) {
             const lst = inputLog.current[inputLog.current.length-1]
-            if (!lst.up || curTime - lst.up > SYMBOL_DELAY) {
+            if (!lst.up || curTime - lst.up > state[SYMBOL_DELAY]) {
                 inputLog.current = []
             }
         }
@@ -62,7 +64,7 @@ const MorseExercise = ({}) => {
             const lastInput = inputLog.current[inputLog.current.length-1];
             lastInput.up = getCurrentTime()
             lastInput.dur = lastInput.up - lastInput.down
-            timeout.current = window.setTimeout(guessSymbol, SYMBOL_DELAY)
+            timeout.current = window.setTimeout(guessSymbol, state[SYMBOL_DELAY])
             rerenderInput()
         }
     }
@@ -70,6 +72,7 @@ const MorseExercise = ({}) => {
     function rerenderInput() {
         setInputView(
             inputLogToString()
+            + JSON.stringify(state[RND].currentElem)
             + " Iteration: " + state[RND].iterationNumber
             + ", Remains: " + state[RND].remainingElems.length
         )
@@ -82,17 +85,17 @@ const MorseExercise = ({}) => {
             state[RND] = state[RND].next()
             say(state[RND].currentElem.sym)
         } else {
-            say(state[RND].currentElem.code)
+            sayCode(state[RND].currentElem.code)
             say(state[RND].currentElem.sym)
         }
     }
 
     function sayCode(code) {
-        say(code, 0.5)
+        say(code.split('').map(s => s == "." ? "dot" : "dash").join(", "))
     }
 
     function inputLogToString() {
-        return inputLog.current.map(({dur}) => dur < DASH_DURATION ? "." : "-").reduce((m,e) => m+e,"")
+        return inputLog.current.map(({dur}) => dur < state[DASH_DURATION] ? "." : "-").reduce((m,e) => m+e,"")
         return JSON.stringify(inputLog.current)
     }
 
@@ -112,7 +115,7 @@ const MorseExercise = ({}) => {
         speechSynthesis.speak(msg);
     }
 
-    function createState({prevState, voice, rate, pitch, groupsToLearn}) {
+    function createState({prevState, voice, rate, pitch, groupsToLearn, symbolDelay, dashDuration}) {
         function firstDefined(value, attrName, defVal) {
             return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
         }
@@ -130,6 +133,8 @@ const MorseExercise = ({}) => {
             [RND]: randomElemSelector({
                 allElems:MORSE.filter((e,i) => allowedIndexes.includes(i))
             }),
+            [SYMBOL_DELAY]:firstDefined(symbolDelay, SYMBOL_DELAY, 800),
+            [DASH_DURATION]:firstDefined(dashDuration, DASH_DURATION, 200),
         }
     }
 
@@ -150,6 +155,8 @@ const MorseExercise = ({}) => {
             rate: settings[RATE],
             pitch: settings[PITCH],
             groupsToLearn: settings[GROUPS_TO_LEARN],
+            symbolDelay: settings[SYMBOL_DELAY],
+            dashDuration: settings[DASH_DURATION],
         }))
         if (writeSettingsToLocalStorage) {
             saveSettingsToLocalStorage(
@@ -234,6 +241,26 @@ const MorseExercise = ({}) => {
                                 renderGroupsToLearnCheckboxes()
                             ),
                         ),
+                        RE.tr({},
+                            RE.td({},"Symbol delay"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[SYMBOL_DELAY],
+                                    renderSlider({min:300, max:2000, step: 100, value:settings[SYMBOL_DELAY],
+                                        setValue: newValue => setSettings(old => set(old, SYMBOL_DELAY, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Dash duration"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[DASH_DURATION],
+                                    renderSlider({min:50, max:500, step: 50, value:settings[DASH_DURATION],
+                                        setValue: newValue => setSettings(old => set(old, DASH_DURATION, newValue))})
+                                )
+                            ),
+                        ),
                     )
                 )
             )
@@ -288,9 +315,11 @@ const MorseExercise = ({}) => {
         RE.Button({onClick: () => openCloseSettingsDialog(true)}, "Settings"),
         RE.Button({onClick: () => console.log(state)}, "Show state"),
         RE.div({ref:inputView}),
-        RE.div({style:{width: "350px", height:"550px", backgroundColor:"lightgrey"},
-            onMouseUp: onMouseUp, onMouseDown: onMouseDown}
-        ),
+        RE.div({
+            ref: touchDiv,
+            style:{width: "350px", height:"550px", backgroundColor:"black"},
+            onTouchStart: onMouseDown, onTouchEnd: onMouseUp,
+        }),
         renderSettings()
     )
 }
