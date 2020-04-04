@@ -76,7 +76,7 @@ const MorseExercise = ({}) => {
         window.speechSynthesis.onvoiceschanged = () => {
             setState(old => {
                 const voice = getVoice(old[VOICE])
-                return createState({prevState:old, voice:voice?voice.voiceURI:old[VOICE]})
+                return createState({prevState:old, newState:{[VOICE]:voice?voice.voiceURI:old[VOICE]}})
             })
         }
     }, [])
@@ -155,27 +155,36 @@ const MorseExercise = ({}) => {
         speechSynthesis.speak(msg);
     }
 
-    function createState({prevState, voice, rate, pitch, volume, groupsToLearn, symbolDelay, dashDuration}) {
-        function firstDefined(value, attrName, defVal) {
-            return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
+    function createState({prevState, newState}) {
+        function firstDefined(attrName, defVal) {
+            const newValue = newState ? newState[attrName] : undefined
+            if (newValue !== undefined) {
+                return newValue
+            }
+            const oldValue = prevState ? prevState[attrName] : undefined
+            if (oldValue !== undefined) {
+                return oldValue
+            }
+            return defVal
         }
 
-        groupsToLearn = firstDefined(groupsToLearn, GROUPS_TO_LEARN, [0])
+        const groupsToLearn = firstDefined(GROUPS_TO_LEARN, [0])
 
         const allowedIndexes = groupsToLearn
             .flatMap(g => ints(g*ELEMS_IN_GROUP_TO_LEARN, (g+1)*ELEMS_IN_GROUP_TO_LEARN-1))
+        const voice = firstDefined(VOICE);
         return {
             [VOICE]: voice,
             [VOICE_OBJ]: getVoice(voice),
-            [RATE]: firstDefined(rate, RATE, 1),
-            [PITCH]: firstDefined(pitch, PITCH, 1),
-            [VOLUME]: firstDefined(volume, VOLUME, 1),
+            [RATE]: firstDefined(RATE, 1),
+            [PITCH]: firstDefined(PITCH, 1),
+            [VOLUME]: firstDefined(VOLUME, 1),
             [GROUPS_TO_LEARN]: groupsToLearn,
             [RND]: randomElemSelector({
                 allElems:MORSE.filter((e,i) => allowedIndexes.includes(i))
             }),
-            [SYMBOL_DELAY]:firstDefined(symbolDelay, SYMBOL_DELAY, 800),
-            [DASH_DURATION]:firstDefined(dashDuration, DASH_DURATION, 200),
+            [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 800),
+            [DASH_DURATION]:firstDefined(DASH_DURATION, 150),
         }
     }
 
@@ -190,16 +199,7 @@ const MorseExercise = ({}) => {
     }
 
     function updateStateFromSettings(writeSettingsToLocalStorage, settings) {
-        setState(old => createState({
-            prevState:old,
-            voice: settings[VOICE],
-            rate: settings[RATE],
-            pitch: settings[PITCH],
-            volume: settings[VOLUME],
-            groupsToLearn: settings[GROUPS_TO_LEARN],
-            symbolDelay: settings[SYMBOL_DELAY],
-            dashDuration: settings[DASH_DURATION],
-        }))
+        setState(old => createState({prevState:old, newState: settings}))
         if (writeSettingsToLocalStorage) {
             saveSettingsToLocalStorage(
                 {settings:settings, attrsToSave:ATTRS_TO_SAVE_TO_LOC_STORAGE, localStorageKey: LOCAL_STORAGE_KEY}
@@ -209,7 +209,7 @@ const MorseExercise = ({}) => {
 
     function openCloseSettingsDialog(opened) {
         if (opened) {
-            setSettings(state)
+            setSettings({...state})
         } else {
             setSettings(null)
         }
