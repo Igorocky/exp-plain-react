@@ -149,6 +149,7 @@ const MorseExercise = ({}) => {
         msg.voice = state[VOICE_OBJ]
         msg.rate = rate ? rate : state[RATE]
         msg.pitch = state[PITCH]
+        msg.volume = state[VOLUME]
         msg.text = text
         msg.lang = "en"
         speechSynthesis.speak(msg);
