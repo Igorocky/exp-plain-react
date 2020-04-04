@@ -73,6 +73,7 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange}) => {
 
     return RE.div({
         ref:touchDivRef,
+        className:"disable-select",
         style:{width: "350px", height:"550px", backgroundColor:"black", color:"white"},
         onTouchStart: onTouchStart, onTouchEnd: onTouchEnd,
     })
