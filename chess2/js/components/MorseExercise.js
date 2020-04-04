@@ -6,13 +6,14 @@ const MorseExercise = ({}) => {
     const VOICE_OBJ = "VOICE_OBJ"
     const RATE = "RATE"
     const PITCH = "PITCH"
+    const VOLUME = "VOLUME"
     const GROUPS_TO_LEARN = "GROUPS_TO_LEARN"
     const RND = "RND"
     const SYMBOL_DELAY = "SYMBOL_DELAY"
     const DASH_DURATION = "DASH_DURATION"
 
-    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, GROUPS_TO_LEARN, SYMBOL_DELAY, DASH_DURATION]
-    const ELEMS_IN_GROUP_TO_LEARN = 6
+    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, VOLUME, GROUPS_TO_LEARN, SYMBOL_DELAY, DASH_DURATION]
+    const ELEMS_IN_GROUP_TO_LEARN = 5
 
     const MORSE = [
         {sym:"0", word:"zero", code:"-----"},
@@ -120,6 +121,7 @@ const MorseExercise = ({}) => {
         const found = MORSE.filter(m => m.code == code)
         if (found.length && found[0].sym == state[RND].currentElem.sym) {
             state[RND] = state[RND].next()
+            rerenderInput()
             say(state[RND].currentElem.word)
         } else {
             sayCode(state[RND].currentElem.code)
@@ -152,7 +154,7 @@ const MorseExercise = ({}) => {
         speechSynthesis.speak(msg);
     }
 
-    function createState({prevState, voice, rate, pitch, groupsToLearn, symbolDelay, dashDuration}) {
+    function createState({prevState, voice, rate, pitch, volume, groupsToLearn, symbolDelay, dashDuration}) {
         function firstDefined(value, attrName, defVal) {
             return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
         }
@@ -166,6 +168,7 @@ const MorseExercise = ({}) => {
             [VOICE_OBJ]: getVoice(voice),
             [RATE]: firstDefined(rate, RATE, 1),
             [PITCH]: firstDefined(pitch, PITCH, 1),
+            [VOLUME]: firstDefined(volume, VOLUME, 1),
             [GROUPS_TO_LEARN]: groupsToLearn,
             [RND]: randomElemSelector({
                 allElems:MORSE.filter((e,i) => allowedIndexes.includes(i))
@@ -191,6 +194,7 @@ const MorseExercise = ({}) => {
             voice: settings[VOICE],
             rate: settings[RATE],
             pitch: settings[PITCH],
+            volume: settings[VOLUME],
             groupsToLearn: settings[GROUPS_TO_LEARN],
             symbolDelay: settings[SYMBOL_DELAY],
             dashDuration: settings[DASH_DURATION],
@@ -269,6 +273,16 @@ const MorseExercise = ({}) => {
                                     settings[PITCH],
                                     renderSlider({min:0, max:2, step: 0.1, value:settings[PITCH],
                                         setValue: newValue => setSettings(old => set(old, PITCH, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Volume"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[VOLUME],
+                                    renderSlider({min:0, max:1, step: 0.1, value:settings[VOLUME],
+                                        setValue: newValue => setSettings(old => set(old, VOLUME, newValue))})
                                 )
                             ),
                         ),
