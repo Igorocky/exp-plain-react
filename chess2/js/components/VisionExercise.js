@@ -503,7 +503,7 @@ const VisionExercise = ({configName}) => {
             label:label,
             control:RE.Checkbox({
                 checked:settings[CONNECTION_TYPES].includes(type),
-                onChange: () => setSettings(old => checkConnectionType(settings, type))
+                onChange: () => setSettings(old => checkConnectionType(old, type))
             })
         })
     }

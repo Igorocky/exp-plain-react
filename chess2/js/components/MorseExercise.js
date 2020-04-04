@@ -6,10 +6,21 @@ const MorseExercise = ({}) => {
     const VOICE_OBJ = "VOICE_OBJ"
     const RATE = "RATE"
     const PITCH = "PITCH"
-    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH]
+    const GROUPS_TO_LEARN = "GROUPS_TO_LEARN"
+    const RND = "RND"
+
+    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE, RATE, PITCH, GROUPS_TO_LEARN]
+    const ELEMS_IN_GROUP_TO_LEARN = 6
+
+    const SYMBOL_DELAY = 800
+    const DASH_DURATION = 200
+    const MORSE = [{sym:"0", code:"-----"}, {sym:"1", code:".----"}, {sym:"2", code:"..---"}, {sym:"3", code:"...--"}, {sym:"4", code:"....-"}, {sym:"5", code:"....."}, {sym:"6", code:"-...."}, {sym:"7", code:"--..."}, {sym:"8", code:"---.."}, {sym:"9", code:"----."}, {sym:"A", code:".-"}, {sym:"B", code:"-..."}, {sym:"C", code:"-.-."}, {sym:"D", code:"-.."}, {sym:"E", code:"."}, {sym:"F", code:"..-."}, {sym:"G", code:"--."}, {sym:"H", code:"...."}, {sym:"I", code:".."}, {sym:"J", code:".---"}, {sym:"K", code:"-.-"}, {sym:"L", code:".-.."}, {sym:"M", code:"--"}, {sym:"N", code:"-."}, {sym:"O", code:"---"}, {sym:"P", code:".--."}, {sym:"Q", code:"--.-"}, {sym:"R", code:".-."}, {sym:"S", code:"..."}, {sym:"T", code:"-"}, {sym:"U", code:"..-"}, {sym:"V", code:"...-"}, {sym:"W", code:".--"}, {sym:"X", code:"-..-"}, {sym:"Y", code:"-.--"}, {sym:"Z", code:"--.."}]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
+    const inputLog = useRef([])
+    const inputView = useRef(null)
+    const timeout = useRef(null)
 
     useEffect(
         () => updateStateFromSettings(false,
@@ -30,16 +41,95 @@ const MorseExercise = ({}) => {
         }
     }, [])
 
-    function createState({prevState, voice, rate, pitch}) {
+    function getCurrentTime() {
+        return new Date().getTime()
+    }
+
+    function onMouseDown() {
+        const curTime = getCurrentTime()
+        if (inputLog.current.length) {
+            const lst = inputLog.current[inputLog.current.length-1]
+            if (!lst.up || curTime - lst.up > SYMBOL_DELAY) {
+                inputLog.current = []
+            }
+        }
+        inputLog.current.push({down: getCurrentTime()})
+    }
+
+    function onMouseUp() {
+        window.clearTimeout(timeout.current)
+        if (inputLog.current.length) {
+            const lastInput = inputLog.current[inputLog.current.length-1];
+            lastInput.up = getCurrentTime()
+            lastInput.dur = lastInput.up - lastInput.down
+            timeout.current = window.setTimeout(guessSymbol, SYMBOL_DELAY)
+            rerenderInput()
+        }
+    }
+
+    function rerenderInput() {
+        setInputView(
+            inputLogToString()
+            + " Iteration: " + state[RND].iterationNumber
+            + ", Remains: " + state[RND].remainingElems.length
+        )
+    }
+
+    function guessSymbol() {
+        const code = inputLogToString()
+        const found = MORSE.filter(m => m.code == code)
+        if (found.length && found[0].sym == state[RND].currentElem.sym) {
+            state[RND] = state[RND].next()
+            say(state[RND].currentElem.sym)
+        } else {
+            say(state[RND].currentElem.code)
+            say(state[RND].currentElem.sym)
+        }
+    }
+
+    function sayCode(code) {
+        say(code, 0.5)
+    }
+
+    function inputLogToString() {
+        return inputLog.current.map(({dur}) => dur < DASH_DURATION ? "." : "-").reduce((m,e) => m+e,"")
+        return JSON.stringify(inputLog.current)
+    }
+
+    function setInputView(content) {
+        if (inputView.current) {
+            inputView.current.innerHTML = content
+        }
+    }
+
+    function say(text, rate) {
+        var msg = new SpeechSynthesisUtterance();
+        msg.voice = state[VOICE_OBJ]
+        msg.rate = rate ? rate : state[RATE]
+        msg.pitch = state[PITCH]
+        msg.text = text
+        msg.lang = "en"
+        speechSynthesis.speak(msg);
+    }
+
+    function createState({prevState, voice, rate, pitch, groupsToLearn}) {
         function firstDefined(value, attrName, defVal) {
             return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
         }
 
+        groupsToLearn = firstDefined(groupsToLearn, GROUPS_TO_LEARN, [0])
+
+        const allowedIndexes = groupsToLearn
+            .flatMap(g => ints(g*ELEMS_IN_GROUP_TO_LEARN, (g+1)*ELEMS_IN_GROUP_TO_LEARN-1))
         return {
             [VOICE]: voice,
             [VOICE_OBJ]: getVoice(voice),
-            [RATE]: rate,
-            [PITCH]: pitch,
+            [RATE]: firstDefined(rate, RATE, 1),
+            [PITCH]: firstDefined(pitch, PITCH, 1),
+            [GROUPS_TO_LEARN]: groupsToLearn,
+            [RND]: randomElemSelector({
+                allElems:MORSE.filter((e,i) => allowedIndexes.includes(i))
+            }),
         }
     }
 
@@ -59,6 +149,7 @@ const MorseExercise = ({}) => {
             voice: settings[VOICE],
             rate: settings[RATE],
             pitch: settings[PITCH],
+            groupsToLearn: settings[GROUPS_TO_LEARN],
         }))
         if (writeSettingsToLocalStorage) {
             saveSettingsToLocalStorage(
@@ -117,6 +208,32 @@ const MorseExercise = ({}) => {
                                 )
                             ),
                         ),
+                        RE.tr({},
+                            RE.td({},"Rate"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[RATE],
+                                    renderSlider({min:0.1, max:10, step: 0.1, value:settings[RATE],
+                                        setValue: newValue => setSettings(old => set(old, RATE, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Pitch"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[PITCH],
+                                    renderSlider({min:0, max:2, step: 0.1, value:settings[PITCH],
+                                        setValue: newValue => setSettings(old => set(old, PITCH, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Groups to learn"),
+                            RE.td({},
+                                renderGroupsToLearnCheckboxes()
+                            ),
+                        ),
                     )
                 )
             )
@@ -125,9 +242,55 @@ const MorseExercise = ({}) => {
         }
     }
 
+    function renderGroupsToLearnCheckboxes() {
+        return RE.Fragment({},
+            ints(0, Math.ceil(MORSE.length/ELEMS_IN_GROUP_TO_LEARN)-1).map(renderGroupToLearnCheckbox)
+        )
+    }
+
+    function renderGroupToLearnCheckbox(number) {
+        return RE.FormControlLabel({
+            key:number,
+            label:number,
+            control:RE.Checkbox({
+                checked:settings[GROUPS_TO_LEARN].includes(number),
+                onChange: () => setSettings(old => checkGroupToLearn(old, number))
+            })
+        })
+    }
+
+    function checkGroupToLearn(settings, groupNum) {
+        const groupsToLearn = settings[GROUPS_TO_LEARN];
+        if (groupsToLearn.includes(groupNum)) {
+            settings = set(settings, GROUPS_TO_LEARN, groupsToLearn.filter(n => n!==groupNum))
+        } else {
+            settings = set(settings, GROUPS_TO_LEARN, [...groupsToLearn, groupNum])
+        }
+        if (settings[GROUPS_TO_LEARN].length == 0) {
+            settings = set(settings, groupsToLearn, groupsToLearn)
+        }
+        return settings
+    }
+
+    function renderSlider({min, max, step, value, setValue}) {
+        return RE.div({style:{width:"200px"}},
+            RE.Slider({
+                value:value,
+                onChange: (event, newValue) => setValue(newValue),
+                step:step,
+                min:min,
+                max:max
+            })
+        )
+    }
+
     return RE.Fragment({},
         RE.Button({onClick: () => openCloseSettingsDialog(true)}, "Settings"),
         RE.Button({onClick: () => console.log(state)}, "Show state"),
+        RE.div({ref:inputView}),
+        RE.div({style:{width: "350px", height:"550px", backgroundColor:"lightgrey"},
+            onMouseUp: onMouseUp, onMouseDown: onMouseDown}
+        ),
         renderSettings()
     )
 }
