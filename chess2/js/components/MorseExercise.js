@@ -189,6 +189,26 @@ const MorseExercise = ({}) => {
                 RE.table({style:{marginTop:"80px"}},
                     RE.tbody({},
                         RE.tr({},
+                            RE.td({},"Dot duration"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[DOT_DURATION],
+                                    renderSlider({min:50, max:500, step: 25, value:settings[DOT_DURATION],
+                                        setValue: newValue => setSettings(old => set(old, DOT_DURATION, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Symbol delay"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[SYMBOL_DELAY],
+                                    renderSlider({min:50, max:2000, step: 50, value:settings[SYMBOL_DELAY],
+                                        setValue: newValue => setSettings(old => set(old, SYMBOL_DELAY, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
                             RE.td({},"Voice"),
                             RE.td({},
                                 RE.Select({
@@ -241,26 +261,6 @@ const MorseExercise = ({}) => {
                                 renderGroupsToLearnCheckboxes()
                             ),
                         ),
-                        RE.tr({},
-                            RE.td({},"Symbol delay"),
-                            RE.td({},
-                                RE.Container.col.top.left({},{},
-                                    settings[SYMBOL_DELAY],
-                                    renderSlider({min:300, max:2000, step: 100, value:settings[SYMBOL_DELAY],
-                                        setValue: newValue => setSettings(old => set(old, SYMBOL_DELAY, newValue))})
-                                )
-                            ),
-                        ),
-                        RE.tr({},
-                            RE.td({},"Dot duration"),
-                            RE.td({},
-                                RE.Container.col.top.left({},{},
-                                    settings[DOT_DURATION],
-                                    renderSlider({min:50, max:500, step: 50, value:settings[DOT_DURATION],
-                                        setValue: newValue => setSettings(old => set(old, DOT_DURATION, newValue))})
-                                )
-                            ),
-                        ),
                     )
                 )
             )
@@ -300,7 +300,7 @@ const MorseExercise = ({}) => {
     }
 
     function renderSlider({min, max, step, value, setValue}) {
-        return RE.div({style:{width:"200px"}},
+        return RE.div({style:{width:"280px"}},
             RE.Slider({
                 value:value,
                 onChange: (event, newValue) => setValue(newValue),

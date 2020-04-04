@@ -48,18 +48,16 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange}) => {
         const code = inputEventsToCode()
         let symbol = MORSE.find(m => m.code == code)
         if (symbol) {
-            beep({durationMillis:100,frequencyHz:500,volume:0.04,type:BEEP_TYPE_SQUARE})
-            symbol = symbol.sym
+            inputSymbols.current.push({
+                events: inputEvents.current,
+                time: currTime,
+                symbol: symbol.sym
+            })
+            inputSymbols.current = onSymbolsChange(inputSymbols.current)
         } else {
             beep({durationMillis:100,frequencyHz:200,volume:0.1,type:BEEP_TYPE_SAWTOOTH})
         }
-        inputSymbols.current.push({
-            events: inputEvents.current,
-            time: currTime,
-            symbol: symbol
-        })
         inputEvents.current = []
-        inputSymbols.current = onSymbolsChange(inputSymbols.current)
         rerenderState()
     }
 
