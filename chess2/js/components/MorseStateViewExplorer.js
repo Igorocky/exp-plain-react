@@ -1,80 +1,16 @@
 "use strict";
 
-const MorseExercise = ({}) => {
-    const LOCAL_STORAGE_KEY = "MorseExercise.settings"
+const MorseStateViewExplorer = ({view}) => {
+    const LOCAL_STORAGE_KEY = "MorseStateViewExplorer.settings"
     const VOICE_URI = "VOICE_URI"
     const VOICE_OBJ = "VOICE_OBJ"
     const RATE = "RATE"
     const PITCH = "PITCH"
     const VOLUME = "VOLUME"
-    const GROUPS_TO_LEARN = "GROUPS_TO_LEARN"
-    const RND = "RND"
     const SYMBOL_DELAY = "SYMBOL_DELAY"
     const DOT_DURATION = "DOT_DURATION"
 
-    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, GROUPS_TO_LEARN, SYMBOL_DELAY, DOT_DURATION]
-    const ELEMS_IN_GROUP_TO_LEARN = 5
-
-    const MORSE_WORDS = [
-        {sym:"0", word:"zero"},
-        {sym:"1", word:"one"},
-        {sym:"2", word:"two"},
-        {sym:"3", word:"three"},
-        {sym:"4", word:"four"},
-        {sym:"5", word:"five"},
-        {sym:"6", word:"six"},
-        {sym:"7", word:"seven"},
-        {sym:"8", word:"eight"},
-        {sym:"9", word:"nine"},
-        {sym:"A", word:"alpha"},
-        {sym:"B", word:"bravo"},
-        {sym:"C", word:"charlie"},
-        {sym:"D", word:"delta"},
-        {sym:"E", word:"echo"},
-        {sym:"F", word:"foxtrot"},
-        {sym:"G", word:"golf"},
-        {sym:"H", word:"hotel"},
-        {sym:"I", word:"india"},
-        {sym:"J", word:"juliet"},
-        {sym:"K", word:"kilo"},
-        {sym:"L", word:"lima"},
-        {sym:"M", word:"mike"},
-        {sym:"N", word:"november"},
-        {sym:"O", word:"oscar"},
-        {sym:"P", word:"papa"},
-        {sym:"Q", word:"quebec"},
-        {sym:"R", word:"romeo"},
-        {sym:"S", word:"sierra"},
-        {sym:"T", word:"tango"},
-        {sym:"U", word:"uniform"},
-        {sym:"V", word:"victor"},
-        {sym:"W", word:"whiskey"},
-        {sym:"X", word:"x-ray"},
-        {sym:"Y", word:"yankee"},
-        {sym:"Z", word:"zulu"},
-        {sym:".", word:"period"},
-        {sym:",", word:"comma"},
-        {sym:"?", word:"Question"},
-        {sym:"'", word:"Apostrophe"},
-        {sym:"!", word:"Exclamation"},
-        {sym:"/", word:"Slash"},
-        {sym:"(", word:"Parenthesis Open"},
-        {sym:")", word:"Parenthesis Close"},
-        {sym:"&", word:"Ampersand"},
-        {sym:":", word:"Colon"},
-        {sym:";", word:"Semicolon"},
-        {sym:"=", word:"Equals"},
-        {sym:"+", word:"Plus"},
-        {sym:"-", word:"Minus"},
-        {sym:"_", word:"Underscore"},
-        {sym:"\"", word:"Quotation"},
-        {sym:"$", word:"Dollar"},
-        {sym:"@", word:"@"},
-        {sym:"end", word:"End"},
-        {sym:"error", word:"error"},
-        {sym:"start", word:"start"},
-        {sym:"new-page", word:"new page"},
-    ]
+    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, SYMBOL_DELAY, DOT_DURATION]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
@@ -93,41 +29,6 @@ const MorseExercise = ({}) => {
         window.speechSynthesis.onvoiceschanged = () => setState(old => createState({prevState:old}))
     }, [])
 
-    function checkSymbol(symbols) {
-        if (symbols[symbols.length-1].symbol != state[RND].currentElem.sym) {
-            if (symbols.length <= 2) {
-                say("Incorrect.")
-                say(state[RND].currentElem.word)
-            } else {
-                sayCode(MORSE.find(e => e.sym == state[RND].currentElem.sym).code)
-                say(state[RND].currentElem.word)
-            }
-            return symbols
-        } else {
-            setState(old => {
-                const newState = set(old, RND, old[RND].next())
-                say(newState[RND].currentElem.word)
-                return newState
-            })
-            return [symbols[symbols.length-1]]
-        }
-    }
-
-    function sayCode(code) {
-        say(code.split('').map(s => s == "." ? "dot" : "dash").join(", "))
-    }
-
-    function say(text) {
-        var msg = new SpeechSynthesisUtterance();
-        msg.voice = state[VOICE_OBJ]
-        msg.rate = state[RATE]
-        msg.pitch = state[PITCH]
-        msg.volume = state[VOLUME]
-        msg.text = text
-        msg.lang = "en"
-        speechSynthesis.speak(msg);
-    }
-
     function createState({prevState, newState}) {
         function firstDefined(attrName, defVal) {
             const newValue = newState ? newState[attrName] : undefined
@@ -141,24 +42,27 @@ const MorseExercise = ({}) => {
             return defVal
         }
 
-        const groupsToLearn = firstDefined(GROUPS_TO_LEARN, [0])
-
-        const allowedIndexes = groupsToLearn
-            .flatMap(g => ints(g*ELEMS_IN_GROUP_TO_LEARN, (g+1)*ELEMS_IN_GROUP_TO_LEARN-1))
-        const voiceUri = firstDefined(VOICE_URI);
+        const voiceUri = firstDefined(VOICE_URI)
         return {
             [VOICE_URI]: voiceUri,
             [VOICE_OBJ]: getVoiceObj(voiceUri),
             [RATE]: firstDefined(RATE, 1),
             [PITCH]: firstDefined(PITCH, 1),
             [VOLUME]: firstDefined(VOLUME, 1),
-            [GROUPS_TO_LEARN]: groupsToLearn,
-            [RND]: randomElemSelector({
-                allElems:MORSE_WORDS.filter((e,i) => allowedIndexes.includes(i))
-            }),
-            [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 800),
+            [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 500),
             [DOT_DURATION]:firstDefined(DOT_DURATION, 150),
         }
+    }
+
+    function say(text) {
+        const msg = new SpeechSynthesisUtterance();
+        msg.voice = state[VOICE_OBJ]
+        msg.rate = state[RATE]
+        msg.pitch = state[PITCH]
+        msg.volume = state[VOLUME]
+        msg.text = text
+        msg.lang = "en"
+        speechSynthesis.speak(msg);
     }
 
     function getVoiceObj(voiceUri) {
@@ -276,49 +180,13 @@ const MorseExercise = ({}) => {
                                         setValue: newValue => setSettings(old => set(old, VOLUME, newValue))})
                                 )
                             ),
-                        ),
-                        RE.tr({},
-                            RE.td({},"Groups to learn"),
-                            RE.td({},
-                                renderGroupsToLearnCheckboxes()
-                            ),
-                        ),
+                        )
                     )
                 )
             )
         } else {
             return null
         }
-    }
-
-    function renderGroupsToLearnCheckboxes() {
-        return RE.Fragment({},
-            ints(0, Math.ceil(MORSE_WORDS.length/ELEMS_IN_GROUP_TO_LEARN)-1).map(renderGroupToLearnCheckbox)
-        )
-    }
-
-    function renderGroupToLearnCheckbox(number) {
-        return RE.FormControlLabel({
-            key:number,
-            label:number,
-            control:RE.Checkbox({
-                checked:settings[GROUPS_TO_LEARN].includes(number),
-                onChange: () => setSettings(old => checkGroupToLearn(old, number))
-            })
-        })
-    }
-
-    function checkGroupToLearn(settings, groupNum) {
-        const groupsToLearn = settings[GROUPS_TO_LEARN];
-        if (groupsToLearn.includes(groupNum)) {
-            settings = set(settings, GROUPS_TO_LEARN, groupsToLearn.filter(n => n!==groupNum))
-        } else {
-            settings = set(settings, GROUPS_TO_LEARN, [...groupsToLearn, groupNum])
-        }
-        if (settings[GROUPS_TO_LEARN].length == 0) {
-            settings = set(settings, groupsToLearn, groupsToLearn)
-        }
-        return settings
     }
 
     function renderSlider({min, max, step, value, setValue}) {
@@ -334,15 +202,11 @@ const MorseExercise = ({}) => {
     }
 
     return RE.Fragment({},
-        RE.div({},
-            state[RND].currentElem.sym
-            + " Iteration: " + state[RND].iterationNumber
-            + ", Remains: " + state[RND].remainingElems.length
-        ),
-        re(MorseTouchDiv, {
+        re(MorseCommandInput, {
+            say:say,
             dotDuration: state[DOT_DURATION],
             symbolDelay: state[SYMBOL_DELAY],
-            onSymbolsChange: symbols => checkSymbol(symbols),
+            onCommandEntered: command => console.log(command),
             settingsBtnClicked: () => openCloseSettingsDialog(true),
             viewStateBtnClicked: () => console.log(state)
         }),

@@ -20,31 +20,6 @@ const MOUSEUP_LISTENER_NAME = 'mouseup'
 const XX = ["a","b","c","d","e","f","g","h"]
 const YY = ["1","2","3","4","5","6","7","8"]
 
-const MORSE = [{sym:"0", code:"-----"}, {sym:"1", code:".----"}, {sym:"2", code:"..---"}, {sym:"3", code:"...--"}, {sym:"4", code:"....-"}, {sym:"5", code:"....."}, {sym:"6", code:"-...."}, {sym:"7", code:"--..."}, {sym:"8", code:"---.."}, {sym:"9", code:"----."}, {sym:"A", code:".-"}, {sym:"B", code:"-..."}, {sym:"C", code:"-.-."}, {sym:"D", code:"-.."}, {sym:"E", code:"."}, {sym:"F", code:"..-."}, {sym:"G", code:"--."}, {sym:"H", code:"...."}, {sym:"I", code:".."}, {sym:"J", code:".---"}, {sym:"K", code:"-.-"}, {sym:"L", code:".-.."}, {sym:"M", code:"--"}, {sym:"N", code:"-."}, {sym:"O", code:"---"}, {sym:"P", code:".--."}, {sym:"Q", code:"--.-"}, {sym:"R", code:".-."}, {sym:"S", code:"..."}, {sym:"T", code:"-"}, {sym:"U", code:"..-"}, {sym:"V", code:"...-"}, {sym:"W", code:".--"}, {sym:"X", code:"-..-"}, {sym:"Y", code:"-.--"}, {sym:"Z", code:"--.."},
-    {sym:".", code:".-.-.-"},
-    {sym:",", code:"--..--"},
-    {sym:"?", code:"..--.."},
-    {sym:"'", code:".---."},
-    {sym:"!", code:"-.-.--"},
-    {sym:"/", code:"-..-."},
-    {sym:"(", code:"-.--."},
-    {sym:")", code:"-.--.-"},
-    {sym:"&", code:".-..."},
-    {sym:":", code:"-.-.-."},
-    {sym:";", code:"-.-.-."},
-    {sym:"=", code:"-...-"},
-    {sym:"+", code:".-.-."},
-    {sym:"-", code:"-....-"},
-    {sym:"_", code:"..--.-"},
-    {sym:"\"", code:".-..-."},
-    {sym:"$", code:"...-..-"},
-    {sym:"@", code:".--.-."},
-    {sym:"end", code:"...-.-"},
-    {sym:"error", code:"........"},
-    {sym:"start", code:"-.-.-"},
-    {sym:"new-page", code:".-.-."},
-]
-
 function hasValue(variable) {
     return variable !== undefined && variable !== null
 }
@@ -502,8 +477,11 @@ const BEEP_TYPE_SINE = "sine"
 const BEEP_TYPE_SQUARE = "square"
 const BEEP_TYPE_SAWTOOTH = "sawtooth"
 const BEEP_TYPE_TRIANGLE = "triangle"
-const AUDIO_CTX = new (window.AudioContext || window.webkitAudioContext || window.audioContext)
+let AUDIO_CTX = null
 function beep({durationMillis, frequencyHz, volume, type, callback}) {
+    if (!AUDIO_CTX) {
+        AUDIO_CTX = new (window.AudioContext || window.webkitAudioContext || window.audioContext)
+    }
     const oscillator = AUDIO_CTX.createOscillator()
     const gainNode = AUDIO_CTX.createGain()
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange}) => {
+const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnClicked, viewStateBtnClicked}) => {
     const inputEvents = useRef([])
     const inputSymbols = useRef([])
     const touchDivRef = useRef(null)
@@ -46,12 +46,13 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange}) => {
     function convertSymbol() {
         const currTime = getCurrentTime()
         const code = inputEventsToCode()
-        let symbol = MORSE.find(m => m.code == code)
-        if (symbol) {
+        let codeInfo = MORSE.find(m => m.code == code)
+        if (codeInfo) {
             inputSymbols.current.push({
                 events: inputEvents.current,
                 time: currTime,
-                symbol: symbol.sym
+                symbol: codeInfo.sym,
+                codeInfo: codeInfo
             })
             inputSymbols.current = onSymbolsChange(inputSymbols.current)
         } else {
@@ -71,10 +72,20 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange}) => {
         }
     }
 
-    return RE.div({
-        ref:touchDivRef,
-        className:"disable-select",
-        style:{width: "350px", height:"550px", backgroundColor:"black", color:"white"},
-        onTouchStart: onTouchStart, onTouchEnd: onTouchEnd,
-    })
+    return RE.Container.col.top.left({style:{backgroundColor:"black", color:"white"}},{},
+        RE.Container.row.left.top({},{style: {marginRight:"30px"}},
+            settingsBtnClicked
+                ?RE.Button({style:{color:"white"}, onClick: settingsBtnClicked}, "Settings")
+                :null,
+            viewStateBtnClicked
+                ?RE.Button({style:{color:"white"}, onClick: viewStateBtnClicked}, "State")
+                :null,
+        ),
+        RE.div({
+            ref:touchDivRef,
+            className:"disable-select",
+            style:{width: "350px", height:"550px", backgroundColor:"black", color:"white"},
+            onTouchStart: onTouchStart, onTouchEnd: onTouchEnd,
+        })
+    )
 }

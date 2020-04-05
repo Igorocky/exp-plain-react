@@ -6,6 +6,8 @@ const AVAILABLE_EXERCISES = [
     {name:"Vision", component: VisionExercise},
     {name:"Movements2Exercise", component: Movements2Exercise},
     {name:"MorseExercise", component: MorseExercise},
+    {name:"TextReader", component: TextReader},
+    {name:"MorseStateViewExplorer", component: MorseStateViewExplorer},
     {name:"XrayExercise", component: XrayExercise},
     {name:"Vision Rev", component: VisionExerciseRev},
     {name:"Knight Path", component: KnightPath},
@@ -18,6 +20,8 @@ const AVAILABLE_EXERCISES = [
 ]
 
 const ExerciseSelector = ({}) => {
+    // const [selectedExercise, setSelectedExercise] = useState({name:"MorseStateViewExplorer", component: MorseStateViewExplorer})
+    // const [selectedExercise, setSelectedExercise] = useState({name:"MorseExercise", component: MorseExercise})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {
