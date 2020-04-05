@@ -72,19 +72,21 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnCl
         }
     }
 
-    return RE.Container.col.top.left({style:{backgroundColor:"black", color:"white"}},{},
+    const bgColor = profVal(PROFILE_MOBILE, "black", PROFILE_FUJ, "white")
+    const textColor = profVal(PROFILE_MOBILE, "white", PROFILE_FUJ, "black")
+    return RE.Container.col.top.left({style:{backgroundColor:bgColor, color:textColor}},{},
         RE.Container.row.left.top({},{style: {marginRight:"30px"}},
             settingsBtnClicked
-                ?RE.Button({style:{color:"white"}, onClick: settingsBtnClicked}, "Settings")
+                ?RE.Button({style:{color:textColor}, onClick: settingsBtnClicked}, "Settings")
                 :null,
             viewStateBtnClicked
-                ?RE.Button({style:{color:"white"}, onClick: viewStateBtnClicked}, "State")
+                ?RE.Button({style:{color:textColor}, onClick: viewStateBtnClicked}, "State")
                 :null,
         ),
         RE.div({
             ref:touchDivRef,
             className:"disable-select",
-            style:{width: "350px", height:"550px", backgroundColor:"black", color:"white"},
+            style:{width: "350px", height:"550px"},
             onTouchStart: onTouchStart, onTouchEnd: onTouchEnd,
         })
     )
