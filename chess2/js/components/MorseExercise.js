@@ -15,67 +15,6 @@ const MorseExercise = ({}) => {
     const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, GROUPS_TO_LEARN, SYMBOL_DELAY, DOT_DURATION]
     const ELEMS_IN_GROUP_TO_LEARN = 5
 
-    const MORSE_WORDS = [
-        {sym:"0", word:"zero"},
-        {sym:"1", word:"one"},
-        {sym:"2", word:"two"},
-        {sym:"3", word:"three"},
-        {sym:"4", word:"four"},
-        {sym:"5", word:"five"},
-        {sym:"6", word:"six"},
-        {sym:"7", word:"seven"},
-        {sym:"8", word:"eight"},
-        {sym:"9", word:"nine"},
-        {sym:"A", word:"alpha"},
-        {sym:"B", word:"bravo"},
-        {sym:"C", word:"charlie"},
-        {sym:"D", word:"delta"},
-        {sym:"E", word:"echo"},
-        {sym:"F", word:"foxtrot"},
-        {sym:"G", word:"golf"},
-        {sym:"H", word:"hotel"},
-        {sym:"I", word:"india"},
-        {sym:"J", word:"juliet"},
-        {sym:"K", word:"kilo"},
-        {sym:"L", word:"lima"},
-        {sym:"M", word:"mike"},
-        {sym:"N", word:"november"},
-        {sym:"O", word:"oscar"},
-        {sym:"P", word:"papa"},
-        {sym:"Q", word:"quebec"},
-        {sym:"R", word:"romeo"},
-        {sym:"S", word:"sierra"},
-        {sym:"T", word:"tango"},
-        {sym:"U", word:"uniform"},
-        {sym:"V", word:"victor"},
-        {sym:"W", word:"whiskey"},
-        {sym:"X", word:"x-ray"},
-        {sym:"Y", word:"yankee"},
-        {sym:"Z", word:"zulu"},
-        {sym:".", word:"period"},
-        {sym:",", word:"comma"},
-        {sym:"?", word:"Question"},
-        {sym:"'", word:"Apostrophe"},
-        {sym:"!", word:"Exclamation"},
-        {sym:"/", word:"Slash"},
-        {sym:"(", word:"Parenthesis Open"},
-        {sym:")", word:"Parenthesis Close"},
-        {sym:"&", word:"Ampersand"},
-        {sym:":", word:"Colon"},
-        {sym:";", word:"Semicolon"},
-        {sym:"=", word:"Equals"},
-        {sym:"+", word:"Plus"},
-        {sym:"-", word:"Minus"},
-        {sym:"_", word:"Underscore"},
-        {sym:"\"", word:"Quotation"},
-        {sym:"$", word:"Dollar"},
-        {sym:"@", word:"@"},
-        {sym:"end", word:"End"},
-        {sym:"error", word:"error"},
-        {sym:"start", word:"start"},
-        {sym:"new-page", word:"new page"},
-    ]
-
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
 
@@ -154,7 +93,7 @@ const MorseExercise = ({}) => {
             [VOLUME]: firstDefined(VOLUME, 1),
             [GROUPS_TO_LEARN]: groupsToLearn,
             [RND]: randomElemSelector({
-                allElems:MORSE_WORDS.filter((e,i) => allowedIndexes.includes(i))
+                allElems:MORSE.filter((e,i) => allowedIndexes.includes(i))
             }),
             [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 800),
             [DOT_DURATION]:firstDefined(DOT_DURATION, 150),
@@ -293,7 +232,7 @@ const MorseExercise = ({}) => {
 
     function renderGroupsToLearnCheckboxes() {
         return RE.Fragment({},
-            ints(0, Math.ceil(MORSE_WORDS.length/ELEMS_IN_GROUP_TO_LEARN)-1).map(renderGroupToLearnCheckbox)
+            ints(0, Math.ceil(MORSE.length/ELEMS_IN_GROUP_TO_LEARN)-1).map(renderGroupToLearnCheckbox)
         )
     }
 
