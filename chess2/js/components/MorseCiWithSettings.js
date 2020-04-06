@@ -1,7 +1,7 @@
 "use strict";
 
-const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, commands}) => {
-    const LOCAL_STORAGE_KEY = "MorseStateViewExplorer.settings"
+const MorseCiWithSettings = ({onCommand}) => {
+    const LOCAL_STORAGE_KEY = "MorseCiWithSettings"
     const VOICE_URI = "VOICE_URI"
     const VOICE_OBJ = "VOICE_OBJ"
     const RATE = "RATE"
@@ -10,16 +10,13 @@ const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, c
     const SYMBOL_DELAY = "SYMBOL_DELAY"
     const DOT_DURATION = "DOT_DURATION"
 
-    const ARRAY_TO_READ = "ARRAY_TO_READ"
-    const ARRAY_IDX_TO_READ = "ARRAY_IDX_TO_READ"
-
     const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, SYMBOL_DELAY, DOT_DURATION]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
 
     useEffect(
-        () => updateStateFromSettings(false,
+        () => updateStateFromSettings(
             readSettingsFromLocalStorage({
                 localStorageKey: LOCAL_STORAGE_KEY,
                 attrsToRead: ATTRS_TO_SAVE_TO_LOC_STORAGE
@@ -58,7 +55,7 @@ const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, c
             [RATE]: firstDefined(RATE, 1),
             [PITCH]: firstDefined(PITCH, 1),
             [VOLUME]: firstDefined(VOLUME, 1),
-            [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 500),
+            [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, 300),
             [DOT_DURATION]:firstDefined(DOT_DURATION, 150),
         }
     }
@@ -82,13 +79,16 @@ const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, c
         }
     }
 
-    function updateStateFromSettings(writeSettingsToLocalStorage, settings) {
+    function applySettings() {
+        updateStateFromSettings(settings)
+        saveSettingsToLocalStorage(
+            {settings:settings, attrsToSave:ATTRS_TO_SAVE_TO_LOC_STORAGE, localStorageKey: LOCAL_STORAGE_KEY}
+        )
+        openCloseSettingsDialog(false)
+    }
+
+    function updateStateFromSettings(settings) {
         setState(old => createState({prevState:old, newState: settings}))
-        if (writeSettingsToLocalStorage) {
-            saveSettingsToLocalStorage(
-                {settings:settings, attrsToSave:ATTRS_TO_SAVE_TO_LOC_STORAGE, localStorageKey: LOCAL_STORAGE_KEY}
-            )
-        }
     }
 
     function openCloseSettingsDialog(opened) {
@@ -113,10 +113,7 @@ const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, c
                         ),
                         RE.Button({
                                 variant:"contained",
-                                onClick: () => {
-                                    updateStateFromSettings(true, settings)
-                                    openCloseSettingsDialog(false)
-                                },
+                                onClick: applySettings,
                             },
                             "Save"
                         ),
@@ -216,7 +213,7 @@ const MorseStateViewExplorer = ({nextActionDescr, onNextActionDescrSaid, data, c
             say:say,
             dotDuration: state[DOT_DURATION],
             symbolDelay: state[SYMBOL_DELAY],
-            onCommandEntered: command => console.log(command),
+            onCommandEntered: onCommand,
             settingsBtnClicked: () => openCloseSettingsDialog(true),
             viewStateBtnClicked: () => console.log(state)
         }),

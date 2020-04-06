@@ -1,6 +1,7 @@
 'use strict';
 
 const VisionExercise = ({configName}) => {
+    const LOC_STOR_NAME = "VisionExercise.settings"
     const STAGE_ASK = "STAGE_ASK"
     const STAGE_ANSWER = "STAGE_ANSWER"
     const STAGE_REPEAT_ASK = "STAGE_REPEAT_ASK"
@@ -44,38 +45,39 @@ const VisionExercise = ({configName}) => {
         CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER, MOBILE_MODE,
         ALWAYS_SHOW_QUESTION_CELL_NAME
     ]
-    const SETTINGS_DIALOG_OPENED = "SETTINGS_DIALOG_OPENED"
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
 
-    const [state, setState] = useState(() => createState({
-        connectionTypes:[
+    const [state, setState] = useState(() => createState({}))
+    const [settings, setSettings] = useState(null)
+
+    useEffect(() => updateStateFromSettings(
+        readSettingsFromLocalStorage({localStorageKey: LOC_STOR_NAME, attrsToRead: SETTINGS_TO_STORE_TO_LOCAL_STORAGE})
+    ), [])
+
+    function createState({prevState, newState}) {
+        function firstDefined(attrName, defVal) {
+            const newValue = newState ? newState[attrName] : undefined
+            if (newValue !== undefined) {
+                return newValue
+            }
+            const oldValue = prevState ? prevState[attrName] : undefined
+            if (oldValue !== undefined) {
+                return oldValue
+            }
+            return defVal
+        }
+
+        const connectionTypes = firstDefined(CONNECTION_TYPES, [
             CONNECTION_TYPE_SAME_CELL,
             CONNECTION_TYPE_KNIGHT,
             CONNECTION_TYPE_LINE,
-        ],
-        lineLengthMin:2,
-        lineLengthMax:4,
-        pathLength:6,
-        numOfCellsToRemember:1,
-        mobileMode:true
-    }))
-    const [settings, setSettings] = useState(state)
-
-    useEffect(() => restoreSettingsFromLocalStorage(), [])
-
-    function createState({prevState, connectionTypes, lineLengthMin, lineLengthMax, pathLength, numOfCellsToRemember,
-                         mobileMode, alwaysShowQuestionCellName}) {
-        function firstDefined(value, attrName, defVal) {
-            return value !== undefined ? value : (prevState ? prevState[attrName] : defVal)
-        }
-
-        connectionTypes = firstDefined(connectionTypes, CONNECTION_TYPES)
-        lineLengthMin = firstDefined(lineLengthMin, LINE_LENGTH_MIN)
-        lineLengthMax = firstDefined(lineLengthMax, LINE_LENGTH_MAX)
-        pathLength = firstDefined(pathLength, PATH_LENGTH)
-        numOfCellsToRemember = firstDefined(numOfCellsToRemember, NUM_OF_CELLS_TO_REMEMBER)
-        mobileMode = firstDefined(mobileMode, MOBILE_MODE)
-        alwaysShowQuestionCellName = firstDefined(alwaysShowQuestionCellName, ALWAYS_SHOW_QUESTION_CELL_NAME, false)
+        ])
+        const lineLengthMin = firstDefined(LINE_LENGTH_MIN,2)
+        const lineLengthMax = firstDefined(LINE_LENGTH_MAX, 4)
+        let pathLength = firstDefined(PATH_LENGTH, 6)
+        const numOfCellsToRemember = firstDefined(NUM_OF_CELLS_TO_REMEMBER, 1)
+        const mobileMode = firstDefined(MOBILE_MODE, false)
+        const alwaysShowQuestionCellName = firstDefined(ALWAYS_SHOW_QUESTION_CELL_NAME, false)
 
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
@@ -98,7 +100,6 @@ const VisionExercise = ({configName}) => {
             [CONNECTIONS]: allConnections,
             [COUNTS]: ints(0, allConnections.length-1).map(i => 0),
             [MOBILE_MODE]: mobileMode,
-            [SETTINGS_DIALOG_OPENED]: false,
             [QUESTION_CELL_NAME_IS_SHOWN]: false,
             [ALWAYS_SHOW_QUESTION_CELL_NAME]: alwaysShowQuestionCellName,
         }
@@ -373,50 +374,28 @@ const VisionExercise = ({configName}) => {
         })
     }
 
-    function saveSettingsToLocalStorage(settings) {
-        const settingsToStore = SETTINGS_TO_STORE_TO_LOCAL_STORAGE
-            .reduce((m,e) => ({...m, [e]:settings[e]}), {})
-        window.localStorage.setItem("VisionExercise.settings", JSON.stringify(settingsToStore))
-    }
-
-    function restoreSettingsFromLocalStorage() {
-        const settingsStr = window.localStorage.getItem("VisionExercise.settings")
-        if (settingsStr) {
-            const settingsFromLocalStorage = JSON.parse(settingsStr)
-            setSettings(oldSettings => {
-                function getSettingsValue(propName) {
-                    return {[propName]:nvl(settingsFromLocalStorage[propName], oldSettings[propName])}
-                }
-                const newSettings = {
-                    ...oldSettings,
-                    ...(
-                        SETTINGS_TO_STORE_TO_LOCAL_STORAGE
-                            .reduce((m,e) => ({...m, ...getSettingsValue(e)}), {})
-                    )
-                }
-                updateStateFromSettings(newSettings)
-                return newSettings
-            })
-        }
-    }
-
     function updateStateFromSettings(settings) {
         function intOrUndef(value) {
             if (value !== "") {
                 return value
             }
         }
-        setState(old => createState({
-            prevState:old,
-            connectionTypes: settings[CONNECTION_TYPES],
-            lineLengthMin: intOrUndef(settings[LINE_LENGTH_MIN]),
-            lineLengthMax: intOrUndef(settings[LINE_LENGTH_MAX]),
-            pathLength: intOrUndef(settings[PATH_LENGTH]),
-            numOfCellsToRemember: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
-            mobileMode: settings[MOBILE_MODE],
-            alwaysShowQuestionCellName: settings[ALWAYS_SHOW_QUESTION_CELL_NAME],
-        }))
-        saveSettingsToLocalStorage(settings)
+        settings = {
+            ...settings,
+            [LINE_LENGTH_MIN]: intOrUndef(settings[LINE_LENGTH_MIN]),
+            [LINE_LENGTH_MAX]: intOrUndef(settings[LINE_LENGTH_MAX]),
+            [PATH_LENGTH]: intOrUndef(settings[PATH_LENGTH]),
+            [NUM_OF_CELLS_TO_REMEMBER]: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
+        }
+        setState(old => createState({prevState:old, newState:settings}))
+    }
+
+    function applySettings() {
+        updateStateFromSettings(settings)
+        saveSettingsToLocalStorage({
+            settings:settings, attrsToSave: SETTINGS_TO_STORE_TO_LOCAL_STORAGE, localStorageKey: LOC_STOR_NAME
+        })
+        openCloseSettingsDialog(false)
     }
 
     function renderSettings() {
@@ -432,7 +411,7 @@ const VisionExercise = ({configName}) => {
                     ),
                     RE.Button({
                         variant:"contained",
-                        onClick: () => updateStateFromSettings(settings),
+                        onClick: applySettings,
                     },
                         "Save"
                     ),
@@ -523,9 +502,10 @@ const VisionExercise = ({configName}) => {
 
     function openCloseSettingsDialog(opened) {
         if (opened) {
-            setSettings(state)
+            setSettings({...state})
+        } else {
+            setSettings(null)
         }
-        setState(old => set(old, SETTINGS_DIALOG_OPENED, opened))
     }
 
     function getIntValue({minValue, maxValue, defaultValue, value}) {
@@ -585,7 +565,7 @@ const VisionExercise = ({configName}) => {
             ),
             renderQuestion()
         ),
-        state[SETTINGS_DIALOG_OPENED]?renderSettings():null,
+        settings?renderSettings():null,
     )
 
 }
