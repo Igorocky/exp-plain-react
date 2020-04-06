@@ -47,14 +47,14 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnCl
         const currTime = getCurrentTime()
         const code = inputEventsToCode()
         let codeInfo = MORSE.find(m => m.code == code)
+        inputSymbols.current.push({
+            events: inputEvents.current,
+            time: currTime,
+            symbol: codeInfo?codeInfo.sym:null,
+            codeInfo: codeInfo
+        })
         if (codeInfo) {
-            inputSymbols.current.push({
-                events: inputEvents.current,
-                time: currTime,
-                symbol: codeInfo.sym,
-                codeInfo: codeInfo
-            })
-            inputSymbols.current = onSymbolsChange(inputSymbols.current)
+            inputSymbols.current = onSymbolsChange(inputSymbols.current.filter(s => s.symbol))
         } else {
             beep({durationMillis:100,frequencyHz:200,volume:0.1,type:BEEP_TYPE_SAWTOOTH})
         }
@@ -65,7 +65,10 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnCl
     function rerenderState() {
         if (touchDivRef.current) {
             touchDivRef.current.innerHTML = inputSymbols.current.map(({events,time,symbol}) =>
-                    events.map(({dur}) => dur).reduce((m,e) => m+","+e, "")
+                    events.reduce(
+                        ({prevUp, str},{down,dur}) => ({str:str + (prevUp?down-prevUp:"")+" ["+dur+"] ", prevUp:down+dur}),
+                        {prevUp:null, str:""}
+                    ).str
                     + "|" + (time - events[events.length-1].dur - events[events.length-1].down)
                     + "|" + symbol
                 ).reduce((m,e) => m+"<p/>"+e, "")
