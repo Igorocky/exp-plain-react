@@ -1,6 +1,6 @@
 "use strict";
 
-const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnClicked, viewStateBtnClicked}) => {
+const MorseTouchDiv2 = ({dotDuration, symbolDelay, onSymbolsChange, bgColor, textColor, controls}) => {
     const inputEvents = useRef([])
     const inputSymbols = useRef([])
     const touchDivRef = useRef(null)
@@ -50,11 +50,11 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnCl
         inputSymbols.current.push({
             events: inputEvents.current,
             time: currTime,
-            symbol: codeInfo?codeInfo.sym:null,
+            sym: codeInfo?codeInfo.sym:null,
             codeInfo: codeInfo
         })
         if (codeInfo) {
-            inputSymbols.current = onSymbolsChange(inputSymbols.current.filter(s => s.symbol))
+            inputSymbols.current = onSymbolsChange(inputSymbols.current.filter(s => s.sym))
         } else {
             beep({durationMillis:100,frequencyHz:200,volume:0.1,type:BEEP_TYPE_SAWTOOTH})
         }
@@ -64,28 +64,19 @@ const MorseTouchDiv = ({dotDuration, symbolDelay, onSymbolsChange, settingsBtnCl
 
     function rerenderState() {
         if (touchDivRef.current) {
-            touchDivRef.current.innerHTML = inputSymbols.current.map(({events,time,symbol}) =>
+            touchDivRef.current.innerHTML = inputSymbols.current.map(({events,time,sym}) =>
                     events.reduce(
                         ({prevUp, str},{down,dur}) => ({str:str + (prevUp?down-prevUp:"")+" ["+dur+"] ", prevUp:down+dur}),
                         {prevUp:null, str:""}
                     ).str
                     + "|" + (time - events[events.length-1].dur - events[events.length-1].down)
-                    + "|" + symbol
+                    + "|" + sym
                 ).reduce((m,e) => m+"<p/>"+e, "")
         }
     }
 
-    const bgColor = profVal(PROFILE_MOBILE, "black", PROFILE_FUJ, "white")
-    const textColor = profVal(PROFILE_MOBILE, "white", PROFILE_FUJ, "black")
     return RE.Container.col.top.left({style:{backgroundColor:bgColor, color:textColor}},{},
-        RE.Container.row.left.top({},{style: {marginRight:"30px"}},
-            settingsBtnClicked
-                ?RE.Button({style:{color:textColor}, onClick: settingsBtnClicked}, "Settings")
-                :null,
-            viewStateBtnClicked
-                ?RE.Button({style:{color:textColor}, onClick: viewStateBtnClicked}, "State")
-                :null,
-        ),
+        controls,
         RE.div({
             ref:touchDivRef,
             className:"disable-select",

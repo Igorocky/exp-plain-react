@@ -12,6 +12,7 @@ const AVAILABLE_EXERCISES = [
     {name:"Vision Rev", component: VisionExerciseRev},
     {name:"Knight Path", component: KnightPath},
     {name:"Connections", component: Connections},
+    {name:"ConnectionsAudio", component: ConnectionsAudio},
     {name:"ConnectionsRev", component: ConnectionsRev},
     {name:"SpaceExercise", component: SpaceExercise},
     {name:"Neighbors", component: Neighbors},
@@ -21,7 +22,7 @@ const AVAILABLE_EXERCISES = [
 
 const ExerciseSelector = ({}) => {
     // const [selectedExercise, setSelectedExercise] = useState({name:"MorseStateViewExplorer", component: MorseStateViewExplorer})
-    // const [selectedExercise, setSelectedExercise] = useState({name:"MorseExercise", component: MorseExercise})
+    // const [selectedExercise, setSelectedExercise] = useState({name:"ConnectionsAudio", component: ConnectionsAudio})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {

@@ -4,6 +4,7 @@ const profile = (prof, superProf) => [prof, ...(superProf?superProf:[])]
 const PROFILE_MOBILE = profile("PROFILE_MOBILE")
 const PROFILE_FUJ = profile("PROFILE_FUJ")
 const PROFILE_FUJ_FULL = profile("PROFILE_FUJ_FULL", PROFILE_FUJ)
+const PROFILE_FUJ_BENQ = profile("PROFILE_FUJ_BENQ", PROFILE_FUJ)
 
 const PROFILE = PROFILE_MOBILE
 
@@ -495,4 +496,20 @@ function beep({durationMillis, frequencyHz, volume, type, callback}) {
 
     oscillator.start()
     oscillator.stop(AUDIO_CTX.currentTime + ((durationMillis || 500) / 1000));
-};
+}
+
+function firstDefined(attrName, o1, o2, defVal) {
+    const v1 = o1 ? o1[attrName] : undefined
+    if (v1 !== undefined) {
+        return v1
+    }
+    const v2 = o2 ? o2[attrName] : undefined
+    if (v2 !== undefined) {
+        return v2
+    }
+    return defVal
+}
+
+function withDefault(value, defVal) {
+    return hasValue(value) ? value : defVal
+}

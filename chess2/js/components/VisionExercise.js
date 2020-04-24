@@ -45,7 +45,7 @@ const VisionExercise = ({configName}) => {
         CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER, MOBILE_MODE,
         ALWAYS_SHOW_QUESTION_CELL_NAME
     ]
-    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95)
+    const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95, PROFILE_FUJ_BENQ, 115)
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
@@ -330,7 +330,7 @@ const VisionExercise = ({configName}) => {
             const question = showQuestionCellName()
                 ? getCellName(currPath[0].from)
                 : numOfCellsToRemember - recentCells.length + 1
-            return RE.Container.col.top.left({}, {},
+            return RE.Container.row.left.top({},{},
                 RE.span({style: questionStyle},
                     RE.span({
                             onClick:() => setState(old => set(old, QUESTION_CELL_NAME_IS_SHOWN, true)),
@@ -339,7 +339,9 @@ const VisionExercise = ({configName}) => {
                         question
                     )
                 ),
-                currPath.map(con => RE.span({style:{fontSize:questionFontSize*0.5+"px",}}, con.relSym))
+                RE.Container.col.top.left({}, {},
+                    currPath.map(con => RE.span({style:{fontSize:questionFontSize*0.5+"px",}}, con.relSym))
+                )
             )
         }
     }
