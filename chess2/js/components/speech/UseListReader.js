@@ -14,7 +14,11 @@ function useListReader() {
         }
         if (title !== undefined) {
             setTitle(title)
-            withDefault(sayParam, nullSafeSay(say))(title)
+            if (title.say) {
+                title.say()
+            } else {
+                say("Title is not defined.")
+            }
         }
         if (elems !== undefined) {
             setElems(elems)
@@ -47,7 +51,7 @@ function useListReader() {
                 setCurrElemIdx(newCurrElemIdx)
                 sayElem(newCurrElemIdx)
             }
-        } else if (last.sym == MORSE.m.sym) {//ok
+        } else if (last.sym == MORSE.t.sym) {//ok
             sayElem(currElemIdx)
         } else if (last.sym == MORSE.o.sym) {//ok
             setCurrElemIdx(0)
@@ -56,14 +60,26 @@ function useListReader() {
             const lastElemIdx = elems.length-1
             setCurrElemIdx(lastElemIdx)
             sayElem(lastElemIdx)
-        } else if (last.sym == MORSE.k.sym) {//ok
-            say(title)
-        } else if (last.sym == MORSE.t.sym) {//ok
-            onAction(currElemIdx, "onEnter")
+        } else if (last.sym == MORSE.a.sym) {//ok
+            if (title && title.say) {
+                title.say()
+            } else {
+                say("Title is not defined.")
+            }
+        } else if (last.sym == MORSE.u.sym) {//ok
+            if (title && title.spell) {
+                title.spell()
+            } else {
+                say("Title spell is not defined.")
+            }
+        } else if (last.sym == MORSE.m.sym) {//ok
+            onAction(currElemIdx, "onEnter", () => say("On enter is undefined."))
+        } else if (last.sym == MORSE.n.sym) {//ok
+            onAction(currElemIdx, "onSpell", () => say("On spell is undefined."))
         } else if (last.sym == MORSE.s.sym) {//ok
-            onAction(currElemIdx, "onBack")
+            onAction(currElemIdx, "onBack", () => say("On back is undefined."))
         } else if (last.sym == MORSE.error.sym) {//ok
-            onAction(currElemIdx, "onEscape")
+            onAction(currElemIdx, "onEscape", () => say("On escape is undefined."))
         } else {
             say("Unexpected command: " + last.codeInfo.word)
         }
@@ -74,11 +90,16 @@ function useListReader() {
         onAction(idx, "say")
     }
 
-    function onAction(idx, actionName) {
+    function onAction(idx, actionName, onActionIsUndefined) {
         if (elems.length == 0) {
             say("List is empty.")
         } else {
-            withDefault(elems[idx][actionName], NULL_FUNCTION)()
+            const action = elems[idx][actionName];
+            if (action) {
+                action()
+            } else if (onActionIsUndefined) {
+                onActionIsUndefined()
+            }
         }
     }
 

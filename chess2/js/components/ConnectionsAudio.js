@@ -11,7 +11,10 @@ const ConnectionsAudio = ({}) => {
 
     useEffect(() => initListReader({
         say,
-        title: getCurrTaskDescription(),
+        title: {
+            say: () => say(getCurrTaskDescription()),
+            spell: () => say(getCurrTaskDescriptionSpell())
+        },
         elems: [
             {
                 say: () => say("Go to next cell."),
@@ -30,14 +33,19 @@ const ConnectionsAudio = ({}) => {
         return XX[rndElemSelector.currentElem.x].toUpperCase() + ". " + YY[rndElemSelector.currentElem.y] + "."
     }
 
+    function getCurrTaskDescriptionSpell() {
+        const xStr = XX[rndElemSelector.currentElem.x].toUpperCase()
+        return MORSE_ARR.find(({sym}) => sym == xStr).word + ". " + YY[rndElemSelector.currentElem.y] + "."
+    }
+
     function getNewRndElemSelector() {
         return randomElemSelector({
             allElems: ints(0,63).map(absNumToCell)
         })
     }
 
-    const textColor = "black"
-    const bgColor = "white"
+    const textColor = "white"
+    const bgColor = "black"
     return RE.Fragment({},
         re(MorseTouchDiv2, {
             dotDuration,
