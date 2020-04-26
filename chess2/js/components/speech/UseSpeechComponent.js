@@ -9,8 +9,9 @@ function useSpeechComponent() {
     const VOLUME = "VOLUME"
     const SYMBOL_DELAY = "SYMBOL_DELAY"
     const DOT_DURATION = "DOT_DURATION"
+    const DASH_DURATION = "DASH_DURATION"
 
-    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, SYMBOL_DELAY, DOT_DURATION]
+    const ATTRS_TO_SAVE_TO_LOC_STORAGE = [VOICE_URI, RATE, PITCH, VOLUME, SYMBOL_DELAY, DOT_DURATION, DASH_DURATION]
 
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
@@ -31,6 +32,7 @@ function useSpeechComponent() {
             [VOLUME]: firstDefined(VOLUME, params, prevState, 1),
             [SYMBOL_DELAY]:firstDefined(SYMBOL_DELAY, params, prevState, 350),
             [DOT_DURATION]:firstDefined(DOT_DURATION, params, prevState, 150),
+            [DASH_DURATION]:firstDefined(DASH_DURATION, params, prevState, 2000),
         }
     }
 
@@ -111,6 +113,16 @@ function useSpeechComponent() {
                                     settings[DOT_DURATION],
                                     renderSlider({min:50, max:500, step: 25, value:settings[DOT_DURATION],
                                         setValue: newValue => setSettings(old => set(old, DOT_DURATION, newValue))})
+                                )
+                            ),
+                        ),
+                        RE.tr({},
+                            RE.td({},"Dash duration"),
+                            RE.td({},
+                                RE.Container.col.top.left({},{},
+                                    settings[DASH_DURATION],
+                                    renderSlider({min:500, max:4000, step: 100, value:settings[DASH_DURATION],
+                                        setValue: newValue => setSettings(old => set(old, DASH_DURATION, newValue))})
                                 )
                             ),
                         ),
@@ -196,7 +208,7 @@ function useSpeechComponent() {
             console.log("useSpeechComponent.state")
             console.log(state)
         },
-        symbolDelay: state[SYMBOL_DELAY], dotDuration: state[DOT_DURATION],
+        symbolDelay: state[SYMBOL_DELAY], dotDuration: state[DOT_DURATION], dashDuration: state[DASH_DURATION],
         openSpeechSettings: () => openCloseSettingsDialog(true),
     }
 }

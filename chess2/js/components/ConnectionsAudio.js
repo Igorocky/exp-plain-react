@@ -3,7 +3,7 @@
 const ConnectionsAudio = ({}) => {
     const [rndElemSelector, setRndElemSelector] = useState(getNewRndElemSelector)
 
-    const {say, symbolDelay, dotDuration,
+    const {say, symbolDelay, dotDuration, dashDuration,
         openSpeechSettings, renderSettings:renderSpeechSettings, refreshStateFromSettings:refreshSpeechStateFromSettings,
         printState:printSpeechComponentState} = useSpeechComponent()
 
@@ -12,12 +12,11 @@ const ConnectionsAudio = ({}) => {
     useEffect(() => initListReader({
         say,
         title: {
-            say: () => say(getCurrTaskDescription()),
-            spell: () => say(getCurrTaskDescriptionSpell())
+            say: () => say(getCurrTaskDescriptionSpell()),
         },
         elems: [
             {
-                say: () => say("Go to next cell."),
+                say: () => say(getCurrTaskDescriptionSpell()),
                 onEnter: () => setRndElemSelector(old => old.next())
             },
             {
@@ -49,6 +48,7 @@ const ConnectionsAudio = ({}) => {
     return RE.Fragment({},
         re(MorseTouchDiv2, {
             dotDuration,
+            dashDuration,
             symbolDelay,
             onSymbolsChange: onSymbolsChangedInListReader,
             bgColor,

@@ -1,6 +1,6 @@
 "use strict";
 
-const MorseTouchDiv2 = ({dotDuration, symbolDelay, onSymbolsChange, bgColor, textColor, controls}) => {
+const MorseTouchDiv2 = ({dotDuration, symbolDelay, dashDuration, onSymbolsChange, bgColor, textColor, controls}) => {
     const inputEvents = useRef([])
     const inputSymbols = useRef([])
     const touchDivRef = useRef(null)
@@ -34,7 +34,11 @@ const MorseTouchDiv2 = ({dotDuration, symbolDelay, onSymbolsChange, bgColor, tex
         if (last) {
             last.dur = curTime - last.down
         }
-        timeout.current = window.setTimeout(convertSymbol, symbolDelay)
+        if (last && last.dur > dashDuration) {
+            inputEvents.current = []
+        } else {
+            timeout.current = window.setTimeout(convertSymbol, symbolDelay)
+        }
     }
 
     function inputEventsToCode() {
