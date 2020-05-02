@@ -42,7 +42,7 @@ const VisionExercise = ({configName}) => {
     const ALWAYS_SHOW_QUESTION_CELL_NAME = "ALWAYS_SHOW_QUESTION_CELL_NAME"
     const QUESTION_CELL_NAME_IS_SHOWN = "QUESTION_CELL_NAME_IS_SHOWN"
     const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [
-        CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER, MOBILE_MODE,
+        CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER,
         ALWAYS_SHOW_QUESTION_CELL_NAME
     ]
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95, PROFILE_FUJ_BENQ, 115)
@@ -50,34 +50,42 @@ const VisionExercise = ({configName}) => {
     const [state, setState] = useState(() => createState({}))
     const [settings, setSettings] = useState(null)
 
+    const {say, symbolDelay, dotDuration, dashDuration,
+        openSpeechSettings, renderSettings:renderSpeechSettings, refreshStateFromSettings:refreshSpeechStateFromSettings,
+        printState:printSpeechComponentState} = useSpeechComponent()
+
+    const {init:initListReader, onSymbolsChanged:onSymbolsChangedInListReader} = useListReader()
+
     useEffect(() => updateStateFromSettings(
         readSettingsFromLocalStorage({localStorageKey: LOC_STOR_NAME, attrsToRead: SETTINGS_TO_STORE_TO_LOCAL_STORAGE})
     ), [])
 
-    function createState({prevState, newState}) {
-        function firstDefined(attrName, defVal) {
-            const newValue = newState ? newState[attrName] : undefined
-            if (newValue !== undefined) {
-                return newValue
+    useEffect(() => {
+        if (state[MOBILE_MODE]) {
+            if (state[STAGE] != STAGE_REPEAT_ASK) {
+                setState(goToQuestionStateForMobileMode)
+            } else {
+                reInitListReader()
             }
-            const oldValue = prevState ? prevState[attrName] : undefined
-            if (oldValue !== undefined) {
-                return oldValue
-            }
-            return defVal
+        }
+    }, [state[MOBILE_MODE], state[STAGE], state[RND_ELEM_SELECTOR]])
+
+    function createState({prevState, params}) {
+        function firstDefinedInner(attrName, defVal) {
+            return firstDefined(attrName, params, prevState, defVal)
         }
 
-        const connectionTypes = firstDefined(CONNECTION_TYPES, [
+        const connectionTypes = firstDefinedInner(CONNECTION_TYPES, [
             CONNECTION_TYPE_SAME_CELL,
             CONNECTION_TYPE_KNIGHT,
             CONNECTION_TYPE_LINE,
         ])
-        const lineLengthMin = firstDefined(LINE_LENGTH_MIN,2)
-        const lineLengthMax = firstDefined(LINE_LENGTH_MAX, 4)
-        let pathLength = firstDefined(PATH_LENGTH, 6)
-        const numOfCellsToRemember = firstDefined(NUM_OF_CELLS_TO_REMEMBER, 1)
-        const mobileMode = firstDefined(MOBILE_MODE, false)
-        const alwaysShowQuestionCellName = firstDefined(ALWAYS_SHOW_QUESTION_CELL_NAME, false)
+        const lineLengthMin = firstDefinedInner(LINE_LENGTH_MIN,2)
+        const lineLengthMax = firstDefinedInner(LINE_LENGTH_MAX, 4)
+        let pathLength = firstDefinedInner(PATH_LENGTH, 6)
+        const numOfCellsToRemember = firstDefinedInner(NUM_OF_CELLS_TO_REMEMBER, 1)
+        const mobileMode = firstDefinedInner(MOBILE_MODE, false)
+        const alwaysShowQuestionCellName = firstDefinedInner(ALWAYS_SHOW_QUESTION_CELL_NAME, false)
 
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
@@ -105,6 +113,61 @@ const VisionExercise = ({configName}) => {
         }
     }
 
+    function reInitListReader() {
+        const startCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
+        const recentCells = state[RECENT_CELLS];
+        const currPath = recentCells[0].seq
+        const targetCell = getCorrectAnswerForRecentCells(recentCells)
+        initListReader({
+            say,
+            title: {
+                say: () => say("Calculate target square."),
+            },
+            sayFirstElem: true,
+            elems: [
+                {
+                    say: () => say("Start square is, " + cellToTextToSay(startCell)),
+                },
+                ...currPath.map(con => ({
+                    say: () => say(con.relSymSay)
+                })),
+                {
+                    say: () => say("Target is"),
+                },
+                {
+                    say: () => say(cellToTextToSay(targetCell)),
+                    onEnter: () => setState(old => goToQuestionStateForMobileMode(simulateClickOnCorrectCell(old)))
+                }
+            ]
+        })
+    }
+
+    function simulateClickOnCorrectCell(state) {
+        const stage = state[STAGE]
+        if (stage == STAGE_ASK || stage == STAGE_ANSWER) {
+            const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
+            const nativeEvent = {button:isBlackCell(correctCell)?1:0}
+            return onCellClicked(state,correctCell,nativeEvent)
+        } else {
+            const recentCells = state[RECENT_CELLS]
+            const correctCell = getCorrectAnswerForRecentCells(recentCells)
+            const nativeEvent = {button:isBlackCell(correctCell)?1:0}
+            return onCellClicked(state,correctCell,nativeEvent)
+        }
+    }
+
+    function goToQuestionStateForMobileMode(state) {
+        while (state[STAGE] != STAGE_REPEAT_ASK) {
+            state = simulateClickOnCorrectCell(state)
+        }
+        return state
+    }
+
+    function cellToTextToSay({x,y}) {
+        const xStr = XX[x].toUpperCase()
+        return MORSE_ARR.find(({sym}) => sym == xStr).word + ", " + YY[y]
+    }
+
     function createAllConnections({connectionTypes, lineLengthMin, lineLengthMax}) {
         return [
             ...(connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)?createSameCellConnections():[]),
@@ -122,7 +185,7 @@ const VisionExercise = ({configName}) => {
     function createKnightConnections() {
         return ints(0,63).map(absNumToCell)
             .flatMap(from =>
-                knightMovesFrom(from).map(to => ({from:from, to:to, relSym:calcSymbolForKnightMove(from,to)}))
+                knightMovesFrom(from).map(to => ({from:from, to:to, ...calcSymbolForKnightMove(from,to)}))
             )
     }
 
@@ -134,45 +197,61 @@ const VisionExercise = ({configName}) => {
                     return ray
                         .map((to,idx) => ({from:from, to:to, len:idx+1, dir:hourToDir(h)}))
                         .filter(con => lineLengthMin <= con.len && con.len <= lineLengthMax)
-                        .map(con => ({...con, relSym:calcSymbolForLineMove(con.from,con.to)+con.len}))
+                        .map(con => ({...con, ...calcSymbolForLineMove(con.from,con.to,con.len)}))
                 })
             )
     }
 
     function calcSymbolForKnightMove(from, to) {
         if (from.x+1 < to.x) {//right
-            return from.y < to.y ? N3+UP : N3+DOWN
+            if (from.y < to.y) {
+                return {relSym: N3+UP, relSymSay: "Night, two."}
+            } else {
+                return {relSym: N3+DOWN, relSymSay: "Night, four."}
+            }
         } else if (to.x+1 < from.x) {//left
-            return from.y < to.y ? N9+UP : N9+DOWN
+            if (from.y < to.y) {
+                return {relSym: N9+UP, relSymSay: "Night, ten."}
+            } else {
+                return {relSym: N9+DOWN, relSymSay: "Night, eight."}
+            }
         } if (from.y+1 < to.y) {//top
-            return from.x < to.x ? N12+RIGHT : N12+LEFT
+            if (from.x < to.x) {
+                return {relSym: N12+RIGHT, relSymSay: "Night, one."}
+            } else {
+                return {relSym: N12+LEFT, relSymSay: "Night, eleven."}
+            }
         } else if (to.y+1 < from.y) {//bottom
-            return from.x < to.x ? N6+RIGHT : N6+LEFT
+            if (from.x < to.x) {
+                return {relSym: N6+RIGHT, relSymSay: "Night, five."}
+            } else {
+                return {relSym: N6+LEFT, relSymSay: "Night, seven."}
+            }
         }
     }
 
-    function calcSymbolForLineMove(from, to) {
+    function calcSymbolForLineMove(from, to, len) {
         if (from.x < to.x) {
             if (from.y < to.y) {
-                return RIGHT_UP
+                return {relSym:RIGHT_UP+len, relSymSay: "Line, two. " + len}
             } else if (from.y == to.y) {
-                return RIGHT
+                return {relSym:RIGHT+len, relSymSay: "Line, three. " + len}
             } else {
-                return RIGHT_DOWN
+                return {relSym:RIGHT_DOWN+len, relSymSay: "Line, four. " + len}
             }
         } else if (from.x == to.x) {
             if (from.y < to.y) {
-                return UP
+                return {relSym:UP+len, relSymSay: "Line, twelve. " + len}
             } else {
-                return DOWN
+                return {relSym:DOWN+len, relSymSay: "Line, six. " + len}
             }
         } else {
             if (from.y < to.y) {
-                return LEFT_UP
+                return {relSym:LEFT_UP+len, relSymSay: "Line, ten. " + len}
             } else if (from.y == to.y) {
-                return LEFT
+                return {relSym:LEFT+len, relSymSay: "Line, nine. " + len}
             } else {
-                return LEFT_DOWN
+                return {relSym:LEFT_DOWN+len, relSymSay: "Line, eight. " + len}
             }
         }
     }
@@ -389,7 +468,7 @@ const VisionExercise = ({configName}) => {
             [PATH_LENGTH]: intOrUndef(settings[PATH_LENGTH]),
             [NUM_OF_CELLS_TO_REMEMBER]: intOrUndef(settings[NUM_OF_CELLS_TO_REMEMBER]),
         }
-        setState(old => createState({prevState:old, newState:settings}))
+        setState(old => createState({prevState:old, params:settings}))
     }
 
     function applySettings() {
@@ -549,26 +628,47 @@ const VisionExercise = ({configName}) => {
         })
     }
 
-    return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
-        RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-            renderChessboard(),
-            RE.div({}, "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber),
-            RE.div({}, "Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length),
-            RE.div({},
-                "Counts: min=" + arrMin(state[COUNTS])
-                + ", max=" + arrMax(state[COUNTS])
-                + ", sum=" + arrSum(state[COUNTS])),
-        ),
-        RE.Container.col.top.left({},{},
-            RE.Container.row.left.top({},{},
-                RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
-                RE.Button({onClick: () => console.log(state)}, "View State"),
-                RE.Button({onClick: () => openCloseSettingsDialog(true)}, "Settings"),
+    if (!state[MOBILE_MODE]) {
+        return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
+            RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
+                renderChessboard(),
+                RE.div({}, "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber),
+                RE.div({}, "Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length),
+                RE.div({},
+                    "Counts: min=" + arrMin(state[COUNTS])
+                    + ", max=" + arrMax(state[COUNTS])
+                    + ", sum=" + arrSum(state[COUNTS])),
             ),
-            renderQuestion()
-        ),
-        settings?renderSettings():null,
-    )
+            RE.Container.col.top.left({},{},
+                RE.Container.row.left.top({},{},
+                    RE.Button({onClick: () => setState(resetRecentCells)}, "Reset recent cells"),
+                    RE.Button({onClick: () => console.log(state)}, "View State"),
+                    RE.Button({onClick: () => openCloseSettingsDialog(true)}, "Settings"),
+                ),
+                renderQuestion()
+            ),
+            settings?renderSettings():null,
+        )
+    } else {
+        const textColor = "white"
+        const bgColor = "black"
+        return RE.Fragment({},
+            re(MorseTouchDiv2, {
+                dotDuration,
+                dashDuration,
+                symbolDelay,
+                onSymbolsChange: onSymbolsChangedInListReader,
+                bgColor,
+                textColor,
+                controls: RE.Container.row.left.center({},{},
+                    RE.Button({style:{color:textColor}, onClick: openSpeechSettings}, "Settings"),
+                    RE.Button({style:{color:textColor}, onClick: refreshSpeechStateFromSettings}, "Reload"),
+                    RE.Button({style:{color:textColor}, onClick: printSpeechComponentState}, "State"),
+                )
+            }),
+            renderSpeechSettings()
+        )
+    }
 
 }
 

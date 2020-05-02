@@ -12,11 +12,11 @@ const ConnectionsAudio = ({}) => {
     useEffect(() => initListReader({
         say,
         title: {
-            say: () => say(getCurrTaskDescriptionSpell()),
+            say: () => say(getCurrTaskDescription()),
         },
         elems: [
             {
-                say: () => say(getCurrTaskDescriptionSpell()),
+                say: () => say(getCurrTaskDescription()),
                 onEnter: () => setRndElemSelector(old => old.next())
             },
             {
@@ -29,12 +29,8 @@ const ConnectionsAudio = ({}) => {
     }), [rndElemSelector])
 
     function getCurrTaskDescription() {
-        return XX[rndElemSelector.currentElem.x].toUpperCase() + ". " + YY[rndElemSelector.currentElem.y] + "."
-    }
-
-    function getCurrTaskDescriptionSpell() {
         const xStr = XX[rndElemSelector.currentElem.x].toUpperCase()
-        return MORSE_ARR.find(({sym}) => sym == xStr).word + ". " + YY[rndElemSelector.currentElem.y] + "."
+        return MORSE_ARR.find(({sym}) => sym == xStr).word + ", " + YY[rndElemSelector.currentElem.y] + "."
     }
 
     function getNewRndElemSelector() {

@@ -8,14 +8,16 @@ function useListReader() {
     const [elems, setElems] = useState([])
     const [currElemIdx, setCurrElemIdx] = useState(0)
 
-    function init({say:sayParam, title, elems}) {
+    function init({say:sayParam, title, elems, sayFirstElem}) {
         if (sayParam !== undefined) {
             setSay(() => nullSafeSay(sayParam))
         }
         if (title !== undefined) {
             setTitle(title)
             if (title.say) {
-                title.say()
+                if (!sayFirstElem) {
+                    title.say()
+                }
             } else {
                 say("Title is not defined.")
             }
@@ -23,6 +25,18 @@ function useListReader() {
         if (elems !== undefined) {
             setElems(elems)
             setCurrElemIdx(0)
+            if (sayFirstElem) {
+                if (elems.length == 0) {
+                    say("List is empty.")
+                } else {
+                    const action = elems[0]["say"]
+                    if (action) {
+                        action()
+                    } else {
+                        say("Say on the first elem is not defined.")
+                    }
+                }
+            }
         }
     }
 
