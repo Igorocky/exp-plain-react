@@ -233,25 +233,25 @@ const VisionExercise = ({configName}) => {
     function calcSymbolForLineMove(from, to, len) {
         if (from.x < to.x) {
             if (from.y < to.y) {
-                return {relSym:RIGHT_UP+len, relSymSay: "Line, two. " + len}
+                return {relSym:RIGHT_UP+len, relSymSay: "Line, two, " + len}
             } else if (from.y == to.y) {
-                return {relSym:RIGHT+len, relSymSay: "Line, three. " + len}
+                return {relSym:RIGHT+len, relSymSay: "Line, three, " + len}
             } else {
-                return {relSym:RIGHT_DOWN+len, relSymSay: "Line, four. " + len}
+                return {relSym:RIGHT_DOWN+len, relSymSay: "Line, four, " + len}
             }
         } else if (from.x == to.x) {
             if (from.y < to.y) {
-                return {relSym:UP+len, relSymSay: "Line, twelve. " + len}
+                return {relSym:UP+len, relSymSay: "Line, twelve, " + len}
             } else {
-                return {relSym:DOWN+len, relSymSay: "Line, six. " + len}
+                return {relSym:DOWN+len, relSymSay: "Line, six, " + len}
             }
         } else {
             if (from.y < to.y) {
-                return {relSym:LEFT_UP+len, relSymSay: "Line, ten. " + len}
+                return {relSym:LEFT_UP+len, relSymSay: "Line, ten, " + len}
             } else if (from.y == to.y) {
-                return {relSym:LEFT+len, relSymSay: "Line, nine. " + len}
+                return {relSym:LEFT+len, relSymSay: "Line, nine, " + len}
             } else {
-                return {relSym:LEFT_DOWN+len, relSymSay: "Line, eight. " + len}
+                return {relSym:LEFT_DOWN+len, relSymSay: "Line, eight, " + len}
             }
         }
     }
