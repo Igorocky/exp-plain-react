@@ -205,27 +205,27 @@ const VisionExercise = ({configName}) => {
     function calcSymbolForKnightMove(from, to) {
         if (from.x+1 < to.x) {//right
             if (from.y < to.y) {
-                return {relSym: N3+UP, relSymSay: "Night, two."}
+                return {relSym: N3+UP, relSymSay: "two."}
             } else {
-                return {relSym: N3+DOWN, relSymSay: "Night, four."}
+                return {relSym: N3+DOWN, relSymSay: "four."}
             }
         } else if (to.x+1 < from.x) {//left
             if (from.y < to.y) {
-                return {relSym: N9+UP, relSymSay: "Night, ten."}
+                return {relSym: N9+UP, relSymSay: "ten."}
             } else {
-                return {relSym: N9+DOWN, relSymSay: "Night, eight."}
+                return {relSym: N9+DOWN, relSymSay: "eight."}
             }
         } if (from.y+1 < to.y) {//top
             if (from.x < to.x) {
-                return {relSym: N12+RIGHT, relSymSay: "Night, one."}
+                return {relSym: N12+RIGHT, relSymSay: "one."}
             } else {
-                return {relSym: N12+LEFT, relSymSay: "Night, eleven."}
+                return {relSym: N12+LEFT, relSymSay: "eleven."}
             }
         } else if (to.y+1 < from.y) {//bottom
             if (from.x < to.x) {
-                return {relSym: N6+RIGHT, relSymSay: "Night, five."}
+                return {relSym: N6+RIGHT, relSymSay: "five."}
             } else {
-                return {relSym: N6+LEFT, relSymSay: "Night, seven."}
+                return {relSym: N6+LEFT, relSymSay: "seven."}
             }
         }
     }
@@ -233,25 +233,25 @@ const VisionExercise = ({configName}) => {
     function calcSymbolForLineMove(from, to, len) {
         if (from.x < to.x) {
             if (from.y < to.y) {
-                return {relSym:RIGHT_UP+len, relSymSay: "Line, two, " + len}
+                return {relSym:RIGHT_UP+len, relSymSay: "two, " + len}
             } else if (from.y == to.y) {
-                return {relSym:RIGHT+len, relSymSay: "Line, three, " + len}
+                return {relSym:RIGHT+len, relSymSay: "three, " + len}
             } else {
-                return {relSym:RIGHT_DOWN+len, relSymSay: "Line, four, " + len}
+                return {relSym:RIGHT_DOWN+len, relSymSay: "four, " + len}
             }
         } else if (from.x == to.x) {
             if (from.y < to.y) {
-                return {relSym:UP+len, relSymSay: "Line, twelve, " + len}
+                return {relSym:UP+len, relSymSay: "twelve, " + len}
             } else {
-                return {relSym:DOWN+len, relSymSay: "Line, six, " + len}
+                return {relSym:DOWN+len, relSymSay: "six, " + len}
             }
         } else {
             if (from.y < to.y) {
-                return {relSym:LEFT_UP+len, relSymSay: "Line, ten, " + len}
+                return {relSym:LEFT_UP+len, relSymSay: "ten, " + len}
             } else if (from.y == to.y) {
-                return {relSym:LEFT+len, relSymSay: "Line, nine, " + len}
+                return {relSym:LEFT+len, relSymSay: "nine, " + len}
             } else {
-                return {relSym:LEFT_DOWN+len, relSymSay: "Line, eight, " + len}
+                return {relSym:LEFT_DOWN+len, relSymSay: "eight, " + len}
             }
         }
     }
