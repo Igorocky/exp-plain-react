@@ -38,12 +38,21 @@ const VisionExercise = ({configName}) => {
     const CONNECTION_TYPE_LINE = "CONNECTION_TYPE_LINE"
     const LINE_LENGTH_MIN = "LINE_LENGTH_MIN"
     const LINE_LENGTH_MAX = "LINE_LENGTH_MAX"
-    const MOBILE_MODE = "MOBILE_MODE"
+    const X_COORD_MIN = "X_COORD_MIN"
+    const X_COORD_MAX = "X_COORD_MAX"
+    const Y_COORD_MIN = "Y_COORD_MIN"
+    const Y_COORD_MAX = "Y_COORD_MAX"
+    const CELL_COLOR_WHITE = "WHITE"
+    const CELL_COLOR_BLACK = "BLACK"
+    const CELL_COLOR_ALL = "ALL"
+    const CELL_COLOR = "CELL_COLOR"
+    const AUDIO_MODE = "AUDIO_MODE"
     const ALWAYS_SHOW_QUESTION_CELL_NAME = "ALWAYS_SHOW_QUESTION_CELL_NAME"
     const QUESTION_CELL_NAME_IS_SHOWN = "QUESTION_CELL_NAME_IS_SHOWN"
     const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [
         CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER,
-        ALWAYS_SHOW_QUESTION_CELL_NAME
+        ALWAYS_SHOW_QUESTION_CELL_NAME,
+        X_COORD_MIN, X_COORD_MAX, Y_COORD_MIN, Y_COORD_MAX, CELL_COLOR
     ]
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95, PROFILE_FUJ_BENQ, 115)
 
@@ -61,14 +70,14 @@ const VisionExercise = ({configName}) => {
     ), [])
 
     useEffect(() => {
-        if (state[MOBILE_MODE]) {
+        if (state[AUDIO_MODE]) {
             if (state[STAGE] != STAGE_REPEAT_ASK) {
                 setState(goToQuestionStateForMobileMode)
             } else {
                 reInitListReader()
             }
         }
-    }, [state[MOBILE_MODE], state[STAGE], state[RND_ELEM_SELECTOR]])
+    }, [state[AUDIO_MODE], state[STAGE], state[RND_ELEM_SELECTOR]])
 
     function createState({prevState, params}) {
         function firstDefinedInner(attrName, defVal) {
@@ -83,21 +92,42 @@ const VisionExercise = ({configName}) => {
         const lineLengthMin = firstDefinedInner(LINE_LENGTH_MIN,2)
         const lineLengthMax = firstDefinedInner(LINE_LENGTH_MAX, 4)
         let pathLength = firstDefinedInner(PATH_LENGTH, 6)
-        const numOfCellsToRemember = firstDefinedInner(NUM_OF_CELLS_TO_REMEMBER, 1)
-        const mobileMode = firstDefinedInner(MOBILE_MODE, false)
-        const alwaysShowQuestionCellName = firstDefinedInner(ALWAYS_SHOW_QUESTION_CELL_NAME, false)
-
         if (connectionTypes.length == 1 && connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)) {
             pathLength = 1
         }
+        const xCoordMin = firstDefinedInner(X_COORD_MIN, 0)
+        const xCoordMax = firstDefinedInner(X_COORD_MAX, 7)
+        const yCoordMin = firstDefinedInner(Y_COORD_MIN, 0)
+        const yCoordMax = firstDefinedInner(Y_COORD_MAX, 7)
+        const cellColor = firstDefinedInner(CELL_COLOR, CELL_COLOR_ALL)
+
+        const xCoordFilter = x => xCoordMin <= x && x <= xCoordMax
+        const yCoordFilter = y => yCoordMin <= y && y <= yCoordMax
+        const cellColorFilter = cell =>
+            cellColor == CELL_COLOR_WHITE && isWhiteCell(cell)
+            || cellColor == CELL_COLOR_BLACK && isBlackCell(cell)
+            || cellColor == CELL_COLOR_ALL
+        const cellFilter = cell => xCoordFilter(cell.x) && yCoordFilter(cell.y) && cellColorFilter(cell)
+
+        const numOfCellsToRemember = firstDefinedInner(NUM_OF_CELLS_TO_REMEMBER, 1)
+        const audioMode = firstDefinedInner(AUDIO_MODE, false)
+        const alwaysShowQuestionCellName = firstDefinedInner(ALWAYS_SHOW_QUESTION_CELL_NAME, false)
+
         const allConnections = createAllConnections({
             connectionTypes:connectionTypes,
             lineLengthMin:lineLengthMin,
             lineLengthMax:lineLengthMax,
         })
+            .filter(con => cellFilter(con.from) && cellFilter(con.to))
+            .map((con, idx) => ({...con, idx:idx}))
         return {
             [STAGE]: STAGE_ASK,
-            [RND_ELEM_SELECTOR]: randomElemSelector({allElems: ints(0,63)}),
+            [RND_ELEM_SELECTOR]: randomElemSelector({
+                allElems: ints(0,63)
+                    .map(i => ({idx:i,cell:absNumToCell(i)}))
+                    .filter(({cell}) => cellFilter(cell))
+                    .map(({idx}) => idx)
+            }),
             [USER_ANSWER_IS_CORRECT]: true,
             [NUM_OF_CELLS_TO_REMEMBER]: numOfCellsToRemember,
             [PATH_LENGTH]: pathLength,
@@ -107,9 +137,14 @@ const VisionExercise = ({configName}) => {
             [LINE_LENGTH_MAX]: lineLengthMax,
             [CONNECTIONS]: allConnections,
             [COUNTS]: ints(0, allConnections.length-1).map(i => 0),
-            [MOBILE_MODE]: mobileMode,
+            [AUDIO_MODE]: audioMode,
             [QUESTION_CELL_NAME_IS_SHOWN]: false,
             [ALWAYS_SHOW_QUESTION_CELL_NAME]: alwaysShowQuestionCellName,
+            [X_COORD_MIN]: xCoordMin,
+            [X_COORD_MAX]: xCoordMax,
+            [Y_COORD_MIN]: yCoordMin,
+            [Y_COORD_MAX]: yCoordMax,
+            [CELL_COLOR]: cellColor,
         }
     }
 
@@ -173,8 +208,7 @@ const VisionExercise = ({configName}) => {
             ...(connectionTypes.includes(CONNECTION_TYPE_SAME_CELL)?createSameCellConnections():[]),
             ...(connectionTypes.includes(CONNECTION_TYPE_KNIGHT)?createKnightConnections():[]),
             ...(connectionTypes.includes(CONNECTION_TYPE_LINE)?createLineConnections(lineLengthMin, lineLengthMax):[]),
-        ].map((con, idx) => ({...con, idx:idx}))
-
+        ]
     }
 
     function createSameCellConnections() {
@@ -381,7 +415,7 @@ const VisionExercise = ({configName}) => {
     }
 
     function showQuestionCellName() {
-        return state[ALWAYS_SHOW_QUESTION_CELL_NAME] || state[MOBILE_MODE] || state[QUESTION_CELL_NAME_IS_SHOWN]
+        return state[ALWAYS_SHOW_QUESTION_CELL_NAME] || state[AUDIO_MODE] || state[QUESTION_CELL_NAME_IS_SHOWN]
     }
 
     function renderQuestion() {
@@ -498,7 +532,7 @@ const VisionExercise = ({configName}) => {
                     ),
                 )
             ),
-            RE.table({style:{marginTop:"80px"}},
+            RE.table({style:{marginTop:"80px"}, className: "settings-table"},
                 RE.tbody({},
                     RE.tr({},
                         RE.td({},"Connection types"),
@@ -527,6 +561,44 @@ const VisionExercise = ({configName}) => {
                         ),
                     ),
                     RE.tr({},
+                        RE.td({},"X range"),
+                        RE.td({},
+                            renderRangeSelector({
+                                min: settings[X_COORD_MIN],
+                                max: settings[X_COORD_MAX],
+                                setMin: newVal => setSettings(old => set(old, X_COORD_MIN, newVal)),
+                                setMax: newVal => setSettings(old => set(old, X_COORD_MAX, newVal)),
+                            }),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Y range"),
+                        RE.td({},
+                            renderRangeSelector({
+                                min: settings[Y_COORD_MIN],
+                                max: settings[Y_COORD_MAX],
+                                setMin: newVal => setSettings(old => set(old, Y_COORD_MIN, newVal)),
+                                setMax: newVal => setSettings(old => set(old, Y_COORD_MAX, newVal)),
+                            }),
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Cell color"),
+                        RE.td({},
+                            RE.Select({
+                                    value:settings[CELL_COLOR],
+                                    onChange: event => {
+                                        const newValue = event.target.value;
+                                        setSettings(old => set(old, CELL_COLOR, newValue))
+                                    },
+                                },
+                                RE.MenuItem({value:CELL_COLOR_ALL}, "White & Black"),
+                                RE.MenuItem({value:CELL_COLOR_WHITE}, "White"),
+                                RE.MenuItem({value:CELL_COLOR_BLACK}, "Black"),
+                            )
+                        ),
+                    ),
+                    RE.tr({},
                         RE.td({},"Num of cells to remember"),
                         RE.td({},
                             renderIntPropTextField({propName: NUM_OF_CELLS_TO_REMEMBER,
@@ -534,11 +606,15 @@ const VisionExercise = ({configName}) => {
                         ),
                     ),
                     RE.tr({},
-                        RE.td({},"Mobile mode"),
+                        RE.td({},"Audio mode"),
                         RE.td({},
                             RE.Checkbox({
-                                checked:settings[MOBILE_MODE],
-                                onChange: () => setSettings(old => set(old, MOBILE_MODE, !settings[MOBILE_MODE]))
+                                checked:settings[AUDIO_MODE],
+                                onChange: () => setSettings(old => set(old, AUDIO_MODE, !settings[AUDIO_MODE])),
+                                disabled:
+                                    settings[NUM_OF_CELLS_TO_REMEMBER] != 1
+                                    || createState({prevState:state,params:settings})[CONNECTIONS].length == 0
+                                    || (settings[CONNECTION_TYPES].length == 1 && settings[CONNECTION_TYPES].includes(CONNECTION_TYPE_SAME_CELL))
                             })
                         ),
                     ),
@@ -555,6 +631,23 @@ const VisionExercise = ({configName}) => {
                     ),
                 )
             )
+        )
+    }
+
+    function renderRangeSelector({min, max, setMin, setMax}) {
+        return RE.div({style:{width:"170px", marginTop: "50px"}},
+            RE.Slider({
+                value:[min, max],
+                onChange: (event, newValue) => {
+                    const [newMin,newMax] = newValue
+                    setMin(Math.min(newMin,newMax))
+                    setMax(Math.max(newMin,newMax))
+                },
+                step:1,
+                min:0,
+                max:7,
+                valueLabelDisplay:"on"
+            })
         )
     }
 
@@ -628,16 +721,19 @@ const VisionExercise = ({configName}) => {
         })
     }
 
-    if (!state[MOBILE_MODE]) {
+    if (!state[AUDIO_MODE]) {
         return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
             RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
                 renderChessboard(),
-                RE.div({}, "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber),
-                RE.div({}, "Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length),
+                RE.div({},
+                    "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber
+                    + "  Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length
+                ),
+                RE.div({}, "Number of connections: " + state[CONNECTIONS].length),
                 RE.div({},
                     "Counts: min=" + arrMin(state[COUNTS])
                     + ", max=" + arrMax(state[COUNTS])
-                    + ", sum=" + arrSum(state[COUNTS])),
+                    + ", sum=" + (state[COUNTS].length ? arrSum(state[COUNTS]) : 0)),
             ),
             RE.Container.col.top.left({},{},
                 RE.Container.row.left.top({},{},

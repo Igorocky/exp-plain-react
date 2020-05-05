@@ -23,6 +23,7 @@ const AVAILABLE_EXERCISES = [
 const ExerciseSelector = ({}) => {
     // const [selectedExercise, setSelectedExercise] = useState({name:"MorseStateViewExplorer", component: MorseStateViewExplorer})
     // const [selectedExercise, setSelectedExercise] = useState({name:"ConnectionsAudio", component: ConnectionsAudio})
+    // const [selectedExercise, setSelectedExercise] = useState({name:"Vision", component: VisionExercise})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {
