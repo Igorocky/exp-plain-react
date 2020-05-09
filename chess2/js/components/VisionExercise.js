@@ -332,6 +332,13 @@ const VisionExercise = ({configName}) => {
             from = con.to
             counts = inc(counts, con.idx)
         }
+        if (result.length == 0) {
+            result.push({
+                from:from,
+                to:from,
+                idx:-1
+            })
+        }
         return result
     }
 
@@ -387,7 +394,7 @@ const VisionExercise = ({configName}) => {
                 state = set(state, STAGE, STAGE_REPEAT_ANSWER)
             }
         } else if (stage == STAGE_REPEAT_ANSWER) {
-            recentCells[0].seq.forEach(con => {
+            recentCells[0].seq.filter(con => !(con.idx===-1)).forEach(con => {
                 state = set(state, COUNTS, inc(state[COUNTS], con.idx))
             })
             if (recentCells.length > 1) {
