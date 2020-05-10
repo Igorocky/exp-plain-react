@@ -300,7 +300,7 @@ const VisionExercise = ({configName}) => {
     }
 
     function isUserInputCorrect(correctCell, cell, nativeEvent) {
-        const userSelectsBlack = nativeEvent.button==1
+        const userSelectsBlack = nativeEvent.button==1 || nativeEvent.button==2
         const userColorIsCorrect = userSelectsBlack?isBlackCell(correctCell):isWhiteCell(correctCell)
         return equalCells(correctCell, cell) && userColorIsCorrect
     }
