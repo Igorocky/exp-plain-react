@@ -26,6 +26,7 @@ const VisionExercise = ({configName}) => {
 
     const STAGE = "STAGE"
     const RND_ELEM_SELECTOR = "RND_ELEM_SELECTOR"
+    const CELL_TO_SHOW = "CELL_TO_SHOW"
     const USER_ANSWER_IS_CORRECT = "USER_ANSWER_IS_CORRECT"
     const RECENT_CELLS = "RECENT_CELLS"
     const CONNECTIONS = "CONNECTIONS"
@@ -47,11 +48,12 @@ const VisionExercise = ({configName}) => {
     const CELL_COLOR_ALL = "ALL"
     const CELL_COLOR = "CELL_COLOR"
     const AUDIO_MODE = "AUDIO_MODE"
+    const SKIP_ANSWER_STAGE = "SKIP_ANSWER_STAGE"
     const ALWAYS_SHOW_QUESTION_CELL_NAME = "ALWAYS_SHOW_QUESTION_CELL_NAME"
     const QUESTION_CELL_NAME_IS_SHOWN = "QUESTION_CELL_NAME_IS_SHOWN"
     const SETTINGS_TO_STORE_TO_LOCAL_STORAGE = [
         CONNECTION_TYPES, LINE_LENGTH_MIN, LINE_LENGTH_MAX, PATH_LENGTH, NUM_OF_CELLS_TO_REMEMBER,
-        ALWAYS_SHOW_QUESTION_CELL_NAME,
+        ALWAYS_SHOW_QUESTION_CELL_NAME, SKIP_ANSWER_STAGE,
         X_COORD_MIN, X_COORD_MAX, Y_COORD_MIN, Y_COORD_MAX, CELL_COLOR
     ]
     const cellSize = profVal(PROFILE_MOBILE, 43, PROFILE_FUJ, 75, PROFILE_FUJ_FULL, 95, PROFILE_FUJ_BENQ, 115)
@@ -77,7 +79,10 @@ const VisionExercise = ({configName}) => {
                 reInitListReader()
             }
         }
-    }, [state[AUDIO_MODE], state[STAGE], state[RND_ELEM_SELECTOR]])
+        if (state[SKIP_ANSWER_STAGE] && state[STAGE] == STAGE_ANSWER) {
+            setState(simulateClickOnCorrectCell)
+        }
+    }, [state[AUDIO_MODE], state[SKIP_ANSWER_STAGE], state[STAGE], state[RND_ELEM_SELECTOR]])
 
     function createState({prevState, params}) {
         function firstDefinedInner(attrName, defVal) {
@@ -140,6 +145,7 @@ const VisionExercise = ({configName}) => {
             [AUDIO_MODE]: audioMode,
             [QUESTION_CELL_NAME_IS_SHOWN]: false,
             [ALWAYS_SHOW_QUESTION_CELL_NAME]: alwaysShowQuestionCellName,
+            [SKIP_ANSWER_STAGE]: firstDefinedInner(SKIP_ANSWER_STAGE, false),
             [X_COORD_MIN]: xCoordMin,
             [X_COORD_MAX]: xCoordMax,
             [Y_COORD_MIN]: yCoordMin,
@@ -181,12 +187,12 @@ const VisionExercise = ({configName}) => {
         const stage = state[STAGE]
         if (stage == STAGE_ASK || stage == STAGE_ANSWER) {
             const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
-            const nativeEvent = {button:isBlackCell(correctCell)?1:0}
+            const nativeEvent = {button:isBlackCell(correctCell)?1:0,type:"mousedown"}
             return onCellClicked(state,correctCell,nativeEvent)
         } else {
             const recentCells = state[RECENT_CELLS]
             const correctCell = getCorrectAnswerForRecentCells(recentCells)
-            const nativeEvent = {button:isBlackCell(correctCell)?1:0}
+            const nativeEvent = {button:isBlackCell(correctCell)?1:0,type:"mousedown"}
             return onCellClicked(state,correctCell,nativeEvent)
         }
     }
@@ -291,6 +297,9 @@ const VisionExercise = ({configName}) => {
     }
 
     function onCellClicked(state,cell,nativeEvent) {
+        if (state[SKIP_ANSWER_STAGE] && nativeEvent.type == "mouseup") {
+            state = set(state, CELL_TO_SHOW, null)
+        }
         const stage = state[STAGE]
         if (stage == STAGE_ASK || stage == STAGE_ANSWER) {
             return onCellClickedNormalMode(state, cell, nativeEvent)
@@ -359,16 +368,22 @@ const VisionExercise = ({configName}) => {
         const stage = state[STAGE]
         const numOfCellsToRemember = state[NUM_OF_CELLS_TO_REMEMBER]
         if (stage == STAGE_ASK) {
-            const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
-            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
-            state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
-            if (userAnswerIsCorrect) {
-                if (numOfCellsToRemember > 0) {
-                    state = putCellToRecentCells(state, correctCell)
+            if (nativeEvent.type == "mousedown") {
+                const correctCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
+                const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
+                state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
+                if (userAnswerIsCorrect) {
+                    if (numOfCellsToRemember > 0) {
+                        state = putCellToRecentCells(state, correctCell)
+                    }
+                    state = set(state, STAGE, STAGE_ANSWER)
+                    state = set(state, CELL_TO_SHOW, correctCell)
                 }
-                state = set(state, STAGE, STAGE_ANSWER)
             }
         } else if (stage == STAGE_ANSWER) {
+            if (!state[SKIP_ANSWER_STAGE]) {
+                state = set(state, CELL_TO_SHOW, null)
+            }
             if (numOfCellsToRemember > 0 && state[RECENT_CELLS].length >= numOfCellsToRemember) {
                 state = set(state, STAGE, STAGE_REPEAT_ASK)
             } else {
@@ -387,13 +402,21 @@ const VisionExercise = ({configName}) => {
         const stage = state[STAGE]
         const recentCells = state[RECENT_CELLS];
         if (stage == STAGE_REPEAT_ASK) {
-            const correctCell = getCorrectAnswerForRecentCells(recentCells)
-            const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
-            state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
-            if (userAnswerIsCorrect) {
-                state = set(state, STAGE, STAGE_REPEAT_ANSWER)
+            if (nativeEvent.type == "mousedown") {
+                const correctCell = getCorrectAnswerForRecentCells(recentCells)
+                const userAnswerIsCorrect = isUserInputCorrect(correctCell, cell, nativeEvent)
+                state = set(state, USER_ANSWER_IS_CORRECT, userAnswerIsCorrect)
+                if (userAnswerIsCorrect) {
+                    state = set(state, STAGE, STAGE_REPEAT_ANSWER)
+                    state = set(state, CELL_TO_SHOW, correctCell)
+                } else {
+                    state = set(state, CELL_TO_SHOW, null)
+                }
             }
         } else if (stage == STAGE_REPEAT_ANSWER) {
+            if (!state[SKIP_ANSWER_STAGE]) {
+                state = set(state, CELL_TO_SHOW, null)
+            }
             recentCells[0].seq.filter(con => !(con.idx===-1)).forEach(con => {
                 state = set(state, COUNTS, inc(state[COUNTS], con.idx))
             })
@@ -467,29 +490,35 @@ const VisionExercise = ({configName}) => {
     }
 
     function getWhiteBlackCells() {
-        const stage = state[STAGE]
-        const recentCells = state[RECENT_CELLS]
-        if (stage == STAGE_ANSWER) {
-            const currCell = absNumToCell(state[RND_ELEM_SELECTOR].currentElem)
+        const cellToShow = state[CELL_TO_SHOW]
+        if (cellToShow) {
             return {
-                whiteCells:isWhiteCell(currCell)?[currCell]:null,
-                blackCells:isBlackCell(currCell)?[currCell]:null,
-            }
-        } else if (stage == STAGE_REPEAT_ANSWER && recentCells.length > 0) {
-            const currCell = getCorrectAnswerForRecentCells(recentCells)
-            return {
-                whiteCells:isWhiteCell(currCell)?[currCell]:null,
-                blackCells:isBlackCell(currCell)?[currCell]:null,
+                whiteCells:isWhiteCell(cellToShow)?[cellToShow]:null,
+                blackCells:isBlackCell(cellToShow)?[cellToShow]:null,
             }
         } else {
             return {}
         }
     }
 
+    function handleMouseEventOnCell(cell,nativeEvent) {
+        setState(old => onCellClicked(old,cell,nativeEvent))
+    }
+
+    function getCellNameToShowOnChessboard() {
+        if (state[STAGE] == STAGE_ASK || state[STAGE] == STAGE_ANSWER) {
+            return getCellName(absNumToCell(state[RND_ELEM_SELECTOR].currentElem))
+        } else {
+            return ""
+        }
+    }
+
     function renderChessboard() {
         return re(SvgChessBoard,{
             cellSize: cellSize,
-            onCellLeftClicked: (cell,nativeEvent) => setState(old => onCellClicked(old,cell,nativeEvent)),
+            onMouseDown: handleMouseEventOnCell,
+            onMouseUp: state[SKIP_ANSWER_STAGE]?handleMouseEventOnCell:()=>null,
+            cellNameToShow:getCellNameToShowOnChessboard(),
             colorOfCellNameToShow: state[USER_ANSWER_IS_CORRECT]?"green":"blue",
             drawCells: false,
             ...getWhiteBlackCells(),
@@ -632,6 +661,17 @@ const VisionExercise = ({configName}) => {
                                 checked:settings[ALWAYS_SHOW_QUESTION_CELL_NAME],
                                 onChange: () => setSettings(old => set(
                                     old, ALWAYS_SHOW_QUESTION_CELL_NAME, !settings[ALWAYS_SHOW_QUESTION_CELL_NAME]
+                                ))
+                            })
+                        ),
+                    ),
+                    RE.tr({},
+                        RE.td({},"Skip answer stage"),
+                        RE.td({},
+                            RE.Checkbox({
+                                checked:settings[SKIP_ANSWER_STAGE],
+                                onChange: () => setSettings(old => set(
+                                    old, SKIP_ANSWER_STAGE, !settings[SKIP_ANSWER_STAGE]
                                 ))
                             })
                         ),

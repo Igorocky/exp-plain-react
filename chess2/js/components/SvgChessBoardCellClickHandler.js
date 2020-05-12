@@ -8,7 +8,7 @@ function yCoordFromChessboardToSvg(y,cellSize) {
     return (7-y)*cellSize
 }
 
-const SvgChessBoardCellClickHandler = ({cellSize,x,y,onLeftClicked}) => {
+const SvgChessBoardCellClickHandler = ({cellSize,x,y,onMouseDown,onMouseUp}) => {
 
     const cellXPos = xCoordFromChessboardToSvg(x, cellSize)
     const cellYPos = yCoordFromChessboardToSvg(y, cellSize)
@@ -16,7 +16,8 @@ const SvgChessBoardCellClickHandler = ({cellSize,x,y,onLeftClicked}) => {
         SVG.rect({
             x:cellXPos, y:cellYPos, width:cellSize, height:cellSize,
             style:{opacity:0},
-            onMouseDown: event => onLeftClicked?onLeftClicked(event.nativeEvent):null
+            onMouseDown: event => onMouseDown?onMouseDown(event.nativeEvent):null,
+            onMouseUp: event => onMouseUp?onMouseUp(event.nativeEvent):null,
         }),
     )
 }

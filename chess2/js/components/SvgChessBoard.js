@@ -1,7 +1,7 @@
 "use strict";
 
 const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipped, arrow, showAxes,
-                           onCellLeftClicked, cellNameToShow, colorOfCellNameToShow, drawCells,
+                        onMouseDown, onMouseUp, cellNameToShow, colorOfCellNameToShow, drawCells,
                        whiteCells, blackCells}) => {
 
     const board = ints(0,7).map(x => ints(0,7).map(y => ({
@@ -134,20 +134,24 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
     function renderCenterAxes() {
         const axesColor = "grey";
         return RE.Fragment({},
-            SVG.line({
-                x1: xCoordFromChessboardToSvg(3, cellSize),
-                y1: yCoordFromChessboardToSvg(3, cellSize),
-                x2: xCoordFromChessboardToSvg(5, cellSize),
-                y2: yCoordFromChessboardToSvg(3, cellSize),
-                style: {stroke: axesColor, strokeWidth: 2},
+            SVG.circle({
+                cx:xCoordFromChessboardToSvg(4, cellSize), cy:yCoordFromChessboardToSvg(3, cellSize), r:cellSize*0.1,
+                style:{fill:"grey", fillOpacity:"0.5"},
             }),
-            SVG.line({
-                x1: xCoordFromChessboardToSvg(4, cellSize),
-                y1: yCoordFromChessboardToSvg(2, cellSize),
-                x2: xCoordFromChessboardToSvg(4, cellSize),
-                y2: yCoordFromChessboardToSvg(4, cellSize),
-                style: {stroke: axesColor, strokeWidth: 2},
-            }),
+            // SVG.line({
+            //     x1: xCoordFromChessboardToSvg(3, cellSize),
+            //     y1: yCoordFromChessboardToSvg(3, cellSize),
+            //     x2: xCoordFromChessboardToSvg(5, cellSize),
+            //     y2: yCoordFromChessboardToSvg(3, cellSize),
+            //     style: {stroke: axesColor, strokeWidth: 2},
+            // }),
+            // SVG.line({
+            //     x1: xCoordFromChessboardToSvg(4, cellSize),
+            //     y1: yCoordFromChessboardToSvg(2, cellSize),
+            //     x2: xCoordFromChessboardToSvg(4, cellSize),
+            //     y2: yCoordFromChessboardToSvg(4, cellSize),
+            //     style: {stroke: axesColor, strokeWidth: 2},
+            // }),
         )
     }
 
@@ -160,7 +164,8 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
                 x:board[x][y].x,
                 y:board[x][y].y,
                 withDot:board[x][y].withDot,
-                onLeftClicked: nativeEvent => onCellLeftClicked?onCellLeftClicked({x:x,y:y}, nativeEvent):null,
+                onMouseDown: nativeEvent => onMouseDown?onMouseDown({x:x,y:y}, nativeEvent):null,
+                onMouseUp: nativeEvent => onMouseUp?onMouseUp({x:x,y:y}, nativeEvent):null,
             }))
         )
     }
@@ -225,7 +230,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
             renderWhiteBlackCells({whiteCells:whiteCells, blackCells:blackCells}),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,
             showAxes?renderAxes():null,
-            // renderCenterAxes(),
+            renderCenterAxes(),
             cellNameToShow?SVG.text({
                 x:xCoordFromChessboardToSvg(3.35, cellSize),
                 y:yCoordFromChessboardToSvg(2.6, cellSize),
