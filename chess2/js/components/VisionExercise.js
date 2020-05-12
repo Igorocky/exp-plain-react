@@ -730,8 +730,7 @@ const VisionExercise = ({configName}) => {
 
     if (!state[AUDIO_MODE]) {
         return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
-            RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
-                renderChessboard(),
+            RE.div({style:{width:profVal(PROFILE_FUJ_BENQ, 380, PROFILE_DEFAULT, 300) + "px"}},
                 RE.div({},
                     "Iteration: " + state[RND_ELEM_SELECTOR].iterationNumber
                     + "  Remaining elements: " + state[RND_ELEM_SELECTOR].remainingElems.length
@@ -741,6 +740,9 @@ const VisionExercise = ({configName}) => {
                     "Counts: min=" + arrMin(state[COUNTS])
                     + ", max=" + arrMax(state[COUNTS])
                     + ", sum=" + (state[COUNTS].length ? arrSum(state[COUNTS]) : 0)),
+            ),
+            RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
+                renderChessboard(),
             ),
             RE.Container.col.top.left({},{},
                 RE.Container.row.left.top({},{},

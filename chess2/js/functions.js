@@ -1,8 +1,9 @@
 'use strict';
 
 const profile = (prof, superProf) => [prof, ...(superProf?superProf:[])]
-const PROFILE_MOBILE = profile("PROFILE_MOBILE")
-const PROFILE_FUJ = profile("PROFILE_FUJ")
+const PROFILE_DEFAULT = profile("PROFILE_DEFAULT")
+const PROFILE_MOBILE = profile("PROFILE_MOBILE", PROFILE_DEFAULT)
+const PROFILE_FUJ = profile("PROFILE_FUJ", PROFILE_DEFAULT)
 const PROFILE_FUJ_FULL = profile("PROFILE_FUJ_FULL", PROFILE_FUJ)
 const PROFILE_FUJ_BENQ = profile("PROFILE_FUJ_BENQ", PROFILE_FUJ)
 

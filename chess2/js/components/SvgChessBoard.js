@@ -131,6 +131,26 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
         )
     }
 
+    function renderCenterAxes() {
+        const axesColor = "grey";
+        return RE.Fragment({},
+            SVG.line({
+                x1: xCoordFromChessboardToSvg(3, cellSize),
+                y1: yCoordFromChessboardToSvg(3, cellSize),
+                x2: xCoordFromChessboardToSvg(5, cellSize),
+                y2: yCoordFromChessboardToSvg(3, cellSize),
+                style: {stroke: axesColor, strokeWidth: 2},
+            }),
+            SVG.line({
+                x1: xCoordFromChessboardToSvg(4, cellSize),
+                y1: yCoordFromChessboardToSvg(2, cellSize),
+                x2: xCoordFromChessboardToSvg(4, cellSize),
+                y2: yCoordFromChessboardToSvg(4, cellSize),
+                style: {stroke: axesColor, strokeWidth: 2},
+            }),
+        )
+    }
+
     function renderCells({cellComponent}) {
         return _.range(7, -1, -1).map(y =>
             _.range(0, 8).map(x => re(cellComponent, {
@@ -205,6 +225,7 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
             renderWhiteBlackCells({whiteCells:whiteCells, blackCells:blackCells}),
             arrow?renderArrow(moveToArrowCoords(arrow,flipped)):null,
             showAxes?renderAxes():null,
+            // renderCenterAxes(),
             cellNameToShow?SVG.text({
                 x:xCoordFromChessboardToSvg(3.35, cellSize),
                 y:yCoordFromChessboardToSvg(2.6, cellSize),
