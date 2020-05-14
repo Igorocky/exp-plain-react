@@ -525,6 +525,14 @@ const VisionExercise = ({configName}) => {
             return ""
         } else if (state[STAGE] == STAGE_ASK || state[STAGE] == STAGE_ANSWER) {
             return getCellName(absNumToCell(state[RND_ELEM_SELECTOR].currentElem))
+        } else if (state[STAGE] == STAGE_REPEAT_ASK || state[STAGE] == STAGE_REPEAT_ANSWER) {
+            const recentCells = state[RECENT_CELLS]
+            const currPath = recentCells[0].seq
+            if (currPath.length == 1) {
+                return currPath[0].relSym
+            } else {
+                return ""
+            }
         } else {
             return ""
         }
