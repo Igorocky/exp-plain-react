@@ -62,7 +62,7 @@ function useListReader() {
             return symbols
         }
         const last = symbols[symbols.length-1]
-        if (last.sym == MORSE.e.sym) {//ok
+        if (last.sym == MORSE.t.sym) {//ok
             withSound(NEXT_SOUND, () => {
                 if (elems.length-1 <= currElemIdx) {
                     say("No more elements to read to the right.")
@@ -82,7 +82,7 @@ function useListReader() {
                     sayElem(newCurrElemIdx)
                 }
             })
-        } else if (last.sym == MORSE.t.sym) {//ok
+        } else if (last.sym == MORSE.e.sym) {//ok
             sayElem(currElemIdx)
         } else if (last.sym == MORSE.o.sym) {//ok
             withSound(GO_TO_START_SOUND, () => {
