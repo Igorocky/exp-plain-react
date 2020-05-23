@@ -18,7 +18,7 @@ function useListReader() {
 
     function withSound(audioFileName, callback) {
         const audio = new Audio(audioFileName);
-        audio.play().then(callback)
+        audio.play().then(window.setTimeout(callback,500))
     }
 
     function init({say:sayParam, title, elems, sayFirstElem}) {
