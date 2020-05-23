@@ -596,6 +596,19 @@ const VisionExercise = ({configName}) => {
             RE.table({style:{marginTop:"80px"}, className: "settings-table"},
                 RE.tbody({},
                     RE.tr({},
+                        RE.td({},"Audio mode"),
+                        RE.td({},
+                            RE.Checkbox({
+                                checked:settings[AUDIO_MODE],
+                                onChange: () => setSettings(old => set(old, AUDIO_MODE, !settings[AUDIO_MODE])),
+                                disabled:
+                                    settings[NUM_OF_CELLS_TO_REMEMBER] != 1
+                                    || createState({prevState:state,params:settings})[CONNECTIONS].length == 0
+                                    || (settings[CONNECTION_TYPES].length == 1 && settings[CONNECTION_TYPES].includes(CONNECTION_TYPE_SAME_CELL))
+                            })
+                        ),
+                    ),
+                    RE.tr({},
                         RE.td({},"Connection types"),
                         RE.td({},
                             renderConnectionTypeCheckbox(CONNECTION_TYPE_SAME_CELL, "Same cell"),
@@ -664,19 +677,6 @@ const VisionExercise = ({configName}) => {
                         RE.td({},
                             renderIntPropTextField({propName: NUM_OF_CELLS_TO_REMEMBER,
                                 value:settings[NUM_OF_CELLS_TO_REMEMBER]}),
-                        ),
-                    ),
-                    RE.tr({},
-                        RE.td({},"Audio mode"),
-                        RE.td({},
-                            RE.Checkbox({
-                                checked:settings[AUDIO_MODE],
-                                onChange: () => setSettings(old => set(old, AUDIO_MODE, !settings[AUDIO_MODE])),
-                                disabled:
-                                    settings[NUM_OF_CELLS_TO_REMEMBER] != 1
-                                    || createState({prevState:state,params:settings})[CONNECTIONS].length == 0
-                                    || (settings[CONNECTION_TYPES].length == 1 && settings[CONNECTION_TYPES].includes(CONNECTION_TYPE_SAME_CELL))
-                            })
                         ),
                     ),
                     RE.tr({},
