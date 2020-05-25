@@ -317,17 +317,19 @@ const VisionExercise = ({configName}) => {
         return equalCells(correctCell, cell) && userColorIsCorrect
     }
 
-    function conCanBeChosen({prevCon, from, con}) {
+    function conCanBeChosen({prevCon, from, con, checkOppositeDir}) {
         return equalCells(from, con.from)
-            && (!prevCon || !prevCon.dir || !con.dir || !isOppositeDir(prevCon.dir, con.dir))
+            && (!checkOppositeDir || checkOppositeDir && !(prevCon && prevCon.dir && con.dir && isOppositeDir(prevCon.dir, con.dir)))
             && (!prevCon || !equalCells(prevCon.from, con.to))
     }
 
     function selectRandomConnection({prevCon, from, cons, counts}) {
-        const possibleCons = cons
-            .filter(con => conCanBeChosen({prevCon:prevCon, from:from, con:con}))
+        let possibleCons = cons.filter(con => conCanBeChosen({prevCon:prevCon, from:from, con:con, checkOppositeDir:true}))
         if (possibleCons.length == 0) {
-            throw "possibleCons.length == 0"
+            possibleCons = cons.filter(con => conCanBeChosen({prevCon:prevCon, from:from, con:con, checkOppositeDir:false}))
+            if (possibleCons.length == 0) {
+                throw "possibleCons.length == 0"
+            }
         }
         const minCnt = arrMin(possibleCons.map(con => counts[con.idx]))
         const consWithMinCnt = possibleCons.filter(con => counts[con.idx] == minCnt)
