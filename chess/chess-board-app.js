@@ -58,20 +58,68 @@ class ChessBoardCell extends React.Component {
     }
 
     render() {
+        const curCell = {x: this.props.x, y: this.props.y};
         return re(
             'div',
             {
-                className:"chess-board-cell " + (this.state.checked?"checked-cell":(this.props.isWhite?"white-cell":"black-cell")),
-                style: {width: this.props.size, height: this.props.size},
+                className: this.getClassName(),
+                style: {width: this.props.size, height: this.props.size, ...this.getStyle({cell: curCell})},
                 onClick: ()=> {
                     if (this.props.onClick) {
-                        this.props.onClick({x:this.props.x, y:this.props.y})
+                        this.props.onClick(curCell)
                     }
                     // this.flip()
                 }
             },
             this.getContent()
         )
+    }
+
+    getClassName() {
+        if (!this.props.boardStyle) {
+            return "chess-board-cell " + (this.state.checked?"checked-cell":(this.props.isWhite?"white-cell":"black-cell"))
+        } else if (this.props.boardStyle == "islands") {
+            return ""
+        }
+    }
+
+    getStyle({cell}) {
+        return {
+            backgroundColor: this.getBackgroundColor({cell}),
+            outline: this.getOutline({cell}),
+        }
+    }
+
+    getBackgroundColor({cell}) {
+        if (!this.props.boardStyle) {
+            return ""
+        } else if (this.props.boardStyle == "islands") {
+            if (1 <= cell.x && cell.x <= 2 && 1 <= cell.y && cell.y <= 2
+                || 1 <= cell.x && cell.x <= 2 && 5 <= cell.y && cell.y <= 6
+                || 5 <= cell.x && cell.x <= 6 && 5 <= cell.y && cell.y <= 6
+                || 5 <= cell.x && cell.x <= 6 && 1 <= cell.y && cell.y <= 2
+                || 3 <= cell.x && cell.x <= 4 && 3 <= cell.y && cell.y <= 4) {
+                return "grey"
+            } else {
+                return "lightgrey"
+            }
+        } else {
+            return ""
+        }
+    }
+
+    getOutline({cell}) {
+        if (!this.props.boardStyle) {
+            return ""
+        } else if (this.props.boardStyle == "islands") {
+            if (this.state.checked) {
+                return "2px solid deeppink"
+            } else {
+                return ""
+            }
+        } else {
+            return ""
+        }
     }
 
     getContent() {
@@ -134,7 +182,8 @@ class ChessBoard extends React.Component {
                                     ...cell,
                                     onClick: this.props.onClick,
                                     configName: this.props.configName,
-                                    size: this.props.cellSize
+                                    size: this.props.cellSize,
+                                    boardStyle: this.props.boardStyle,
                                 })
                             )
                         )
@@ -377,7 +426,8 @@ class CellToImgExercise extends React.Component {
 
     render() {
         return re(Grid,{container:true,direction:"column",justify:"flex-start",alignItems:"center"},
-            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:()=>this.next()}),
+            re(ChessBoard, {configName: this.props.configName, cellSize: this.props.cellSize, onClick:()=>this.next(),
+                boardStyle:"islands"}),
             re(Grid,{container:true,direction:"row",justify:"center", alignItems:"flex-start"},
                 re('div',{style:{paddingRight:"30px"}},"Iteration: " + this.state.randomCellSelector.getIterationNumber()),
                 re('div',{style:{paddingLeft:"30px"}},"Remaining elements: " + this.state.randomCellSelector.getRemainingElements())
