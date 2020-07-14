@@ -10,7 +10,8 @@ const Connections = ({configName}) => {
             elems: FOOTPRINTS.filter(i => {
                 const type = getConnectionType(i)
 
-                return type.diagonal && type.length > 1 || type.horizontal || type.vertical
+                // return type.diagonal && type.length > 1 || type.horizontal || type.vertical
+                return type.diagonal && type.length > 1 || type.knight
                 // return type.horizontal || type.vertical
                 // return type.vertical
                 // return type.horizontal
@@ -42,6 +43,13 @@ const Connections = ({configName}) => {
         )
     }
 
+    function renderSvgChessboard() {
+        return re(SvgChessBoard,{
+            cellSize: 70,
+            cellsWithDots: createCellsByConnectionNumber(rndElemSelector.getCurrentElem()),
+        })
+    }
+
     return RE.Container.row.left.top({},{style:{marginRight:"20px"}},
         RE.Container.col.top.center({},{style:{marginBottom:"20px"}},
             renderQuestion(),
@@ -49,7 +57,8 @@ const Connections = ({configName}) => {
             RE.div({}, "Remaining elements: " + rndElemSelector.getRemainingElements()),
             RE.Button({onClick:onCellClicked}, "Next")
         ),
-        !phaseQuestion?renderChessboard({onCellClicked:onCellClicked}):null,
+        // !phaseQuestion?renderChessboard({onCellClicked:onCellClicked}):null,
+        !phaseQuestion?renderSvgChessboard():null,
     )
 }
 
