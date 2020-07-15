@@ -18,15 +18,15 @@ function ints(start, end) {
     return res
 }
 
-Array.prototype.min = () => {
+Array.prototype.min = function () {
     return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b)
 }
 
-Array.prototype.max = () => {
+Array.prototype.max = function () {
     return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.max(a,b)):a):b)
 }
 
-Array.prototype.sum = () => {
+Array.prototype.sum = function () {
     return this.reduce((a,b) => a+b, 0)
 }
 
@@ -34,7 +34,7 @@ Array.prototype.attr = function(...attrs) {
     if (attrs.length > 1) {
         return this.map(e => attrs.reduce((o,a)=>({...o,[a]:e[a]}), {}))
     } else {
-        return this.map(e => e[a])
+        return this.map(e => e[attrs[0]])
     }
 }
 
@@ -46,6 +46,10 @@ function modifyAtIdx(arr, idx, modifier) {
     return arr.map((e,i) => i==idx?modifier(e):e)
 }
 
-Object.prototype.set = function(attr, value) {
-    return {...this, [attr]:value}
+function addSetter(obj) {
+    return {
+        ...obj,
+        set: (attr, value) => addSetter({...obj, [attr]:value}),
+        attr: (...attrs) => attrs.reduce((o,a)=>({...o,[a]:obj[a]}), {})
+    }
 }
