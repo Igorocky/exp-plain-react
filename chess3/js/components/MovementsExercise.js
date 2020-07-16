@@ -14,7 +14,7 @@ const MovementsExercise = () => {
 
     const ALL_CONNECTIONS = useMemo(() =>
         ints(0,63).flatMap(i =>
-            [12,2,3,4,6,8,9,10]
+            [12,3,6,9]
                 .map(h => ({from:absNumToCell(i), dir:hourToDir(h)}))
                 .map(({from,dir}) => ({from, to:moveToCellRelatively(from,dir)}))
                 .filter(({from,to}) => isValidCell(to))
@@ -56,10 +56,6 @@ const MovementsExercise = () => {
         return state
     }
 
-    function renderState() {
-        return JSON.stringify(state.attr(st.STAGE, st.CURR_CON))
-    }
-
     function renderStatistics() {
         return `numOfMoves=${state[st.CON_COUNTS].sum()}, minCnt=${state[st.CON_COUNTS].min()}, maxCnt=${state[st.CON_COUNTS].max()}`
     }
@@ -69,9 +65,65 @@ const MovementsExercise = () => {
         setState(newState)
     }
 
+    function renderCircle({x, y, radius, stroke, strokeWidth}) {
+        return SVG.circle({key:`circle-${x}-${y}-${strokeWidth}`,
+            cx:x, cy:y, r:radius,
+            stroke, fill:'transparent', strokeWidth
+        })
+    }
+
+    function renderCellImage({dist, dx, dy, radius, cellName}) {
+        const size = ((radius**2)/2)**0.5*2;
+        const imgCenterX = dx*dist;
+        const x = imgCenterX-size/2
+        const imgCenterY = dy*dist;
+        const y = imgCenterY-size/2
+        const href=`D:\\programs\\js\\react\\exp-plain-react\\chess3\\chess-board-configs\\config1\\${cellName}.png`
+        return SVG.image({key:`img-${cellName}-${x}-${y}`,
+            x, y, height:size, width:size,
+            href,
+            transform:`translate(${-imgCenterX},${imgCenterY}) scale(1,-1) translate(${imgCenterX},${-imgCenterY})`
+        })
+    }
+
+    function renderDots() {
+        const dist = 10
+        const radius = dist*0.15
+        const circleStrokeWidthNormal = radius*0.01
+        const circleStrokeWidthSelected = circleStrokeWidthNormal*8
+        const imgRadius = radius-circleStrokeWidthSelected/2
+
+        const minX = -(dist+dist*0.2+radius+circleStrokeWidthSelected)
+        const xWidth = -minX*2
+        const minY = minX
+        const yWidth = xWidth
+
+        const shapes = [];
+
+        [[0,1],[-1,0],[1,0],[0,0],[0,-1]]
+            .map(a=>a.map(c=>c*dist))
+            .map(([x,y])=>renderCircle({x,y,radius,stroke:'black',strokeWidth:circleStrokeWidthNormal}))
+            .forEach(c => shapes.push(c))
+
+        const cellFrom = state[st.CURR_CON].from
+        shapes.push(renderCellImage({dist, radius:imgRadius, dx:0, dy:0, cellName:getCellName(cellFrom)}))
+
+        const cellTo = state[st.CURR_CON].to
+        const dx = cellTo.x - cellFrom.x;
+        const dy = cellTo.y - cellFrom.y;
+        shapes.push(renderCircle({x:dx*dist,y:dy*dist,radius,stroke:'black',strokeWidth:circleStrokeWidthSelected}))
+        if (state[st.STAGE] == sg.ANSWER) {
+            shapes.push(renderCellImage({dist, radius:imgRadius, dx, dy, cellName:getCellName(cellTo)}))
+        }
+
+        return RE.svg({width:800, height:800, viewBox:`${minX} ${minY} ${xWidth} ${yWidth}`}, SVG.g({transform:'scale(1,-1)'},
+            shapes
+        ))
+    }
+
     return RE.Container.row.center.center({},{},
         RE.Container.col.top.center({},{},
-            renderState(),
+            renderDots(),
             renderStatistics(),
             RE.Button({onClick: nextClicked}, 'Next'),
         )
