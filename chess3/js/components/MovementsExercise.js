@@ -66,7 +66,7 @@ const MovementsExercise = () => {
     }
 
     function renderCircle({x, y, radius, stroke, strokeWidth}) {
-        return SVG.circle({key:`circle-${x}-${y}-${strokeWidth}`,
+        return svg.circle({key:`circle-${x}-${y}-${strokeWidth}`,
             cx:x, cy:y, r:radius,
             stroke, fill:'transparent', strokeWidth
         })
@@ -79,11 +79,7 @@ const MovementsExercise = () => {
         const imgCenterY = dy*dist;
         const y = imgCenterY-size/2
         const href=`D:\\programs\\js\\react\\exp-plain-react\\chess3\\chess-board-configs\\config1\\${cellName}.png`
-        return SVG.image({key:`img-${cellName}-${x}-${y}`,
-            x, y, height:size, width:size,
-            href,
-            transform:`translate(${-imgCenterX},${imgCenterY}) scale(1,-1) translate(${imgCenterX},${-imgCenterY})`
-        })
+        return svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href})
     }
 
     function renderDots() {
@@ -116,9 +112,9 @@ const MovementsExercise = () => {
             shapes.push(renderCellImage({dist, radius:imgRadius, dx, dy, cellName:getCellName(cellTo)}))
         }
 
-        return RE.svg({width:800, height:800, viewBox:`${minX} ${minY} ${xWidth} ${yWidth}`}, SVG.g({transform:'scale(1,-1)'},
+        return RE.svg({width:800, height:800, minX, minY, xWidth, yWidth},
             shapes
-        ))
+        )
     }
 
     return RE.Container.row.center.center({},{},

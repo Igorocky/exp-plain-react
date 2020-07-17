@@ -31,7 +31,11 @@ function gridFactory(direction, justify, alignItems) {
 
 const RE = {
     div: reFactory('div'),
-    svg: reFactory('svg'),
+    svg: ({width, height, minX, minY, xWidth, yWidth}, ...children) => re('svg', {width, height, viewBox:`${minX} ${minY} ${xWidth} ${yWidth}`},
+        re('g', {transform:'scale(1,-1)'},
+            children
+        )
+    ),
     span: reFactory('span'),
     table: reFactory('table'),
     tbody: reFactory('tbody'),
@@ -91,11 +95,16 @@ const RE = {
     },
 }
 
-const SVG = {
+const svg = {
     rect: reFactory('rect'),
     circle: reFactory('circle'),
     line: reFactory('line'),
-    image: reFactory('image'),
+    image: ({key, x, y, height, width, href}) => {
+        const imgCenterX = x+width/2;
+        const imgCenterY = y+height/2;
+        return re('image',{key, x, y, height, width, href,
+            transform:`translate(${-imgCenterX},${imgCenterY}) scale(1,-1) translate(${imgCenterX},${-imgCenterY})`})
+    },
     path: reFactory('path'),
     g: reFactory('g'),
     text: reFactory('text'),
