@@ -56,11 +56,11 @@ const FrameToImgExercise = () => {
 
     function renderChessboard() {
         const dist = 10
-        const radius = dist*0.2
-        const imgRadius = radius
+        const radius = dist*0.1
+        const imgRadius = radius*5
         const lineStrokeWidth = radius*0.1
 
-        const margin = radius*1.1
+        const margin = imgRadius*1.1
         const minX = -margin
         const xWidth = 7*dist+2*margin
         const minY = minX
