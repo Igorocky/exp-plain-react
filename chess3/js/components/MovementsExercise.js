@@ -78,7 +78,7 @@ const MovementsExercise = () => {
         const x = imgCenterX-size/2
         const imgCenterY = dy*dist;
         const y = imgCenterY-size/2
-        const href=`D:\\programs\\js\\react\\exp-plain-react\\chess3\\chess-board-configs\\config1\\${cellName}.png`
+        const href=`./chess-board-configs/config1/${cellName}.png`
         return svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href})
     }
 

@@ -31,7 +31,7 @@ function gridFactory(direction, justify, alignItems) {
 
 const RE = {
     div: reFactory('div'),
-    svg: ({width, height, minX, minY, xWidth, yWidth}, ...children) => re('svg', {width, height, viewBox:`${minX} ${minY} ${xWidth} ${yWidth}`},
+    svg: ({width, height, minX, minY, xWidth, yWidth}, ...children) => re('svg', {width, height, viewBox:`${minX} ${-(minY+yWidth)} ${xWidth} ${yWidth}`},
         re('g', {transform:'scale(1,-1)'},
             children
         )
