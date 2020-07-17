@@ -56,18 +56,18 @@ const FrameToImgExercise = () => {
 
     function renderChessboard() {
         const dist = 10
-        const radius = dist*0.15
+        const radius = dist*0.2
         const imgRadius = radius
         const lineStrokeWidth = radius*0.1
 
-        const margin = radius*3
+        const margin = radius*1.1
         const minX = -margin
         const xWidth = 7*dist+2*margin
         const minY = minX
         const yWidth = xWidth
 
         const normalCircleColor = 'lightgrey'
-        const questionCircleColor = 'black'
+        const questionCircleColor = 'rgb(230,126,34)'
         const lineColor = 'black'
 
         function renderCellCircle({cellX, cellY, fill}) {
