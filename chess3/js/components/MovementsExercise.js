@@ -1,13 +1,13 @@
 "use strict";
 
 const MovementsExercise = () => {
-    const st = {
-        STAGE: 'STAGE',
+    const s = {
+        PHASE: 'PHASE',
         CURR_CON: 'CURR_CON',
         CON_COUNTS: 'CON_COUNTS',
     }
 
-    const sg = {
+    const p = {
         QUESTION: 'QUESTION',
         ANSWER: 'ANSWER',
     }
@@ -26,9 +26,9 @@ const MovementsExercise = () => {
     function createState() {
         const currCon = ALL_CONNECTIONS[randomInt(0,ALL_CONNECTIONS.length-1)];
         return addSetter({
-            [st.CURR_CON]: currCon,
-            [st.CON_COUNTS]: inc(new Array(ALL_CONNECTIONS.length).fill(0), currCon.idx),
-            [st.STAGE]: sg.QUESTION,
+            [s.CURR_CON]: currCon,
+            [s.CON_COUNTS]: inc(new Array(ALL_CONNECTIONS.length).fill(0), currCon.idx),
+            [s.PHASE]: p.QUESTION,
         })
     }
 
@@ -46,18 +46,18 @@ const MovementsExercise = () => {
     }
 
     function nextState(state) {
-        if (state[st.STAGE] == sg.QUESTION) {
-            state = state.set(st.STAGE, sg.ANSWER)
+        if (state[s.PHASE] == p.QUESTION) {
+            state = state.set(s.PHASE, p.ANSWER)
         } else {
-            state = state.set(st.STAGE, sg.QUESTION)
-            state = state.set(st.CURR_CON, nextRandomConnection({prevCon:state[st.CURR_CON], conCounts:state[st.CON_COUNTS]}))
-            state = state.set(st.CON_COUNTS, inc(state[st.CON_COUNTS], state[st.CURR_CON].idx))
+            state = state.set(s.PHASE, p.QUESTION)
+            state = state.set(s.CURR_CON, nextRandomConnection({prevCon:state[s.CURR_CON], conCounts:state[s.CON_COUNTS]}))
+            state = state.set(s.CON_COUNTS, inc(state[s.CON_COUNTS], state[s.CURR_CON].idx))
         }
         return state
     }
 
     function renderStatistics() {
-        return `numOfMoves=${state[st.CON_COUNTS].sum()}, minCnt=${state[st.CON_COUNTS].min()}, maxCnt=${state[st.CON_COUNTS].max()}`
+        return `numOfMoves=${state[s.CON_COUNTS].sum()}, minCnt=${state[s.CON_COUNTS].min()}, maxCnt=${state[s.CON_COUNTS].max()}`
     }
 
     function nextClicked() {
@@ -105,14 +105,14 @@ const MovementsExercise = () => {
             .map(([x,y])=>renderCircle({x,y,radius,stroke:'black',strokeWidth:circleStrokeWidthNormal}))
             .forEach(c => shapes.push(c))
 
-        const cellFrom = state[st.CURR_CON].from
+        const cellFrom = state[s.CURR_CON].from
         shapes.push(renderCellImage({dist, radius:imgRadius, dx:0, dy:0, cellName:getCellName(cellFrom)}))
 
-        const cellTo = state[st.CURR_CON].to
+        const cellTo = state[s.CURR_CON].to
         const dx = cellTo.x - cellFrom.x;
         const dy = cellTo.y - cellFrom.y;
         shapes.push(renderCircle({x:dx*dist,y:dy*dist,radius,stroke:'black',strokeWidth:circleStrokeWidthSelected}))
-        if (state[st.STAGE] == sg.ANSWER) {
+        if (state[s.PHASE] == p.ANSWER) {
             shapes.push(renderCellImage({dist, radius:imgRadius, dx, dy, cellName:getCellName(cellTo)}))
         }
 
