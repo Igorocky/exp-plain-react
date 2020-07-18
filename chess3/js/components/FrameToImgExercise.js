@@ -86,18 +86,14 @@ const FrameToImgExercise = () => {
             return svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href})
         }
 
-        function renderDots() {
-            return ALL_CELLS.map(c => renderCellCircle({cellX:c.x, cellY:c.y, fill:normalCircleColor}))
-        }
-
         function renderLines() {
             return [
-                ...[1,3,4,6]
-                    .map(x=>x*dist)
-                    .map(x => svg.line({key:`line-x-${x}`, x1:x, x2:x, y1:0, y2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth})),
-                ...[1,3,4,6]
-                    .map(y=>y*dist)
-                    .map(y => svg.line({key:`line-y-${y}`, y1:y, y2:y, x1:0, x2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}))
+                ...[0,1,3,4,6,7]
+                    .map(coord=>coord*dist)
+                    .flatMap(coord => [
+                        svg.line({key:`line-x-${coord}`, x1:coord, x2:coord, y1:0, y2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
+                        svg.line({key:`line-y-${coord}`, y1:coord, y2:coord, x1:0, x2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
+                    ])
             ]
         }
 
@@ -113,7 +109,6 @@ const FrameToImgExercise = () => {
         return RE.svg({width:800, height:800, minX, xWidth, minY, yWidth},
             [
                 ...renderLines(),
-                ...renderDots(),
                 ...renderQA()
             ]
         )
