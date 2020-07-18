@@ -30,7 +30,10 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
         const imgCenterY = cellY*dist
         const y = imgCenterY-size/2
         const href=`./chess-board-configs/config1/${cellName}.png`
-        return svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href})
+        return [
+            svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href}),
+            svg.rect({key:`img-frame-${cellName}-${x}-${y}`, x, y, width:size, height:size, fill:'transparent', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
+        ]
     }
 
     function renderLines() {
@@ -49,7 +52,7 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
     }
 
     function renderImages() {
-        return images.map(i => renderCellImage({cellX:i.x, cellY:i.y, cellName:getCellName(i)}))
+        return images.flatMap(i => renderCellImage({cellX:i.x, cellY:i.y, cellName:getCellName(i)}))
     }
 
     return RE.svg({width, height, minX, xWidth, minY, yWidth},

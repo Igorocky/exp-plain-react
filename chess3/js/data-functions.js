@@ -22,6 +22,15 @@ function ints(start, end) {
     return res
 }
 
+function prod(...arrays) {
+    if (arrays.length) {
+        const childProdResult = prod(...arrays.rest());
+        return arrays.first().flatMap(e => childProdResult.map(row => [e,...row]))
+    } else {
+        return [[]]
+    }
+}
+
 Array.prototype.min = function () {
     return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b)
 }
@@ -40,6 +49,14 @@ Array.prototype.attr = function(...attrs) {
     } else {
         return this.map(e => e[attrs[0]])
     }
+}
+
+Array.prototype.first = function() {
+    return this[0]
+}
+
+Array.prototype.rest = function() {
+    return this.filter((e,idx) => 0 < idx)
 }
 
 function inc(arr, idx) {
