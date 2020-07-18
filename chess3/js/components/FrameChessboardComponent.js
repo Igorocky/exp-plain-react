@@ -6,10 +6,11 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
     const images = imagesP??[]
 
     const radius = dist*0.1
-    const imgRadius = radius*5
+    const imgSize = dist*0.5
+    const imgClipRadius = imgSize/(2**0.5)
     const lineStrokeWidth = radius*0.1
 
-    const margin = imgRadius*1.1
+    const margin = imgClipRadius*1.1
     const minX = -margin
     const xWidth = 7*dist+2*margin
     const minY = minX
@@ -21,18 +22,16 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
         return svg.circle({key:`circle-${cellX}-${cellY}-${fill}`, cx:cellX*dist, cy:cellY*dist, r:radius, fill})
     }
 
-    const sqrt_2 = 2**0.5
-
     function renderCellImage({cellX, cellY, cellName}) {
-        const size = imgRadius*sqrt_2
         const imgCenterX = cellX*dist
-        const x = imgCenterX-size/2
+        const x = imgCenterX-imgSize/2
         const imgCenterY = cellY*dist
-        const y = imgCenterY-size/2
+        const y = imgCenterY-imgSize/2
         const href=`./chess-board-configs/config1/${cellName}.png`
         return [
-            svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href}),
-            svg.rect({key:`img-frame-${cellName}-${x}-${y}`, x, y, width:size, height:size, fill:'transparent', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
+            svg.circle({key:`img-frame-${cellName}-${x}-${y}`, cx:imgCenterX, cy:imgCenterY, r:imgClipRadius,
+                fill:'white', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
+            svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:imgSize, width:imgSize, href, clipPath:`circle(${imgClipRadius})`}),
         ]
     }
 

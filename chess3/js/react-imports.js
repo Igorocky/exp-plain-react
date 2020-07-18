@@ -99,10 +99,10 @@ const svg = {
     rect: reFactory('rect'),
     circle: reFactory('circle'),
     line: reFactory('line'),
-    image: ({key, x, y, height, width, href}) => {
+    image: ({key, x, y, height, width, href, clipPath}) => {
         const imgCenterX = x+width/2;
         const imgCenterY = y+height/2;
-        return re('image',{key, x, y, height, width, href,
+        return re('image',{key, x, y, height, width, href, clipPath,
             transform:`translate(${-imgCenterX},${imgCenterY}) scale(1,-1) translate(${imgCenterX},${-imgCenterY})`})
     },
     path: reFactory('path'),
