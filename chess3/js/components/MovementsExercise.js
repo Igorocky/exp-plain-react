@@ -25,7 +25,7 @@ const MovementsExercise = () => {
 
     function createState() {
         const currCon = ALL_CONNECTIONS[randomInt(0,ALL_CONNECTIONS.length-1)];
-        return addSetter({
+        return createObj({
             [s.CURR_CON]: currCon,
             [s.CON_COUNTS]: inc(new Array(ALL_CONNECTIONS.length).fill(0), currCon.idx),
             [s.PHASE]: p.QUESTION,

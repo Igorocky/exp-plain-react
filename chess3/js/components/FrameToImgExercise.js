@@ -13,14 +13,16 @@ const FrameToImgExercise = () => {
     }
 
     const ALL_CELLS = useMemo(() =>
-        ints(0,63).map((cellNum,idx) => ({...absNumToCell(cellNum), name:cellNumToCellName(cellNum), idx}))
+        ints(0,63)
+            .map((cellNum,idx) => ({...absNumToCell(cellNum), name:cellNumToCellName(cellNum), idx}))
+            .map(createObj)
     )
 
     const [state, setState] = useState(() => createState())
 
     function createState() {
         const currCell = ALL_CELLS[randomInt(0,ALL_CELLS.length-1)];
-        return addSetter({
+        return createObj({
             [s.CURR_CELL]: currCell,
             [s.CELL_COUNTS]: inc(new Array(ALL_CELLS.length).fill(0), currCell.idx),
             [s.PHASE]: p.QUESTION,
@@ -55,63 +57,11 @@ const FrameToImgExercise = () => {
     }
 
     function renderChessboard() {
-        const dist = 10
-        const radius = dist*0.1
-        const imgRadius = radius*5
-        const lineStrokeWidth = radius*0.1
-
-        const margin = imgRadius*1.1
-        const minX = -margin
-        const xWidth = 7*dist+2*margin
-        const minY = minX
-        const yWidth = xWidth
-
-        const normalCircleColor = 'lightgrey'
-        const questionCircleColor = 'rgb(230,126,34)'
-        const lineColor = 'black'
-
-        function renderCellCircle({cellX, cellY, fill}) {
-            return svg.circle({key:`circle-${cellX}-${cellY}-${fill}`, cx:cellX*dist, cy:cellY*dist, r:radius, fill})
-        }
-
-        const sqrt_2 = 2**0.5
-
-        function renderCellImage({cellX, cellY, cellName}) {
-            const size = imgRadius*sqrt_2
-            const imgCenterX = cellX*dist
-            const x = imgCenterX-size/2
-            const imgCenterY = cellY*dist
-            const y = imgCenterY-size/2
-            const href=`./chess-board-configs/config1/${cellName}.png`
-            return svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:size, width:size, href})
-        }
-
-        function renderLines() {
-            return [
-                ...[0,1,3,4,6,7]
-                    .map(coord=>coord*dist)
-                    .flatMap(coord => [
-                        svg.line({key:`line-x-${coord}`, x1:coord, x2:coord, y1:0, y2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
-                        svg.line({key:`line-y-${coord}`, y1:coord, y2:coord, x1:0, x2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
-                    ])
-            ]
-        }
-
-        function renderQA() {
-            const c = state[s.CURR_CELL]
-            if (state[s.PHASE] == p.QUESTION) {
-                return [renderCellCircle({cellX:c.x, cellY:c.y, fill: questionCircleColor})]
-            } else {
-                return [renderCellImage({cellX:c.x, cellY:c.y, cellName:c.name})]
-            }
-        }
-
-        return RE.svg({width:800, height:800, minX, xWidth, minY, yWidth},
-            [
-                ...renderLines(),
-                ...renderQA()
-            ]
-        )
+        return re(FrameChessboardComponent, {
+            width:800, height:800,
+            circles:[state[s.CURR_CELL].map(c=>({...c, color:'rgb(230,126,34)'}))],
+            images:state[s.PHASE]!=p.ANSWER?[]:[state[s.CURR_CELL]]
+        })
     }
 
     return RE.Container.row.center.center({},{},

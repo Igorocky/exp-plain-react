@@ -4,6 +4,10 @@ function hasValue(variable) {
     return variable !== undefined && variable !== null
 }
 
+function isObject(obj) {
+    return typeof obj === 'object' && !Array.isArray(obj)
+}
+
 function randomInt(min, max) {
     return min + Math.floor(Math.random()*((max-min)+1))
 }
@@ -46,10 +50,19 @@ function modifyAtIdx(arr, idx, modifier) {
     return arr.map((e,i) => i==idx?modifier(e):e)
 }
 
-function addSetter(obj) {
-    return {
+function createObj(obj) {
+    const self = {
         ...obj,
-        set: (attr, value) => addSetter({...obj, [attr]:value}),
-        attr: (...attrs) => attrs.reduce((o,a)=>({...o,[a]:obj[a]}), {})
+        set: (attr, value) => createObj({...obj, [attr]:value}),
+        attr: (...attrs) => attrs.reduce((o,a)=>({...o,[a]:obj[a]}), {}),
+        map: mapper => {
+            const newObj = mapper(self)
+            if (isObject(newObj)) {
+                return createObj(newObj)
+            } else {
+                return newObj
+            }
+        }
     }
+    return self
 }
