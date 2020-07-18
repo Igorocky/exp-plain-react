@@ -20,7 +20,8 @@ const ConnectionsExercise = () => {
 
     const ALL_CONNECTIONS = useMemo(() =>
         [
-            ...createDiagonals()
+            ...createDiagonals(),
+            ...createKnightMoves(),
         ].map((con,idx) => ({...con, idx}))
             .map(createObj)
     )
@@ -34,6 +35,17 @@ const ConnectionsExercise = () => {
             [s.CON_COUNTS]: inc(new Array(ALL_CONNECTIONS.length).fill(0), currCon.idx),
             [s.PHASE]: p.QUESTION,
         })
+    }
+
+    function createKnightMoves() {
+        return ALL_CELLS.map(createKnightMove)
+    }
+
+    function createKnightMove({x:cx,y:cy}) {
+        return {
+            sym: getCellName({x:cx,y:cy}),
+            cells: [{x:cx,y:cy}, ...ALL_CELLS.filter(({x,y}) => Math.abs(x-cx)==1 && Math.abs(y-cy)==2 || Math.abs(x-cx)==2 && Math.abs(y-cy)==1)]
+        }
     }
 
     function createDiagonals() {
