@@ -36,14 +36,22 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
     }
 
     function renderLines() {
+        function generateSquarePoints(cx,cy,hsize) {
+            const corners = prod([-1,1],[-1,1]).map(([dx,dy]) => [cx+dx*hsize,cy+dy*hsize])
+            return [corners[0],corners[1],corners[3],corners[2]]
+        }
+
+        function generateSquarePath(cx,cy,hsize) {
+            return generateSquarePoints(cx,cy,hsize).flatMap(e=>e).join(' ')
+        }
+
         return [
-            ...[0,1,3,4,6,7]
-                .map(coord=>coord*dist)
-                .flatMap(coord => [
-                    svg.line({key:`line-x-${coord}`, x1:coord, x2:coord, y1:0, y2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
-                    svg.line({key:`line-y-${coord}`, y1:coord, y2:coord, x1:0, x2:7*dist, stroke:lineColor, strokeWidth:lineStrokeWidth}),
-                ])
-        ]
+            [3.5,3.5,3.5],
+            ...generateSquarePoints(3.5,3.5,1.5).map(([x,y]) => [x,y,1])
+        ].map(ps=>ps.map(p=>p*dist)).map(params =>
+            svg.polygon({key:`sq-${params[0]}-${params[1]}-${params[2]}`,
+                points:generateSquarePath(...params), fill:'transparent', stroke:lineColor, strokeWidth:lineStrokeWidth}),
+        )
     }
 
     function renderCircles() {

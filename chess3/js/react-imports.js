@@ -99,6 +99,7 @@ const svg = {
     rect: reFactory('rect'),
     circle: reFactory('circle'),
     line: reFactory('line'),
+    polygon: reFactory('polygon'),
     image: ({key, x, y, height, width, href, clipPath}) => {
         const imgCenterX = x+width/2;
         const imgCenterY = y+height/2;

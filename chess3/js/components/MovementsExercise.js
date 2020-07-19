@@ -107,7 +107,7 @@ const MovementsExercise = () => {
         const cellTo = state[s.CURR_CON].to
         const dx = cellTo.x - cellFrom.x;
         const dy = cellTo.y - cellFrom.y;
-        shapes.push(renderCircle({x:dx*dist,y:dy*dist,radius,stroke:'black',strokeWidth:circleStrokeWidthSelected}))
+        shapes.push(renderCircle({x:dx*dist,y:dy*dist,radius,stroke:'rgb(230,126,34)',strokeWidth:circleStrokeWidthSelected}))
         if (state[s.PHASE] == p.ANSWER) {
             shapes.push(renderCellImage({dist, radius:imgRadius, dx, dy, cellName:getCellName(cellTo)}))
         }
