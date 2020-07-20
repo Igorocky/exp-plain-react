@@ -10,13 +10,22 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
     const imgClipRadius = imgSize/(2**0.5)
     const lineStrokeWidth = radius*0.1
 
-    const margin = imgClipRadius*1.1
+    const margin = dist*0.55
     const minX = -margin
     const xWidth = 7*dist+2*margin
     const minY = minX
     const yWidth = xWidth
 
     const lineColor = 'black'
+
+    function generateSquarePoints(cx,cy,hsize) {
+        const corners = prod([-1,1],[-1,1]).map(([dx,dy]) => [cx+dx*hsize,cy+dy*hsize])
+        return [corners[0],corners[1],corners[3],corners[2]]
+    }
+
+    function generateSquarePath(cx,cy,hsize) {
+        return generateSquarePoints(cx,cy,hsize).flatMap(e=>e).join(' ')
+    }
 
     function renderCellCircle({cellX, cellY, fill}) {
         return svg.circle({key:`circle-${cellX}-${cellY}-${fill}`, cx:cellX*dist, cy:cellY*dist, r:radius, fill})
@@ -29,22 +38,15 @@ const FrameChessboardComponent = ({width, height, dist:distP, circles:circlesP, 
         const y = imgCenterY-imgSize/2
         const href=`./chess-board-configs/config1/${cellName}.png`
         return [
-            svg.circle({key:`img-frame-${cellName}-${x}-${y}`, cx:imgCenterX, cy:imgCenterY, r:imgClipRadius,
-                fill:'white', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
+            svg.polygon({key:`img-frame-${cellName}-${x}-${y}`,
+                points:generateSquarePath(imgCenterX, imgCenterY, dist/2), fill:'white', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
+            // svg.circle({key:`img-frame-${cellName}-${x}-${y}`, cx:imgCenterX, cy:imgCenterY, r:imgClipRadius,
+            //     fill:'white', stroke:'lightgrey', strokeWidth:lineStrokeWidth}),
             svg.image({key:`img-${cellName}-${x}-${y}`, x, y, height:imgSize, width:imgSize, href, clipPath:`circle(${imgClipRadius})`}),
         ]
     }
 
     function renderLines() {
-        function generateSquarePoints(cx,cy,hsize) {
-            const corners = prod([-1,1],[-1,1]).map(([dx,dy]) => [cx+dx*hsize,cy+dy*hsize])
-            return [corners[0],corners[1],corners[3],corners[2]]
-        }
-
-        function generateSquarePath(cx,cy,hsize) {
-            return generateSquarePoints(cx,cy,hsize).flatMap(e=>e).join(' ')
-        }
-
         return [
             [3.5,3.5,3.5],
             ...generateSquarePoints(3.5,3.5,1.5).map(([x,y]) => [x,y,1])
