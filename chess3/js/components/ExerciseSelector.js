@@ -4,10 +4,11 @@ const AVAILABLE_EXERCISES = [
     {name:"MovementsExercise", component: MovementsExercise},
     {name:"FrameToImgExercise", component: FrameToImgExercise},
     {name:"ConnectionsExercise", component: ConnectionsExercise},
+    {name:"X4Exercise", component: X4Exercise},
 ]
 
 const ExerciseSelector = ({}) => {
-    // const [selectedExercise, setSelectedExercise] = useState({name:"FrameToImgExercise", component: FrameToImgExercise})
+    // const [selectedExercise, setSelectedExercise] = useState({component: X4Exercise})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {

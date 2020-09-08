@@ -36,6 +36,35 @@ const RE = {
             children
         )
     ),
+    svg2: ({width, height, boundaries, onClick, props}, ...children) => re('svg',
+        {
+            width,
+            height,
+            viewBox: `${boundaries.minX} ${boundaries.minY} ${boundaries.maxX - boundaries.minX} ${boundaries.maxY - boundaries.minY}`,
+            onClick: clickEvent => {
+                if (onClick) {
+                    const nativeEvent = clickEvent.nativeEvent
+
+                    onClick(nativeEvent)
+
+                    // const target = nativeEvent.target
+                    // const dim = target.getBoundingClientRect()
+                    // console.log({dim})
+                    // const x = nativeEvent.clientX - dim.left
+                    // const y = nativeEvent.clientY - dim.top
+                    // console.log({x,y})
+                    //
+                    // const pixelSize = (boundaries.maxX - boundaries.minX)/width
+                    // onClick(
+                    //     (boundaries.minX + nativeEvent.offsetX)*pixelSize,
+                    //     (boundaries.minY + nativeEvent.offsetY)*pixelSize
+                    // )
+                }
+            },
+            ...(props?props:{})
+        },
+        children
+    ),
     span: reFactory('span'),
     table: reFactory('table'),
     tbody: reFactory('tbody'),
@@ -93,6 +122,16 @@ const RE = {
             }
         }
     },
+}
+
+const SVG = {
+    line: reFactory('line'),
+    rect: reFactory('rect'),
+    circle: reFactory('circle'),
+    image: reFactory('image'),
+    path: reFactory('path'),
+    polygon: reFactory('polygon'),
+    g: reFactory('g'),
 }
 
 const svg = {
