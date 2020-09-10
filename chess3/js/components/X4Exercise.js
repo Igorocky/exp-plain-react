@@ -24,8 +24,6 @@ const X4Exercise = () => {
 
     const viewBoundaries = SvgBoundaries.fromPoints(fieldCorners).addAbsoluteMargin(cellSize*0.3)
 
-    const svgRef = useRef(null)
-
     const width = viewWidth
     const height = viewWidth/0.8
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
@@ -36,9 +34,13 @@ const X4Exercise = () => {
                 boundaries: viewBoundaries,
                 onClick: nativeEvent => {
                     console.log({nativeEvent})
-                    if (svgRef.current) {
-                        console.log({svg:svgRef.current})
-                        const svgBoundingClientRect = svgRef.current.getBoundingClientRect();
+                    let target = nativeEvent.target
+                    while (hasValue(target) && target.nodeName != 'svg') {
+                        target = target.parentElement
+                    }
+                    if (target) {
+                        console.log({svg:target})
+                        const svgBoundingClientRect = target.getBoundingClientRect();
                         console.log({svgBoundingClientRect})
                         const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
                         const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
@@ -57,8 +59,7 @@ const X4Exercise = () => {
                         const clickImageY = (viewBoundaries.minY + viewBoundaries.maxY)/2 + clickImageCenterY
                         setClickedPoints([{x:clickImageX, y:clickImageY}])
                     }
-                },
-                props: {ref: svgRef}
+                }
             },
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
