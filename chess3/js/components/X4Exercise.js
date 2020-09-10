@@ -26,22 +26,37 @@ const X4Exercise = () => {
 
     const svgRef = useRef(null)
 
+    const width = viewWidth
+    const height = viewWidth/0.8
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
         RE.svg2(
             {
-                width: viewWidth,
-                height: viewWidth,
+                width: width,
+                height: height,
                 boundaries: viewBoundaries,
                 onClick: nativeEvent => {
                     console.log({nativeEvent})
                     if (svgRef.current) {
+                        console.log({svg:svgRef.current})
                         const svgBoundingClientRect = svgRef.current.getBoundingClientRect();
                         console.log({svgBoundingClientRect})
-                        console.log({x:nativeEvent.clientX - svgBoundingClientRect.x})
-                        console.log({y:nativeEvent.clientY - svgBoundingClientRect.y})
-                        // const pixelSize = (boundaries.maxX - boundaries.minX)/width
+                        const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
+                        const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
+                        console.log({x: clickViewScreenX})
+                        console.log({y: clickViewScreenY})
+                        const H = height
+                        const W = width
+                        const h = viewBoundaries.maxY - viewBoundaries.minY
+                        const w = viewBoundaries.maxX - viewBoundaries.minX
+                        const pixelSize = H/W < h/w ? h/H : w/W
+                        const clickViewCenterX = -W/2 + clickViewScreenX
+                        const clickViewCenterY = -H/2 + clickViewScreenY
+                        const clickImageCenterX = clickViewCenterX*pixelSize
+                        const clickImageCenterY = clickViewCenterY*pixelSize
+                        const clickImageX = (viewBoundaries.minX + viewBoundaries.maxX)/2 + clickImageCenterX
+                        const clickImageY = (viewBoundaries.minY + viewBoundaries.maxY)/2 + clickImageCenterY
+                        setClickedPoints([{x:clickImageX, y:clickImageY}])
                     }
-                    // setClickedPoints([{x, y}])
                 },
                 props: {ref: svgRef}
             },
