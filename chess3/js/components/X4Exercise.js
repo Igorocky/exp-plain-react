@@ -3,7 +3,6 @@
 const X4Exercise = () => {
 
     const [clickedPoints, setClickedPoints] = useState([])
-    console.log({clickedPoints})
 
     const viewWidth = 500
     const background = SVG.rect({key:'background', x:-1000, y:-1000, width:2000, height:2000, fill:"lightgrey"})
@@ -32,34 +31,7 @@ const X4Exercise = () => {
                 width: width,
                 height: height,
                 boundaries: viewBoundaries,
-                onClick: nativeEvent => {
-                    console.log({nativeEvent})
-                    let target = nativeEvent.target
-                    while (hasValue(target) && target.nodeName != 'svg') {
-                        target = target.parentElement
-                    }
-                    if (target) {
-                        console.log({svg:target})
-                        const svgBoundingClientRect = target.getBoundingClientRect();
-                        console.log({svgBoundingClientRect})
-                        const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
-                        const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
-                        console.log({x: clickViewScreenX})
-                        console.log({y: clickViewScreenY})
-                        const H = height
-                        const W = width
-                        const h = viewBoundaries.maxY - viewBoundaries.minY
-                        const w = viewBoundaries.maxX - viewBoundaries.minX
-                        const pixelSize = H/W < h/w ? h/H : w/W
-                        const clickViewCenterX = -W/2 + clickViewScreenX
-                        const clickViewCenterY = -H/2 + clickViewScreenY
-                        const clickImageCenterX = clickViewCenterX*pixelSize
-                        const clickImageCenterY = clickViewCenterY*pixelSize
-                        const clickImageX = (viewBoundaries.minX + viewBoundaries.maxX)/2 + clickImageCenterX
-                        const clickImageY = (viewBoundaries.minY + viewBoundaries.maxY)/2 + clickImageCenterY
-                        setClickedPoints([{x:clickImageX, y:clickImageY}])
-                    }
-                }
+                onClick: (x, y) => setClickedPoints(old => [...old, {x, y}])
             },
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),

@@ -44,21 +44,27 @@ const RE = {
             onClick: clickEvent => {
                 if (onClick) {
                     const nativeEvent = clickEvent.nativeEvent
-
-                    onClick(nativeEvent)
-
-                    // const target = nativeEvent.target
-                    // const dim = target.getBoundingClientRect()
-                    // console.log({dim})
-                    // const x = nativeEvent.clientX - dim.left
-                    // const y = nativeEvent.clientY - dim.top
-                    // console.log({x,y})
-                    //
-                    // const pixelSize = (boundaries.maxX - boundaries.minX)/width
-                    // onClick(
-                    //     (boundaries.minX + nativeEvent.offsetX)*pixelSize,
-                    //     (boundaries.minY + nativeEvent.offsetY)*pixelSize
-                    // )
+                    let target = nativeEvent.target
+                    while (hasValue(target) && target.nodeName != 'svg') {
+                        target = target.parentElement
+                    }
+                    if (target) {
+                        const svgBoundingClientRect = target.getBoundingClientRect()
+                        const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
+                        const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
+                        const H = height
+                        const W = width
+                        const h = boundaries.maxY - boundaries.minY
+                        const w = boundaries.maxX - boundaries.minX
+                        const pixelSize = H/W < h/w ? h/H : w/W
+                        const clickViewCenterX = -W/2 + clickViewScreenX
+                        const clickViewCenterY = -H/2 + clickViewScreenY
+                        const clickImageCenterX = clickViewCenterX*pixelSize
+                        const clickImageCenterY = clickViewCenterY*pixelSize
+                        const clickImageX = (boundaries.minX + boundaries.maxX)/2 + clickImageCenterX
+                        const clickImageY = (boundaries.minY + boundaries.maxY)/2 + clickImageCenterY
+                        onClick(clickImageX, clickImageY)
+                    }
                 }
             },
             ...(props?props:{})
