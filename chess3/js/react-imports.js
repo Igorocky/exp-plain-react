@@ -29,6 +29,32 @@ function gridFactory(direction, justify, alignItems) {
     )
 }
 
+function svgOnClick({nativeEvent, onClick, width, height, boundaries}) {
+    if (onClick) {
+        let target = nativeEvent.target
+        while (hasValue(target) && target.nodeName != 'svg') {
+            target = target.parentElement
+        }
+        if (target) {
+            const svgBoundingClientRect = target.getBoundingClientRect()
+            const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
+            const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
+            const H = height
+            const W = width
+            const h = boundaries.maxY - boundaries.minY
+            const w = boundaries.maxX - boundaries.minX
+            const pixelSize = H/W < h/w ? h/H : w/W
+            const clickViewCenterX = -W/2 + clickViewScreenX
+            const clickViewCenterY = -H/2 + clickViewScreenY
+            const clickImageCenterX = clickViewCenterX*pixelSize
+            const clickImageCenterY = clickViewCenterY*pixelSize
+            const clickImageX = (boundaries.minX + boundaries.maxX)/2 + clickImageCenterX
+            const clickImageY = (boundaries.minY + boundaries.maxY)/2 + clickImageCenterY
+            onClick(clickImageX, clickImageY, nativeEvent)
+        }
+    }
+}
+
 const RE = {
     div: reFactory('div'),
     svg: ({width, height, minX, minY, xWidth, yWidth}, ...children) => re('svg', {width, height, viewBox:`${minX} ${-(minY+yWidth)} ${xWidth} ${yWidth}`},
@@ -41,32 +67,8 @@ const RE = {
             width,
             height,
             viewBox: `${boundaries.minX} ${boundaries.minY} ${boundaries.maxX - boundaries.minX} ${boundaries.maxY - boundaries.minY}`,
-            onClick: clickEvent => {
-                if (onClick) {
-                    const nativeEvent = clickEvent.nativeEvent
-                    let target = nativeEvent.target
-                    while (hasValue(target) && target.nodeName != 'svg') {
-                        target = target.parentElement
-                    }
-                    if (target) {
-                        const svgBoundingClientRect = target.getBoundingClientRect()
-                        const clickViewScreenX = nativeEvent.clientX - svgBoundingClientRect.x
-                        const clickViewScreenY = nativeEvent.clientY - svgBoundingClientRect.y
-                        const H = height
-                        const W = width
-                        const h = boundaries.maxY - boundaries.minY
-                        const w = boundaries.maxX - boundaries.minX
-                        const pixelSize = H/W < h/w ? h/H : w/W
-                        const clickViewCenterX = -W/2 + clickViewScreenX
-                        const clickViewCenterY = -H/2 + clickViewScreenY
-                        const clickImageCenterX = clickViewCenterX*pixelSize
-                        const clickImageCenterY = clickViewCenterY*pixelSize
-                        const clickImageX = (boundaries.minX + boundaries.maxX)/2 + clickImageCenterX
-                        const clickImageY = (boundaries.minY + boundaries.maxY)/2 + clickImageCenterY
-                        onClick(clickImageX, clickImageY)
-                    }
-                }
-            },
+            onMouseDown: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
+            onMouseUp: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
             ...(props?props:{})
         },
         children
@@ -138,6 +140,7 @@ const SVG = {
     path: reFactory('path'),
     polygon: reFactory('polygon'),
     g: reFactory('g'),
+    text: reFactory('text'),
 }
 
 const svg = {
