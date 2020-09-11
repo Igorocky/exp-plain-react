@@ -74,7 +74,9 @@ const X4Exercise = () => {
     }
 
     function isUserClickCorrect({clickData, currCell}) {
-        return isPointWithinCell({x:clickData.x, y:clickData.y, cell:currCell})
+        const userSelectedCell = getUserSelectedCell({clickData})
+        return equalCells(currCell, userSelectedCell)
+            && clickData.nativeEvent.button == (isWhiteCell(userSelectedCell) ? 0 : 2)
     }
 
     function isPointWithinCell({x,y,cell}) {
@@ -149,16 +151,16 @@ const X4Exercise = () => {
         })
     }
 
-    function renderIslands() {
-        return [
-            ...[0,2,9,18,16,61,63,54,45,47]
-                .map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'black'}})),
-            ...[5,14,7,21,23,56,58,49,40,42]
-                .map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'lightgrey'}}))
-        ]
+    function getCellColor({cell}) {
+        return isBlackCell(cell)?'black':'lightgrey'
     }
 
-    console.log({USER_SELECTED_CELL:state[s.USER_SELECTED_CELL]?state[s.USER_SELECTED_CELL].idx:null})
+    function renderIslands() {
+        return [
+            0,2,9,18,16,61,63,54,45,47,
+            5,14,7,21,23,56,58,49,40,42
+        ].map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'olive'}}))
+    }
 
     const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.02, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
@@ -173,10 +175,13 @@ const X4Exercise = () => {
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
             ...renderIslands(),
-            renderCurrCellName(),
-            ...renderCells({key:'cell-border', props: borderCellProps}),
             ...(state[s.USER_SELECTED_CELL]
                     ? [
+                        state[s.USER_CLICK_CORRECT]?renderCell({
+                            key:'user-selected-cell',
+                            cellNum:state[s.USER_SELECTED_CELL].idx,
+                            props:{strokeWidth:0,fill:getCellColor({cell:state[s.USER_SELECTED_CELL]})}
+                        }):null,
                         renderCell({
                             key:'cell-border-clicked',
                             cellNum:state[s.USER_SELECTED_CELL].idx,
@@ -188,7 +193,9 @@ const X4Exercise = () => {
                         })
                     ]
                     : []
-            )
+            ),
+            renderCurrCellName(),
+            ...renderCells({key:'cell-border', props: borderCellProps}),
         )
     )
 }
