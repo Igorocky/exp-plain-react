@@ -175,7 +175,7 @@ const X4Exercise = () => {
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
             ...renderIslands(),
-            renderCurrCellName(),
+            !state[s.USER_CLICK_CORRECT]?renderCurrCellName():null,
             ...renderCells({key:'cell-border', props: borderCellProps}),
             ...(state[s.USER_SELECTED_CELL]
                     ? [
@@ -196,6 +196,7 @@ const X4Exercise = () => {
                     ]
                     : []
             ),
+            state[s.USER_CLICK_CORRECT]?renderCurrCellName():null,
         )
     )
 }
