@@ -82,12 +82,37 @@ const X4Exercise = () => {
             {
                 key:'cell-name',
                 x:center.end.x-cellSize/2,
-                y:center.end.y,
+                y:center.end.y+cellSize/2*0.7,
                 fill:'yellow',
                 fontSize:cellSize+'px'
             },
             state[s.CURR_CELL].name
         )
+    }
+
+    function renderCell({key,x,y,props}) {
+        let cellBottomVector = SVG_EX.scale(cellSize)
+        cellBottomVector = cellBottomVector.translate(cellBottomVector, x)
+        let cellLeftVector = cellBottomVector.rotate(90)
+        cellBottomVector = cellBottomVector.translate(cellLeftVector,y)
+        cellLeftVector = cellLeftVector.translate(cellLeftVector, y+1)
+        let cellUpperVector = cellLeftVector.rotate(-90)
+
+        return svgPolygon({
+            key:`${key}-cell-${x}-${y}`,
+            points: [cellBottomVector.start, cellBottomVector.end, cellUpperVector.end, cellUpperVector.start],
+            props
+        })
+    }
+
+    function renderCells({key, props}) {
+        const result = []
+        for (let x = 0; x < numOfCols; x++) {
+            for (let y = 0; y < numOfRows; y++) {
+                result.push(renderCell({key,x,y,props}))
+            }
+        }
+        return result
     }
 
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
@@ -102,6 +127,7 @@ const X4Exercise = () => {
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
             renderCurrCellName(),
+            ...renderCells({key:'cell-border', props:{fillOpacity:0, strokeWidth:cellSize*0.02, stroke:'cyan', strokeOpacity:0, className:'cell-border'}}),
             state[s.CLICKED_POINT]
                 ?svgCircle({
                     key:`clicked-point`,

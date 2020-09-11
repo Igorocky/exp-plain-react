@@ -15,3 +15,7 @@
 .settings-table tr:hover {
     /*background-color: lightgray;*/
 }
+
+.cell-border:hover {
+    stroke-opacity: 1;
+}
