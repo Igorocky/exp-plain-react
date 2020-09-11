@@ -16,7 +16,7 @@ const X4Exercise = () => {
         ANSWER: 'ANSWER',
     }
 
-    const viewWidth = 500
+    const viewWidth = 700
     const background = SVG.rect({key:'background', x:-1000, y:-1000, width:2000, height:2000, fill:"lightgrey"})
 
     const cellSize = 10
@@ -175,6 +175,8 @@ const X4Exercise = () => {
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
             ...renderIslands(),
+            renderCurrCellName(),
+            ...renderCells({key:'cell-border', props: borderCellProps}),
             ...(state[s.USER_SELECTED_CELL]
                     ? [
                         state[s.USER_CLICK_CORRECT]?renderCell({
@@ -194,8 +196,6 @@ const X4Exercise = () => {
                     ]
                     : []
             ),
-            renderCurrCellName(),
-            ...renderCells({key:'cell-border', props: borderCellProps}),
         )
     )
 }
