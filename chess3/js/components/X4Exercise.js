@@ -63,6 +63,7 @@ const X4Exercise = () => {
             state = state.set(s.CURR_CELL, nextRandomCell({cellCounts:state[s.CELL_COUNTS]}))
             state = state.set(s.CLICK_DATA, null)
             state = state.set(s.USER_CLICK_CORRECT, null)
+            state = state.set(s.USER_SELECTED_CELL, null)
             state = state.set(s.CELL_COUNTS, inc(state[s.CELL_COUNTS], state[s.CURR_CELL].idx))
         }
         return state
@@ -139,6 +140,26 @@ const X4Exercise = () => {
         return ALL_CELLS.map(cell => renderCell({key,cellNum:cell.idx,props}))
     }
 
+    function renderClickedPoint({clickData, color}) {
+        return svgCircle({
+            key: `clicked-point`,
+            c: new Point(clickData.x, clickData.y),
+            r: clickedPointRadius,
+            props: {fill: color, strokeWidth: 0}
+        })
+    }
+
+    function renderIslands() {
+        return [
+            ...[0,2,9,18,16,61,63,54,45,47]
+                .map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'black'}})),
+            ...[5,14,7,21,23,56,58,49,40,42]
+                .map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'lightgrey'}}))
+        ]
+    }
+
+    console.log({USER_SELECTED_CELL:state[s.USER_SELECTED_CELL]?state[s.USER_SELECTED_CELL].idx:null})
+
     const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.02, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
         RE.svg2(
@@ -151,19 +172,20 @@ const X4Exercise = () => {
             },
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
+            ...renderIslands(),
             renderCurrCellName(),
             ...renderCells({key:'cell-border', props: borderCellProps}),
-            ...(state[s.CLICK_DATA]
+            ...(state[s.USER_SELECTED_CELL]
                     ? [
-                        svgCircle({
-                            key: `clicked-point`,
-                            c: new Point(state[s.CLICK_DATA].x, state[s.CLICK_DATA].y),
-                            r: clickedPointRadius,
-                            props: {fill: state[s.USER_CLICK_CORRECT] ? 'yellow' : 'red', strokeWidth: 0}
-                        }),
-                        state[s.USER_SELECTED_CELL]
-                            ?renderCell({key:'cell-border-clicked',cellNum:state[s.USER_SELECTED_CELL].idx,props:{...borderCellProps, strokeOpacity:1}})
-                            :null
+                        renderCell({
+                            key:'cell-border-clicked',
+                            cellNum:state[s.USER_SELECTED_CELL].idx,
+                            props:{
+                                ...borderCellProps,
+                                strokeOpacity:1,
+                                stroke: state[s.USER_CLICK_CORRECT]?'yellow':'red'
+                            }
+                        })
                     ]
                     : []
             )
