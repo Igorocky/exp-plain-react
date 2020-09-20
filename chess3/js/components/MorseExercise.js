@@ -1,6 +1,7 @@
 "use strict";
 
 const MorseExercise = () => {
+    const LOCAL_STORAGE_KEY = 'MorseExercise'
 
     const s = {
         PHASE: 'PHASE',
@@ -21,11 +22,22 @@ const MorseExercise = () => {
     const {speak, renderVoiceSelector} = useSpeechComponent()
     const {outputMorse} = useMorseOutput({dotDuration:0.1})
 
+    const [firstSymbolIdxParam, setFirstSymbolIdx] = useStateFromLocalStorageNumber({
+        key:LOCAL_STORAGE_KEY+'.'+'firstSymbolIdx', min: 0, max: MORSE_ARR.length-1, minIsDefault: true
+    })
+    const [lastSymbolIdxParam, setLastSymbolIdx] = useStateFromLocalStorageNumber({
+        key:LOCAL_STORAGE_KEY+'.'+'lastSymbolIdx', min: 0, max: MORSE_ARR.length-1, maxIsDefault: true
+    })
     const [state, setState] = useState(() => createNewState({}))
+    useEffect(() => {
+        setFirstSymbolIdx(state[s.FIRST_SYMBOL_IDX])
+        setLastSymbolIdx(state[s.LAST_SYMBOL_IDX])
+    }, [state[s.FIRST_SYMBOL_IDX], state[s.LAST_SYMBOL_IDX]])
+
 
     function createNewState({prevState, params}) {
-        const firstSymbolIdx = params?.[s.FIRST_SYMBOL_IDX]??prevState?.[s.FIRST_SYMBOL_IDX]??0
-        const lastSymbolIdx = Math.max(firstSymbolIdx, params?.[s.LAST_SYMBOL_IDX]??prevState?.[s.LAST_SYMBOL_IDX]??MORSE_ARR.length-1)
+        const firstSymbolIdx = params?.[s.FIRST_SYMBOL_IDX]??prevState?.[s.FIRST_SYMBOL_IDX]??firstSymbolIdxParam
+        const lastSymbolIdx = Math.max(firstSymbolIdx, params?.[s.LAST_SYMBOL_IDX]??prevState?.[s.LAST_SYMBOL_IDX]??lastSymbolIdxParam)
         const allSymbols = calculateAllSymbols({firstSymbolIdx,lastSymbolIdx})
         const currSym = allSymbols[randomInt(0,allSymbols.length-1)]
         speak(currSym.word)

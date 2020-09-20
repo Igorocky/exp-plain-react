@@ -24,7 +24,7 @@ const MorseInput = ({style, onSymbol, onUnrecognizedCode}) => {
 
             st.set(s.CODE, st.get(s.CODE) + dashOrDot)
             st.set(s.TIMINGS, [...st.get(s.TIMINGS), getCurrentTime(), dashOrDot])
-            timeout.current = window.setTimeout(sendUserInput, 500)
+            timeout.current = window.setTimeout(sendUserInput, 700)
 
             return st.get()
         })
