@@ -61,4 +61,5 @@ const MORSE = {
 }
 
 const MORSE_ARR = Object.entries(MORSE).map(([k,v])=>v)
-const MORSE_MAP = Object.entries(MORSE).reduce((res,[k,v])=>({...res,[v.sym]:v}), {})
+const MORSE_MAP_SYM = Object.entries(MORSE).reduce((res,[k,v])=>({...res,[v.sym]:v}), {})
+const MORSE_MAP_CODE = Object.entries(MORSE).reduce((res,[k,v])=>({...res,[v.code]:v}), {})
