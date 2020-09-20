@@ -158,3 +158,139 @@ const svg = {
     g: reFactory('g'),
     text: reFactory('text'),
 }
+
+
+function useStateFromLocalStorage({key, validator}) {
+    const [value, setValue] = useState(() => {
+        return validator(readFromLocalStorage(key, undefined))
+    })
+
+    function setValueInternal(newValue) {
+        newValue = validator(newValue)
+        saveToLocalStorage(key, newValue)
+        setValue(newValue)
+    }
+
+    return [
+        value,
+        newValue => {
+            if (typeof newValue === 'function') {
+                setValueInternal(newValue(value))
+            } else {
+                setValueInternal(newValue)
+            }
+        }
+    ]
+}
+
+function useStateFromLocalStorageNumber({key, min, max, minIsDefault, maxIsDefault, defaultValue, nullable}) {
+    function getDefaultValue() {
+        if (typeof defaultValue === 'function') {
+            return defaultValue()
+        } else if (minIsDefault) {
+            return min
+        } else if (maxIsDefault) {
+            return max
+        } else if (hasValue(defaultValue) || nullable && defaultValue === null) {
+            return defaultValue
+        } else if (nullable) {
+            return null
+        } else if (hasValue(min)) {
+            return min
+        } else if (hasValue(max)) {
+            return max
+        } else {
+            throw new Error('Cannot determine default value for ' + key)
+        }
+    }
+
+    return useStateFromLocalStorage({
+        key,
+        validator: value => {
+            if (value === undefined) {
+                return getDefaultValue()
+            } else if (value === null) {
+                if (nullable) {
+                    return null
+                } else {
+                    return getDefaultValue()
+                }
+            } else if (!(typeof value === 'number')) {
+                return getDefaultValue()
+            } else {
+                if (hasValue(min) && value < min || hasValue(max) && max < value) {
+                    return getDefaultValue()
+                } else {
+                    return value
+                }
+            }
+        }
+    })
+}
+
+function useStateFromLocalStorageString({key, defaultValue, nullable}) {
+    function getDefaultValue() {
+        if (typeof defaultValue === 'function') {
+            return defaultValue()
+        } else if (hasValue(defaultValue) || nullable && defaultValue === null) {
+            return defaultValue
+        } else if (nullable) {
+            return null
+        } else {
+            throw new Error('Cannot determine default value for ' + key)
+        }
+    }
+
+    return useStateFromLocalStorage({
+        key,
+        validator: value => {
+            if (value === undefined) {
+                return getDefaultValue()
+            } else if (value === null) {
+                if (nullable) {
+                    return null
+                } else {
+                    return getDefaultValue()
+                }
+            } else if (!(typeof value === 'string')) {
+                return getDefaultValue()
+            } else {
+                return value
+            }
+        }
+    })
+}
+
+function useStateFromLocalStorageBoolean({key, defaultValue, nullable}) {
+    function getDefaultValue() {
+        if (typeof defaultValue === 'function') {
+            return defaultValue()
+        } else if (hasValue(defaultValue) || nullable && defaultValue === null) {
+            return defaultValue
+        } else if (nullable) {
+            return null
+        } else {
+            throw new Error('Cannot determine default value for ' + key)
+        }
+    }
+
+    return useStateFromLocalStorage({
+        key,
+        validator: value => {
+            if (value === undefined) {
+                return getDefaultValue()
+            } else if (value === null) {
+                if (nullable) {
+                    return null
+                } else {
+                    return getDefaultValue()
+                }
+            } else if (!(typeof value === 'boolean')) {
+                return getDefaultValue()
+            } else {
+                return value
+            }
+        }
+    })
+}
+

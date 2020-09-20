@@ -67,10 +67,20 @@ function modifyAtIdx(arr, idx, modifier) {
     return arr.map((e,i) => i==idx?modifier(e):e)
 }
 
+function nextRandomElem({allElems,counts}) {
+    const elemsWithCnt = allElems.map(elem => ({...elem, cnt:counts[elem.idx]}))
+    const minCnt = elemsWithCnt.attr('cnt').min()
+    const elemsWithMinCnt = elemsWithCnt.filter(elem => elem.cnt == minCnt)
+    return elemsWithMinCnt[randomInt(0,elemsWithMinCnt.length-1)]
+}
+
 function createObj(obj) {
     const self = {
         ...obj,
-        set: (attr, value) => createObj({...obj, [attr]:value}),
+        set: (attr, value) => {
+            // console.log(`Setting in object: attr = ${attr}, value = ${value}`)
+            return createObj({...obj, [attr]: value})
+        },
         attr: (...attrs) => attrs.reduce((o,a)=>({...o,[a]:obj[a]}), {}),
         map: mapper => {
             const newObj = mapper(self)
@@ -87,8 +97,50 @@ function createObj(obj) {
 function objectHolder(obj) {
     return {
         get: (attr) => attr?obj[attr]:obj,
-        set: (attr, value) => obj = obj.set(attr,value),
+        set: (attr, value) => {
+            // console.log(`Setting in holder: attr = ${attr}, value = ${value}`)
+            obj = obj.set(attr, value)
+        },
         attr: (...attrs) => obj.attr(...attrs),
         map: mapper => obj = obj.map(mapper),
     }
+}
+
+const NEXT_SOUND = "on-next.mp3"
+const PREV_SOUND = "on-prev.mp3"
+const GO_TO_START_SOUND = "on-go-to-start3.mp3"
+const GO_TO_END_SOUND = "on-go-to-end-teleport.mp3"
+const ENTER_SOUND = "on-enter2.mp3"
+const BACKSPACE_SOUND = "on-backspace.mp3"
+const ESCAPE_SOUND = "on-escape.mp3"
+const ERROR_SOUND = "on-error.mp3"
+
+function audioUrl(audioFileName) {
+    return "./sounds/" + audioFileName
+}
+
+const AUDIO_FILES_CACHE = {}
+
+function playAudio(audioFileName, callback) {
+    let audioArr = AUDIO_FILES_CACHE[audioFileName]
+    if (!audioArr) {
+        audioArr = [new Audio(audioUrl(audioFileName))]
+        AUDIO_FILES_CACHE[audioFileName] = audioArr
+    }
+    let audio = audioArr.find(a => a.paused)
+    if (!audio) {
+        audio = new Audio(audioUrl(audioFileName))
+        audioArr.push(audio)
+    }
+    audio.onended = callback
+    audio.play()
+}
+
+function saveToLocalStorage(localStorageKey, value) {
+    window.localStorage.setItem(localStorageKey, JSON.stringify(value))
+}
+
+function readFromLocalStorage(localStorageKey, defaultValue) {
+    const item = window.localStorage.getItem(localStorageKey)
+    return hasValue(item) ? JSON.parse(item) : defaultValue
 }
