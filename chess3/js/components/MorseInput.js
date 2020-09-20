@@ -1,6 +1,6 @@
 "use strict";
 
-const MorseInput = ({style, onSymbol, onUnrecognizedCode}) => {
+const MorseInput = ({style, onSymbol, onUnrecognizedCode, onEnter}) => {
 
     const s = {
         CODE: 'CODE',
@@ -14,11 +14,15 @@ const MorseInput = ({style, onSymbol, onUnrecognizedCode}) => {
 
     const timeout = useRef(null)
 
-    function onDashDot(dashOrDot) {
+    function clearTimeout() {
         if (timeout.current) {
             window.clearTimeout(timeout.current)
             timeout.current = null
         }
+    }
+
+    function onDashDot(dashOrDot) {
+        clearTimeout()
         setState(state => {
             const st = objectHolder(state)
 
@@ -48,6 +52,19 @@ const MorseInput = ({style, onSymbol, onUnrecognizedCode}) => {
         })
     }
 
+    function runOnEnter() {
+        clearTimeout()
+        setState(state => {
+            const st = objectHolder(state)
+
+            st.set(s.CODE, '')
+            st.set(s.TIMINGS, [])
+            onEnter()
+
+            return st.get()
+        })
+    }
+
 
     function getCurrentTime() {
         return new Date().getTime()
@@ -55,6 +72,13 @@ const MorseInput = ({style, onSymbol, onUnrecognizedCode}) => {
 
     return RE.div({
         style: {width: '100px', height: '100px', backgroundColor: 'black'},
-        onMouseDown: clickEvent => onDashDot(clickEvent.nativeEvent.button == 0 ? '.' : '-'),
+        onMouseDown: clickEvent => {
+            const nativeEvent = clickEvent.nativeEvent;
+            if (nativeEvent.buttons == 3 && onEnter) {
+                runOnEnter()
+            } else {
+                onDashDot(nativeEvent.button == 0 ? '.' : '-')
+            }
+        },
     })
 }

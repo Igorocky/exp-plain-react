@@ -73,32 +73,7 @@ const MorseExercise = () => {
         setState(state => {
             const st = objectHolder(state)
 
-            if (MORSE.end.sym === symOrCode) {
-                const userInput = st.get(s.USER_INPUT)
-                st.set(s.USER_INPUT, '')
-                st.set(s.USER_INPUT_DATA, [])
-                if (userInput == st.get(s.CURR_CARD).text) {
-                    st.set(s.USER_INPUT_CORRECT, null)
-                    st.set(s.CURR_CARD, nextRandomElem({allElems:st.get(s.ALL_CARDS),counts:st.get(s.CARD_COUNTS)}))
-                    st.set(s.CARD_COUNTS, inc(st.get(s.CARD_COUNTS), st.get(s.CURR_CARD).idx))
-                    playAudio(
-                        NEXT_SOUND,
-                        () => window.setTimeout(
-                            () => outputMorse(st.get(s.CURR_CARD).text),
-                            1000
-                        )
-                    )
-                } else {
-                    playAudio(
-                        GO_TO_START_SOUND,
-                        () => window.setTimeout(
-                            () => outputMorse(st.get(s.CURR_CARD).text),
-                            1000
-                        )
-                    )
-                    st.set(s.USER_INPUT_CORRECT, false)
-                }
-            } else if (MORSE.question.sym === symOrCode) {
+            if (MORSE.question.sym === symOrCode) {
                 st.set(s.USER_INPUT, '')
                 st.set(s.USER_INPUT_DATA, [])
                 speak(st.get(s.CURR_CARD).symbols.map(s => s.word).join(' '))
@@ -114,6 +89,40 @@ const MorseExercise = () => {
                 }
                 st.set(s.USER_INPUT, st.get(s.USER_INPUT) + symOrCode)
                 st.set(s.USER_INPUT_DATA, [...st.get(s.USER_INPUT_DATA), {symOrCode, timings}])
+            }
+
+            return st.get()
+        })
+    }
+
+    function onUserInputEnter() {
+        setState(state => {
+            const st = objectHolder(state)
+
+            const userInput = st.get(s.USER_INPUT)
+            st.set(s.USER_INPUT, '')
+            st.set(s.USER_INPUT_DATA, [])
+            if (userInput == st.get(s.CURR_CARD).text) {
+                const words = st.get(s.CURR_CARD).symbols.map(s => s.word).join(' ')
+                st.set(s.USER_INPUT_CORRECT, null)
+                st.set(s.CURR_CARD, nextRandomElem({allElems:st.get(s.ALL_CARDS),counts:st.get(s.CARD_COUNTS)}))
+                st.set(s.CARD_COUNTS, inc(st.get(s.CARD_COUNTS), st.get(s.CURR_CARD).idx))
+                speak(
+                    words,
+                    () => window.setTimeout(
+                        () => outputMorse(st.get(s.CURR_CARD).text),
+                        1000
+                    )
+                )
+            } else {
+                playAudio(
+                    GO_TO_START_SOUND,
+                    () => window.setTimeout(
+                        () => outputMorse(st.get(s.CURR_CARD).text),
+                        1000
+                    )
+                )
+                st.set(s.USER_INPUT_CORRECT, false)
             }
 
             return st.get()
@@ -212,6 +221,7 @@ const MorseExercise = () => {
                 console.log(`Unrecognized code: ${code}   [${timingsToStr(timings)}]`)
                 onUserInput(code,timings)
             },
+            onEnter: onUserInputEnter,
         }),
         printUserInputData()
     )
