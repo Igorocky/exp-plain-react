@@ -5,6 +5,7 @@ const AVAILABLE_EXERCISES = [
     {name:"FrameToImgExercise", component: FrameToImgExercise},
     {name:"ConnectionsExercise", component: ConnectionsExercise},
     {name:"X4Exercise", component: X4Exercise},
+    {name:"MorseExercise", component: X4Exercise},
 ]
 
 const ExerciseSelector = ({}) => {

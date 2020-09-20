@@ -19,6 +19,11 @@ const KEYDOWN_LISTENER_NAME = 'keydown'
 const MOUSEDOWN_LISTENER_NAME = 'mousedown'
 const MOUSEUP_LISTENER_NAME = 'mouseup'
 
+const SIGNAL_TYPE_SINE = "sine"
+const SIGNAL_TYPE_SQUARE = "square"
+const SIGNAL_TYPE_SAWTOOTH = "sawtooth"
+const SIGNAL_TYPE_TRIANGLE = "triangle"
+
 const XX = ["a","b","c","d","e","f","g","h"]
 const YY = ["1","2","3","4","5","6","7","8"]
 
@@ -138,28 +143,4 @@ function readSettingsFromLocalStorage({localStorageKey, attrsToRead}) {
     } else {
         return {}
     }
-}
-
-const BEEP_TYPE_SINE = "sine"
-const BEEP_TYPE_SQUARE = "square"
-const BEEP_TYPE_SAWTOOTH = "sawtooth"
-const BEEP_TYPE_TRIANGLE = "triangle"
-let AUDIO_CTX = null
-function beep({durationMillis, frequencyHz, volume, type, callback}) {
-    if (!AUDIO_CTX) {
-        AUDIO_CTX = new (window.AudioContext || window.webkitAudioContext || window.audioContext)
-    }
-    const oscillator = AUDIO_CTX.createOscillator()
-    const gainNode = AUDIO_CTX.createGain()
-
-    oscillator.connect(gainNode)
-    gainNode.connect(AUDIO_CTX.destination)
-
-    oscillator.frequency.value = frequencyHz?frequencyHz:440
-    oscillator.type = type?type:BEEP_TYPE_SINE
-    oscillator.onended = callback?callback:undefined
-    gainNode.gain.value = volume?volume:1
-
-    oscillator.start()
-    oscillator.stop(AUDIO_CTX.currentTime + ((durationMillis || 500) / 1000));
 }

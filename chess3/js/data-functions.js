@@ -83,3 +83,12 @@ function createObj(obj) {
     }
     return self
 }
+
+function objectHolder(obj) {
+    return {
+        get: (attr) => attr?obj[attr]:obj,
+        set: (attr, value) => obj = obj.set(attr,value),
+        attr: (...attrs) => obj.attr(...attrs),
+        map: mapper => obj = obj.map(mapper),
+    }
+}
