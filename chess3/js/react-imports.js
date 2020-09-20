@@ -93,6 +93,7 @@ const RE = {
     ListItemText: reFactory(MaterialUI.ListItemText),
     Modal: reFactory(MaterialUI.Modal),
     MenuItem: reFactory(MaterialUI.MenuItem),
+    InputLabel: reFactory(MaterialUI.InputLabel),
     Paper: reFactory(MaterialUI.Paper),
     RadioGroup: reFactory(MaterialUI.RadioGroup),
     Radio : reFactory(MaterialUI.Radio),

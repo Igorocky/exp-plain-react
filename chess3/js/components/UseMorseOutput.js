@@ -1,6 +1,6 @@
 "use strict";
 
-const UseMorseOutput = () => {
+const useMorseOutput = ({dotDuration}) => {
 
     const s = {
         AUDIO_CONTEXT: 'AUDIO_CONTEXT',
@@ -25,7 +25,6 @@ const UseMorseOutput = () => {
     }
 
     function scheduleMorseSound({state,dashDots}) {
-        const dotDuration = 0.05
         const st = objectHolder(state)
         if (!st.get(s.AUDIO_CONTEXT)) {
             const audioContext = new (window.AudioContext??window.webkitAudioContext??window.audioContext)
