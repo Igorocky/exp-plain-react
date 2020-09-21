@@ -1,7 +1,6 @@
 "use strict";
 
-const useSpeechComponent = () => {
-    const [voiceUri, setVoiceUri] = useStateFromLocalStorageString({key:'chess3.voiceUri',defaultValue:''})
+const useSpeechComponent = ({voiceUri}) => {
 
     function speak(message,callback) {
         const msg = new SpeechSynthesisUtterance()
@@ -17,14 +16,6 @@ const useSpeechComponent = () => {
 
     return {
         speak,
-        renderVoiceSelector: () => RE.Select({
-                value:voiceUri,
-                onChange: event => setVoiceUri(event.target.value),
-            },
-            window.speechSynthesis.getVoices().map(voice => RE.MenuItem(
-                {key: voice.voiceURI, value:voice.voiceURI, },
-                voice.name
-            ))
-        )
+        availableVoiceUris: window.speechSynthesis.getVoices().map(v => [v.voiceURI, v.name]),
     }
 }

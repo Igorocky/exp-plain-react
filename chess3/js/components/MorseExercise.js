@@ -14,6 +14,7 @@ const MorseExercise = () => {
         LAST_SYMBOL_IDX: 'LAST_SYMBOL_IDX',
         CARD_LENGTH: 'CARD_LENGTH',
         DOT_DURATION: 'DOT_DURATION',
+        VOICE_URI: 'VOICE_URI',
         ALL_CARDS: 'ALL_CARDS'
     }
 
@@ -22,34 +23,45 @@ const MorseExercise = () => {
         ANSWER: 'ANSWER',
     }
 
-    const [firstSymbolIdxParam, setFirstSymbolIdxParam] = useStateFromLocalStorageNumber({
+    const [firstSymbolIdxStore, setFirstSymbolIdxStore] = useStateFromLocalStorageNumber({
         key:LOCAL_STORAGE_KEY+'.'+'firstSymbolIdx', min: 0, max: MORSE_ARR.length-1, minIsDefault: true
     })
-    const [lastSymbolIdxParam, setLastSymbolIdxParam] = useStateFromLocalStorageNumber({
+    const [lastSymbolIdxStore, setLastSymbolIdxStore] = useStateFromLocalStorageNumber({
         key:LOCAL_STORAGE_KEY+'.'+'lastSymbolIdx', min: 0, max: MORSE_ARR.length-1, maxIsDefault: true
     })
-    const [cardLengthParam, setCardLengthParam] = useStateFromLocalStorageNumber({
+    const [cardLengthStore, setCardLengthStore] = useStateFromLocalStorageNumber({
         key:LOCAL_STORAGE_KEY+'.'+'cardLength', min: 1, max: 3, minIsDefault: true
     })
-    const [dotDurationParam, setDotDurationParam] = useStateFromLocalStorageNumber({
+    const [dotDurationStore, setDotDurationStore] = useStateFromLocalStorageNumber({
         key:LOCAL_STORAGE_KEY+'.'+'dotDuration', min: 0.01, max: 0.1, defaultValue: 0.05
+    })
+    const [voiceUriStore, setVoiceUriStore] = useStateFromLocalStorageString({
+        key:LOCAL_STORAGE_KEY+'.'+'voiceUri', defaultValue:''
     })
     const [state, setState] = useState(() => createNewState({}))
     useEffect(() => {
-        setFirstSymbolIdxParam(state[s.FIRST_SYMBOL_IDX])
-        setLastSymbolIdxParam(state[s.LAST_SYMBOL_IDX])
-        setCardLengthParam(state[s.CARD_LENGTH])
-        setDotDurationParam(state[s.DOT_DURATION])
-    }, [state[s.FIRST_SYMBOL_IDX], state[s.LAST_SYMBOL_IDX], state[s.CARD_LENGTH], state[s.DOT_DURATION]])
-    const {speak, renderVoiceSelector} = useSpeechComponent()
+        setFirstSymbolIdxStore(state[s.FIRST_SYMBOL_IDX])
+        setLastSymbolIdxStore(state[s.LAST_SYMBOL_IDX])
+        setCardLengthStore(state[s.CARD_LENGTH])
+        setDotDurationStore(state[s.DOT_DURATION])
+        setVoiceUriStore(state[s.VOICE_URI])
+    }, [
+        state[s.FIRST_SYMBOL_IDX],
+        state[s.LAST_SYMBOL_IDX],
+        state[s.CARD_LENGTH],
+        state[s.DOT_DURATION],
+        state[s.VOICE_URI]
+    ])
+    const {speak, availableVoiceUris} = useSpeechComponent({voiceUri:voiceUriStore})
     const {outputMorse} = useMorseOutput({dotDuration:state[s.DOT_DURATION]})
 
 
     function createNewState({prevState, params}) {
-        const firstSymbolIdx = params?.[s.FIRST_SYMBOL_IDX]??prevState?.[s.FIRST_SYMBOL_IDX]??firstSymbolIdxParam
-        const lastSymbolIdx = Math.max(firstSymbolIdx, params?.[s.LAST_SYMBOL_IDX]??prevState?.[s.LAST_SYMBOL_IDX]??lastSymbolIdxParam)
-        const cardLength = params?.[s.CARD_LENGTH]??prevState?.[s.CARD_LENGTH]??cardLengthParam
-        const dotDuration = params?.[s.DOT_DURATION]??prevState?.[s.DOT_DURATION]??dotDurationParam
+        const firstSymbolIdx = params?.[s.FIRST_SYMBOL_IDX]??prevState?.[s.FIRST_SYMBOL_IDX]??firstSymbolIdxStore
+        const lastSymbolIdx = Math.max(firstSymbolIdx, params?.[s.LAST_SYMBOL_IDX]??prevState?.[s.LAST_SYMBOL_IDX]??lastSymbolIdxStore)
+        const cardLength = params?.[s.CARD_LENGTH]??prevState?.[s.CARD_LENGTH]??cardLengthStore
+        const dotDuration = params?.[s.DOT_DURATION]??prevState?.[s.DOT_DURATION]??dotDurationStore
+        const voiceUri = params?.[s.VOICE_URI]??prevState?.[s.VOICE_URI]??voiceUriStore
         const allCards = createAllCards({firstSymbolIdx,lastSymbolIdx,cardLength})
         const currCard = allCards[randomInt(0,allCards.length-1)]
         return createObj({
@@ -57,6 +69,7 @@ const MorseExercise = () => {
             [s.LAST_SYMBOL_IDX]: lastSymbolIdx,
             [s.CARD_LENGTH]: cardLength,
             [s.DOT_DURATION]: dotDuration,
+            [s.VOICE_URI]: voiceUri,
             [s.ALL_CARDS]: allCards,
             [s.CURR_CARD]: currCard,
             [s.CARD_COUNTS]: inc(new Array(allCards.length).fill(0), currCard.idx),
@@ -83,7 +96,7 @@ const MorseExercise = () => {
                 st.set(s.USER_INPUT, '')
                 st.set(s.USER_INPUT_DATA, [])
                 speak(st.get(s.CURR_CARD).symbols.map(s => s.word).join(' '))
-            } else if (MORSE.apostrophe.sym === symOrCode) {
+            } else if (MORSE.period.sym === symOrCode) {
                 st.set(s.USER_INPUT, '')
                 st.set(s.USER_INPUT_DATA, [])
                 window.setTimeout(
@@ -178,8 +191,7 @@ const MorseExercise = () => {
                     onChange: event => {
                         onChange(event.target.value)
                     },
-                    style: {width: '100px'},
-                    variant:'outlined'
+                    style: {width: '300px'},
                 },
                 values.map(([value,text]) => RE.MenuItem({key: value, value: value}, text))
             )
@@ -200,7 +212,6 @@ const MorseExercise = () => {
     }
 
     return RE.Container.col.top.center({style:{marginTop:'0px'}},{style:{marginTop:'15px'}},
-        renderVoiceSelector(),
         renderParamSelector({
             label:'First symbol',
             paramName:s.FIRST_SYMBOL_IDX,
@@ -220,6 +231,11 @@ const MorseExercise = () => {
             label:'Dot duration',
             paramName:s.DOT_DURATION,
             values:ints(1,10).map(i => [i/100,i/100]),
+        }),
+        renderParamSelector({
+            label:'Voice',
+            paramName:s.VOICE_URI,
+            values:availableVoiceUris,
         }),
         re(MorseInput,{
             onSymbol: (sym,timings) => {
