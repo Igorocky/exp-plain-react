@@ -14,8 +14,12 @@ const MorseExercise = () => {
         LAST_SYMBOL_IDX: 'LAST_SYMBOL_IDX',
         CARD_LENGTH: 'CARD_LENGTH',
         DOT_DURATION: 'DOT_DURATION',
+        SAY_WORD: 'SAY_WORD',
         VOICE_URI: 'VOICE_URI',
-        ALL_CARDS: 'ALL_CARDS'
+        ALL_CARDS: 'ALL_CARDS',
+        SUCCESS_CNT: 'SUCCESS_CNT',
+        FAIL_CNT: 'FAIL_CNT',
+        TRY_CNT: 'TRY_CNT',
     }
 
     const p = {
@@ -35,6 +39,9 @@ const MorseExercise = () => {
     const [dotDurationStore, setDotDurationStore] = useStateFromLocalStorageNumber({
         key:LOCAL_STORAGE_KEY+'.'+'dotDuration', min: 0.01, max: 0.1, defaultValue: 0.05
     })
+    const [sayWordStore, setSayWordStore] = useStateFromLocalStorageBoolean({
+        key:LOCAL_STORAGE_KEY+'.'+'sayWord', defaultValue:true
+    })
     const [voiceUriStore, setVoiceUriStore] = useStateFromLocalStorageString({
         key:LOCAL_STORAGE_KEY+'.'+'voiceUri', defaultValue:''
     })
@@ -44,13 +51,15 @@ const MorseExercise = () => {
         setLastSymbolIdxStore(state[s.LAST_SYMBOL_IDX])
         setCardLengthStore(state[s.CARD_LENGTH])
         setDotDurationStore(state[s.DOT_DURATION])
+        setSayWordStore(state[s.SAY_WORD])
         setVoiceUriStore(state[s.VOICE_URI])
     }, [
         state[s.FIRST_SYMBOL_IDX],
         state[s.LAST_SYMBOL_IDX],
         state[s.CARD_LENGTH],
         state[s.DOT_DURATION],
-        state[s.VOICE_URI]
+        state[s.SAY_WORD],
+        state[s.VOICE_URI],
     ])
     const {speak, availableVoiceUris} = useSpeechComponent({voiceUri:voiceUriStore})
     const {outputMorse} = useMorseOutput({dotDuration:state[s.DOT_DURATION]})
@@ -61,6 +70,7 @@ const MorseExercise = () => {
         const lastSymbolIdx = Math.max(firstSymbolIdx, params?.[s.LAST_SYMBOL_IDX]??prevState?.[s.LAST_SYMBOL_IDX]??lastSymbolIdxStore)
         const cardLength = params?.[s.CARD_LENGTH]??prevState?.[s.CARD_LENGTH]??cardLengthStore
         const dotDuration = params?.[s.DOT_DURATION]??prevState?.[s.DOT_DURATION]??dotDurationStore
+        const sayWord = params?.[s.SAY_WORD]??prevState?.[s.SAY_WORD]??sayWordStore
         const voiceUri = params?.[s.VOICE_URI]??prevState?.[s.VOICE_URI]??voiceUriStore
         const allCards = createAllCards({firstSymbolIdx,lastSymbolIdx,cardLength})
         const currCard = allCards[randomInt(0,allCards.length-1)]
@@ -69,6 +79,7 @@ const MorseExercise = () => {
             [s.LAST_SYMBOL_IDX]: lastSymbolIdx,
             [s.CARD_LENGTH]: cardLength,
             [s.DOT_DURATION]: dotDuration,
+            [s.SAY_WORD]: sayWord,
             [s.VOICE_URI]: voiceUri,
             [s.ALL_CARDS]: allCards,
             [s.CURR_CARD]: currCard,
@@ -77,6 +88,9 @@ const MorseExercise = () => {
             [s.USER_INPUT]: '',
             [s.USER_INPUT_DATA]: [],
             [s.PHASE]: p.QUESTION,
+            [s.SUCCESS_CNT]: 0,
+            [s.FAIL_CNT]: 0,
+            [s.TRY_CNT]: 0,
         })
     }
 
@@ -105,12 +119,18 @@ const MorseExercise = () => {
                 )
             } else {
                 if (MORSE_MAP_SYM[symOrCode]) {
+                    st.set(s.USER_INPUT, st.get(s.USER_INPUT) + symOrCode)
+                    st.set(s.USER_INPUT_DATA, [...st.get(s.USER_INPUT_DATA), {sym:symOrCode, timings}])
                     outputMorse(symOrCode)
                 } else {
-                    playAudio(GO_TO_START_SOUND)
+                    st.set(s.USER_INPUT_DATA, [...st.get(s.USER_INPUT_DATA), {code:symOrCode, timings}])
+                    playAudio(ERROR_SOUND)
                 }
-                st.set(s.USER_INPUT, st.get(s.USER_INPUT) + symOrCode)
-                st.set(s.USER_INPUT_DATA, [...st.get(s.USER_INPUT_DATA), {symOrCode, timings}])
+            }
+
+            const userInput = st.get(s.USER_INPUT);
+            if (userInput.length == st.get(s.CARD_LENGTH)) {
+                st.setObj(updateStateOnUserInputEnter({state:st.get()}))
             }
 
             return st.get()
@@ -118,37 +138,49 @@ const MorseExercise = () => {
     }
 
     function onUserInputEnter() {
-        setState(state => {
-            const st = objectHolder(state)
+        setState(state => updateStateOnUserInputEnter({state}))
+    }
 
-            const userInput = st.get(s.USER_INPUT)
-            st.set(s.USER_INPUT, '')
-            st.set(s.USER_INPUT_DATA, [])
-            if (userInput == st.get(s.CURR_CARD).text) {
-                const words = st.get(s.CURR_CARD).symbols.map(s => s.word).join(' ')
-                st.set(s.USER_INPUT_CORRECT, null)
-                st.set(s.CURR_CARD, nextRandomElem({allElems:st.get(s.ALL_CARDS),counts:st.get(s.CARD_COUNTS)}))
-                st.set(s.CARD_COUNTS, inc(st.get(s.CARD_COUNTS), st.get(s.CURR_CARD).idx))
-                speak(
-                    words,
-                    () => window.setTimeout(
-                        () => outputMorse(st.get(s.CURR_CARD).text),
-                        1000
-                    )
-                )
+    function updateStateOnUserInputEnter({state}) {
+        const st = objectHolder(state)
+
+        const userInput = st.get(s.USER_INPUT)
+        st.set(s.USER_INPUT, '')
+        st.set(s.USER_INPUT_DATA, [])
+        if (userInput == st.get(s.CURR_CARD).text) {
+            const words = st.get(s.CURR_CARD).symbols.map(s => s.word).join(' ')
+            st.set(s.USER_INPUT_CORRECT, null)
+            st.set(s.CURR_CARD, nextRandomElem({allElems:st.get(s.ALL_CARDS),counts:st.get(s.CARD_COUNTS)}))
+            st.set(s.CARD_COUNTS, inc(st.get(s.CARD_COUNTS), st.get(s.CURR_CARD).idx))
+
+            if (st.get(s.TRY_CNT) == 0) {
+                st.set(s.SUCCESS_CNT, st.get(s.SUCCESS_CNT) + 1)
             } else {
-                playAudio(
-                    GO_TO_START_SOUND,
-                    () => window.setTimeout(
-                        () => outputMorse(st.get(s.CURR_CARD).text),
-                        1000
-                    )
-                )
-                st.set(s.USER_INPUT_CORRECT, false)
+                st.set(s.FAIL_CNT, st.get(s.FAIL_CNT) + 1)
             }
+            st.set(s.TRY_CNT, 0)
 
-            return st.get()
-        })
+            const nextCard = st.get(s.CURR_CARD).text
+            const outputNextCard = () => window.setTimeout(() => outputMorse(nextCard), 2000)
+            const sayCurrentCard = () => window.setTimeout(() => speak(words, outputNextCard), 200)
+            if (st.get(s.SAY_WORD)) {
+                sayCurrentCard()
+            } else {
+                outputNextCard()
+            }
+        } else {
+            st.set(s.TRY_CNT, st.get(s.TRY_CNT) + 1)
+            playAudio(
+                GO_TO_START_SOUND,
+                () => window.setTimeout(
+                    () => outputMorse(st.get(s.CURR_CARD).text),
+                    1000
+                )
+            )
+            st.set(s.USER_INPUT_CORRECT, false)
+        }
+
+        return st.get()
     }
 
     function timingsToStr(timings) {
@@ -207,8 +239,22 @@ const MorseExercise = () => {
         })
     }
 
+    function renderCheckBox({label, paramName}) {
+        return RE.FormGroup({row:true},
+            RE.FormControlLabel({label, control: RE.Checkbox({
+                    color:'primary',
+                    checked: state[paramName],
+                    onChange: event => {
+                        const {nativeEvent} = event
+                        console.log({nativeEvent})
+                        setState(state => createNewState({prevState: state, params: {[paramName]: nativeEvent.target.checked}}))
+                    }
+            })})
+        )
+    }
+
     function renderStatistics() {
-        return `numOfMoves=${state[s.CARD_COUNTS].sum()}, minCnt=${state[s.CARD_COUNTS].min()}, maxCnt=${state[s.CARD_COUNTS].max()}`
+        return `numOfCards=${state[s.CARD_COUNTS].sum()}, minCnt=${state[s.CARD_COUNTS].min()}, maxCnt=${state[s.CARD_COUNTS].max()}`
     }
 
     return RE.Container.col.top.center({style:{marginTop:'0px'}},{style:{marginTop:'15px'}},
@@ -232,6 +278,7 @@ const MorseExercise = () => {
             paramName:s.DOT_DURATION,
             values:ints(1,10).map(i => [i/100,i/100]),
         }),
+        renderCheckBox({label:'Pronounce words', paramName:s.SAY_WORD}),
         renderParamSelector({
             label:'Voice',
             paramName:s.VOICE_URI,

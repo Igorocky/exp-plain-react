@@ -101,6 +101,9 @@ function objectHolder(obj) {
             // console.log(`Setting in holder: attr = ${attr}, value = ${value}`)
             obj = obj.set(attr, value)
         },
+        setObj: (newObj) => {
+            obj = newObj
+        },
         attr: (...attrs) => obj.attr(...attrs),
         map: mapper => obj = obj.map(mapper),
     }
