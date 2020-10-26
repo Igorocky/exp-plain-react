@@ -148,7 +148,7 @@ const MorseExercise = () => {
         st.set(s.USER_INPUT, '')
         st.set(s.USER_INPUT_DATA, [])
         if (userInput == st.get(s.CURR_CARD).text) {
-            const words = st.get(s.CURR_CARD).symbols.map(s => s.word).join(' ')
+            const words = st.get(s.CURR_CARD).symbols.map(s => s.word).join('. ')
             st.set(s.USER_INPUT_CORRECT, null)
             st.set(s.CURR_CARD, nextRandomElem({allElems:st.get(s.ALL_CARDS),counts:st.get(s.CARD_COUNTS)}))
             st.set(s.CARD_COUNTS, inc(st.get(s.CARD_COUNTS), st.get(s.CURR_CARD).idx))
@@ -162,7 +162,7 @@ const MorseExercise = () => {
 
             const nextCard = st.get(s.CURR_CARD).text
             const outputNextCard = () => window.setTimeout(() => outputMorse(nextCard), 2000)
-            const sayCurrentCard = () => window.setTimeout(() => speak(words, outputNextCard), 200)
+            const sayCurrentCard = () => window.setTimeout(() => speak(words, outputNextCard), 1200)
             if (st.get(s.SAY_WORD)) {
                 sayCurrentCard()
             } else {
