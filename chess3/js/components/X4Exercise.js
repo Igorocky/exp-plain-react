@@ -5,6 +5,7 @@ const X4Exercise = () => {
     const s = {
         PHASE: 'PHASE',
         CURR_CELL: 'CURR_CELL',
+        FOCUSED_CELL: 'FOCUSED_CELL',
         CLICK_DATA: 'CLICK_DATA',
         USER_CLICK_CORRECT: 'USER_CLICK_CORRECT',
         USER_SELECTED_CELL: 'USER_SELECTED_CELL',
@@ -37,11 +38,16 @@ const X4Exercise = () => {
         const currCell = ALL_CELLS[randomInt(0,ALL_CELLS.length-1)];
         return createObj({
             [s.CURR_CELL]: currCell,
+            [s.FOCUSED_CELL]: ALL_CELLS[28],
             [s.CLICK_DATA]: null,
             [s.CELL_COUNTS]: inc(new Array(ALL_CELLS.length).fill(0), currCell.idx),
             [s.PHASE]: p.QUESTION,
         })
     }
+
+    useEffect(() => {
+        document.onkeydown = onKeyDown
+    }, [])
 
     function nextRandomCell({cellCounts}) {
         const cellsWithCnt = ALL_CELLS.map(cell => ({...cell, cnt:cellCounts[cell.idx]}))
@@ -50,11 +56,13 @@ const X4Exercise = () => {
         return cellsWithMinCnt[randomInt(0,cellsWithMinCnt.length-1)]
     }
 
-    function nextState({state, clickData}) {
+    function nextState({state, clickData, enterPressed}) {
         if (state[s.PHASE] == p.QUESTION) {
-            state = state.set(s.CLICK_DATA, clickData)
-            state = state.set(s.USER_CLICK_CORRECT, isUserClickCorrect({clickData,currCell:state[s.CURR_CELL]}))
-            state = state.set(s.USER_SELECTED_CELL, getUserSelectedCell({clickData}))
+            if (clickData) {
+                state = state.set(s.CLICK_DATA, clickData)
+            }
+            state = state.set(s.USER_CLICK_CORRECT, isUserClickCorrect({clickData,currCell:state[s.CURR_CELL],enterPressed,focusedCell:state[s.FOCUSED_CELL]}))
+            state = state.set(s.USER_SELECTED_CELL, getUserSelectedCell({clickData,enterPressed,focusedCell:state[s.FOCUSED_CELL]}))
             if (state[s.USER_CLICK_CORRECT]) {
                 state = state.set(s.PHASE, p.ANSWER)
             }
@@ -69,14 +77,22 @@ const X4Exercise = () => {
         return state
     }
 
-    function getUserSelectedCell({clickData}) {
-        return ALL_CELLS.find(cell => isPointWithinCell({x:clickData.x, y:clickData.y, cell}))
+    function getUserSelectedCell({clickData,enterPressed,focusedCell}) {
+        if (enterPressed) {
+            return focusedCell
+        } else {
+            return ALL_CELLS.find(cell => isPointWithinCell({x:clickData.x, y:clickData.y, cell}))
+        }
     }
 
-    function isUserClickCorrect({clickData, currCell}) {
-        const userSelectedCell = getUserSelectedCell({clickData})
-        return equalCells(currCell, userSelectedCell)
-            && clickData.nativeEvent.button == (isWhiteCell(userSelectedCell) ? 0 : 2)
+    function isUserClickCorrect({clickData, currCell, enterPressed, focusedCell}) {
+        if (enterPressed) {
+            return equalCells(focusedCell, currCell)
+        } else {
+            const userSelectedCell = getUserSelectedCell({clickData})
+            return equalCells(currCell, userSelectedCell)
+                && clickData.nativeEvent.button == (isWhiteCell(userSelectedCell) ? 0 : 2)
+        }
     }
 
     function isPointWithinCell({x,y,cell}) {
@@ -138,8 +154,8 @@ const X4Exercise = () => {
         })
     }
 
-    function renderCells({key, props}) {
-        return ALL_CELLS.map(cell => renderCell({key,cellNum:cell.idx,props}))
+    function renderCells({key, props, propsFunc}) {
+        return ALL_CELLS.map(cell => renderCell({key,cellNum:cell.idx,props:{...props, ...(propsFunc?.(cell)??{})}}))
     }
 
     function renderClickedPoint({clickData, color}) {
@@ -162,7 +178,34 @@ const X4Exercise = () => {
         ].map(i => renderCell({key:'island',cellNum:i,props:{strokeWidth:0,fill:'olive'}}))
     }
 
-    const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.02, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
+    function getNewFocusedCell({keyCode,curCell}) {
+        let newFocusedCell
+        if (keyCode === DOWN_KEY_CODE || keyCode === KEY_CODE_J) {
+            newFocusedCell = {x:curCell.x, y:curCell.y-1}
+        } else if (keyCode === UP_KEY_CODE || keyCode === KEY_CODE_K) {
+            newFocusedCell = {x:curCell.x, y:curCell.y+1}
+        } else if (keyCode === LEFT_KEY_CODE || keyCode === KEY_CODE_H) {
+            newFocusedCell = {x:curCell.x-1, y:curCell.y}
+        } else if (keyCode === RIGHT_KEY_CODE || keyCode === KEY_CODE_L) {
+            newFocusedCell = {x:curCell.x+1, y:curCell.y}
+        }
+        if (newFocusedCell) {
+            newFocusedCell = ALL_CELLS.find(cell => equalCells(cell, newFocusedCell))
+        }
+        return newFocusedCell??curCell
+    }
+
+    function onKeyDown(event) {
+        if ([DOWN_KEY_CODE, KEY_CODE_J, UP_KEY_CODE, KEY_CODE_K, LEFT_KEY_CODE, KEY_CODE_H, RIGHT_KEY_CODE, KEY_CODE_L].includes(event.keyCode)) {
+            setState(old => old.set(s.FOCUSED_CELL, getNewFocusedCell({keyCode:event.keyCode,curCell:old[s.FOCUSED_CELL]})))
+        }
+
+        if (event.keyCode == ENTER_KEY_CODE){
+            setState(old => nextState({state:nextState({state:old, enterPressed:true}), enterPressed:true}))
+        }
+    }
+
+    const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.04, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
     return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
         RE.svg2(
             {
@@ -170,13 +213,22 @@ const X4Exercise = () => {
                 height: viewWidth,
                 boundaries: viewBoundaries,
                 onClick: pointClicked,
+                onKeyDown,
                 props: {style:{cursor:'crosshair'}}
             },
             background,
             svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
-            ...renderIslands(),
+            // ...renderIslands(),
+            ...renderCells({
+                key:'cell-border',
+                props: borderCellProps,
+                propsFunc: cell => ({
+                    fillOpacity:1,
+                    fill:(cell.x+cell.y)%2==0?'rgb(181,136,99)' : 'rgb(240,217,181)',
+                    strokeOpacity:state[s.FOCUSED_CELL].idx == cell.idx ? 1 : 0
+                })
+            }),
             !state[s.USER_CLICK_CORRECT]?renderCurrCellName():null,
-            ...renderCells({key:'cell-border', props: borderCellProps}),
             ...(state[s.USER_SELECTED_CELL]
                     ? [
                         state[s.USER_CLICK_CORRECT]?renderCell({

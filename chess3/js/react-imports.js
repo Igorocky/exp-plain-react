@@ -62,13 +62,14 @@ const RE = {
             children
         )
     ),
-    svg2: ({width, height, boundaries, onClick, props}, ...children) => re('svg',
+    svg2: ({width, height, boundaries, onClick, onKeyDown, props}, ...children) => re('svg',
         {
             width,
             height,
             viewBox: `${boundaries.minX} ${boundaries.minY} ${boundaries.maxX - boundaries.minX} ${boundaries.maxY - boundaries.minY}`,
             onMouseDown: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
             onMouseUp: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
+            onKeyDown: event => onKeyDown?.(event)??null,
             ...(props?props:{})
         },
         children

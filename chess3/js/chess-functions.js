@@ -11,9 +11,15 @@ const PROFILE = PROFILE_MOBILE
 
 const ENTER_KEY_CODE = 13
 const ESC_KEY_CODE = 27
-const UP_KEY_CODE = 38
-const DOWN_KEY_CODE = 40
 const SPACE_KEY_CODE = 32
+const LEFT_KEY_CODE = 37
+const UP_KEY_CODE = 38
+const RIGHT_KEY_CODE = 39
+const DOWN_KEY_CODE = 40
+const KEY_CODE_H = 72
+const KEY_CODE_J = 74
+const KEY_CODE_K = 75
+const KEY_CODE_L = 76
 
 const KEYDOWN_LISTENER_NAME = 'keydown'
 const MOUSEDOWN_LISTENER_NAME = 'mousedown'
