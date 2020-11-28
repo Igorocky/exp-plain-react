@@ -15,14 +15,6 @@ class SvgBoundaries {
     static fromPoints(points) {
         if (points.length < 2) {
             throw new Error('points.length < 2')
-        } else if (points.length == 2) {
-            const point = points[0]
-            return new SvgBoundaries(
-                Math.min(x, x),Math.min(x, x),Math.min(x, x),Math.min(x, x),
-                Math.max(point.x, point.x),
-                Math.min(point.y, point.y),
-                Math.max(this.start.y, this.end.y),
-            )
         } else {
             let res = [points[0].x, points[0].x, points[0].y, points[0].y]
             for (let i = 1; i < points.length; i++) {
