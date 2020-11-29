@@ -3,6 +3,7 @@
 const X4KeyCodes = [DOWN_KEY_CODE, KEY_CODE_J, UP_KEY_CODE, KEY_CODE_K, LEFT_KEY_CODE, KEY_CODE_H, RIGHT_KEY_CODE, KEY_CODE_L]
 
 const X4Exercise = () => {
+    const LOCAL_STORAGE_KEY = 'X4Exercise'
 
     const s = {
         PHASE: 'PHASE',
@@ -36,9 +37,13 @@ const X4Exercise = () => {
     )
 
     const [state, setState] = useState(() => createState())
+    const [voiceUriStore, setVoiceUriStore] = useStateFromLocalStorageString({
+        key:LOCAL_STORAGE_KEY+'.'+'voiceUri', defaultValue:''
+    })
+    const {speak, availableVoiceUris} = useSpeechComponent({voiceUri:voiceUriStore})
 
     function createState() {
-        const currCell = ALL_CELLS[randomInt(0,ALL_CELLS.length-1)];
+        const currCell = ALL_CELLS[randomInt(0,ALL_CELLS.length-1)]
         return createObj({
             [s.CURR_CELL]: currCell,
             [s.FOCUSED_CELL]: ALL_CELLS[28],
@@ -54,6 +59,23 @@ const X4Exercise = () => {
         document.onkeyup = onKeyUp
     }, [])
 
+    function renderValueSelector({label, value, values, onChange}) {
+        return RE.FormControl({variant:'outlined'},
+            RE.InputLabel({}, label),
+            RE.Select(
+                {
+                    value: value,
+                    label,
+                    onChange: event => {
+                        onChange(event.target.value)
+                    },
+                    style: {width: '300px'},
+                },
+                values.map(([value,text]) => RE.MenuItem({key: value, value: value}, text))
+            )
+        )
+    }
+
     function nextRandomCell({cellCounts}) {
         const cellsWithCnt = ALL_CELLS.map(cell => ({...cell, cnt:cellCounts[cell.idx]}))
         const minCnt = cellsWithCnt.attr('cnt').min()
@@ -61,7 +83,26 @@ const X4Exercise = () => {
         return cellsWithMinCnt[randomInt(0,cellsWithMinCnt.length-1)]
     }
 
+    function sayCellName(cell) {
+        const xName = XX[cell.x].toUpperCase()
+        const xWord = MORSE_ARR.find(e => e.sym === xName).word
+        const yName = YY[cell.y].toUpperCase()
+        const yWord = MORSE_ARR.find(e => e.sym === yName).word
+        speak(`${xWord}, ${yWord}`)
+    }
+
     function nextState({state, clickData, enterPressed}) {
+        function proceedToNextQuestion({state}) {
+            state = state.set(s.PHASE, p.QUESTION)
+            state = state.set(s.CURR_CELL, nextRandomCell({cellCounts:state[s.CELL_COUNTS]}))
+            state = state.set(s.CLICK_DATA, null)
+            state = state.set(s.USER_CLICK_CORRECT, null)
+            state = state.set(s.USER_SELECTED_CELL, null)
+            state = state.set(s.CELL_COUNTS, inc(state[s.CELL_COUNTS], state[s.CURR_CELL].idx))
+            sayCellName(state[s.CURR_CELL])
+            return state
+        }
+
         if (state[s.PHASE] == p.QUESTION) {
             if (clickData) {
                 state = state.set(s.CLICK_DATA, clickData)
@@ -70,14 +111,14 @@ const X4Exercise = () => {
             state = state.set(s.USER_SELECTED_CELL, getUserSelectedCell({clickData,enterPressed,focusedCell:state[s.FOCUSED_CELL]}))
             if (state[s.USER_CLICK_CORRECT]) {
                 state = state.set(s.PHASE, p.ANSWER)
+                if (enterPressed) {
+                    state = proceedToNextQuestion({state})
+                }
+            } else {
+                playAudio(ERROR_SOUND)
             }
         } else {
-            state = state.set(s.PHASE, p.QUESTION)
-            state = state.set(s.CURR_CELL, nextRandomCell({cellCounts:state[s.CELL_COUNTS]}))
-            state = state.set(s.CLICK_DATA, null)
-            state = state.set(s.USER_CLICK_CORRECT, null)
-            state = state.set(s.USER_SELECTED_CELL, null)
-            state = state.set(s.CELL_COUNTS, inc(state[s.CELL_COUNTS], state[s.CURR_CELL].idx))
+            state = proceedToNextQuestion({state})
         }
         return state
     }
@@ -210,7 +251,7 @@ const X4Exercise = () => {
         }
 
         if (event.keyCode == ENTER_KEY_CODE){
-            setState(old => nextState({state:nextState({state:old, enterPressed:true}), enterPressed:true}))
+            setState(old => nextState({state:old, enterPressed:true}))
         }
     }
 
@@ -219,7 +260,13 @@ const X4Exercise = () => {
     }
 
     const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.04, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
-    return RE.Container.col.top.center({style:{marginTop:'100px'}},{},
+    return RE.Container.col.top.center({style:{marginTop:'50px'}},{style:{marginBottom:'10px'}},
+        renderValueSelector({
+            label:'Voice',
+            value: voiceUriStore,
+            values:availableVoiceUris,
+            onChange: newVoiceUri => setVoiceUriStore(newVoiceUri)
+        }),
         RE.svg2(
             {
                 width: viewWidth,
