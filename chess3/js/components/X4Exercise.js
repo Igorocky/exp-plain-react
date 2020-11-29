@@ -1,11 +1,14 @@
 "use strict";
 
+const X4KeyCodes = [DOWN_KEY_CODE, KEY_CODE_J, UP_KEY_CODE, KEY_CODE_K, LEFT_KEY_CODE, KEY_CODE_H, RIGHT_KEY_CODE, KEY_CODE_L]
+
 const X4Exercise = () => {
 
     const s = {
         PHASE: 'PHASE',
         CURR_CELL: 'CURR_CELL',
         FOCUSED_CELL: 'FOCUSED_CELL',
+        KEY_IS_DOWN: 'KEY_IS_DOWN',
         CLICK_DATA: 'CLICK_DATA',
         USER_CLICK_CORRECT: 'USER_CLICK_CORRECT',
         USER_SELECTED_CELL: 'USER_SELECTED_CELL',
@@ -39,6 +42,7 @@ const X4Exercise = () => {
         return createObj({
             [s.CURR_CELL]: currCell,
             [s.FOCUSED_CELL]: ALL_CELLS[28],
+            [s.KEY_IS_DOWN]: false,
             [s.CLICK_DATA]: null,
             [s.CELL_COUNTS]: inc(new Array(ALL_CELLS.length).fill(0), currCell.idx),
             [s.PHASE]: p.QUESTION,
@@ -47,6 +51,7 @@ const X4Exercise = () => {
 
     useEffect(() => {
         document.onkeydown = onKeyDown
+        document.onkeyup = onKeyUp
     }, [])
 
     function nextRandomCell({cellCounts}) {
@@ -196,13 +201,21 @@ const X4Exercise = () => {
     }
 
     function onKeyDown(event) {
-        if ([DOWN_KEY_CODE, KEY_CODE_J, UP_KEY_CODE, KEY_CODE_K, LEFT_KEY_CODE, KEY_CODE_H, RIGHT_KEY_CODE, KEY_CODE_L].includes(event.keyCode)) {
-            setState(old => old.set(s.FOCUSED_CELL, getNewFocusedCell({keyCode:event.keyCode,curCell:old[s.FOCUSED_CELL]})))
+        if (X4KeyCodes.includes(event.keyCode)) {
+            setState(old =>
+                old
+                    .set(s.FOCUSED_CELL, old[s.KEY_IS_DOWN] ? old[s.FOCUSED_CELL] : getNewFocusedCell({keyCode:event.keyCode,curCell:old[s.FOCUSED_CELL]}))
+                    .set(s.KEY_IS_DOWN, true)
+            )
         }
 
         if (event.keyCode == ENTER_KEY_CODE){
             setState(old => nextState({state:nextState({state:old, enterPressed:true}), enterPressed:true}))
         }
+    }
+
+    function onKeyUp(event) {
+        setState(old => old.set(s.KEY_IS_DOWN, false))
     }
 
     const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.04, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
