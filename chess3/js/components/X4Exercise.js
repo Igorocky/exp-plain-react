@@ -85,10 +85,8 @@ const X4Exercise = () => {
 
     function sayCellName(cell) {
         const xName = XX[cell.x].toUpperCase()
-        const xWord = MORSE_ARR.find(e => e.sym === xName).word
         const yName = YY[cell.y].toUpperCase()
-        const yWord = MORSE_ARR.find(e => e.sym === yName).word
-        speak(`${xWord}, ${yWord}`)
+        speak(`${xName}, ${yName}`)
     }
 
     function nextState({state, clickData, enterPressed}) {
@@ -237,6 +235,9 @@ const X4Exercise = () => {
         }
         if (newFocusedCell) {
             newFocusedCell = ALL_CELLS.find(cell => equalCells(cell, newFocusedCell))
+        }
+        if (hasNoValue(newFocusedCell)) {
+            playAudio(ERROR_SOUND)
         }
         return newFocusedCell??curCell
     }

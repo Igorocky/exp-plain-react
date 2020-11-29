@@ -4,6 +4,10 @@ function hasValue(variable) {
     return variable !== undefined && variable !== null
 }
 
+function hasNoValue(variable) {
+    return !hasValue(variable)
+}
+
 function isObject(obj) {
     return typeof obj === 'object' && !Array.isArray(obj)
 }
