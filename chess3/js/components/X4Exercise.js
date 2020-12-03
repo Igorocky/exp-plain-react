@@ -88,6 +88,11 @@ const X4Exercise = () => {
     function sayCellName(cell) {
         const xName = XX[cell.x].toUpperCase()
         const yName = YY[cell.y].toUpperCase()
+        window.setTimeout(
+            () => playAudio(`${xName}.mp3`, () => playAudio(`${yName}.mp3`)),
+            1000
+        )
+
         // speak(`${xName}, ${yName}`)
     }
 
