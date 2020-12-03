@@ -10,6 +10,7 @@ const X4Exercise = () => {
         CURR_CELL: 'CURR_CELL',
         FOCUSED_CELL: 'FOCUSED_CELL',
         KEY_IS_DOWN: 'KEY_IS_DOWN',
+        SPACE_IS_DOWN: 'SPACE_IS_DOWN',
         CLICK_DATA: 'CLICK_DATA',
         USER_CLICK_CORRECT: 'USER_CLICK_CORRECT',
         USER_SELECTED_CELL: 'USER_SELECTED_CELL',
@@ -48,6 +49,7 @@ const X4Exercise = () => {
             [s.CURR_CELL]: currCell,
             [s.FOCUSED_CELL]: ALL_CELLS[28],
             [s.KEY_IS_DOWN]: false,
+            [s.SPACE_IS_DOWN]: false,
             [s.CLICK_DATA]: null,
             [s.CELL_COUNTS]: inc(new Array(ALL_CELLS.length).fill(0), currCell.idx),
             [s.PHASE]: p.QUESTION,
@@ -86,7 +88,7 @@ const X4Exercise = () => {
     function sayCellName(cell) {
         const xName = XX[cell.x].toUpperCase()
         const yName = YY[cell.y].toUpperCase()
-        speak(`${xName}, ${yName}`)
+        // speak(`${xName}, ${yName}`)
     }
 
     function nextState({state, clickData, enterPressed}) {
@@ -162,7 +164,7 @@ const X4Exercise = () => {
 
     const viewBoundaries = SvgBoundaries.fromPoints(fieldCorners).addAbsoluteMargin(cellSize*0)
 
-    function renderCurrCellName() {
+    function renderCurrCellName({color}) {
         let center = SVG_EX.scale(numOfCols/2*cellSize)
         center = center.translateTo(center.rotate(90).end)
         return SVG.text(
@@ -170,7 +172,7 @@ const X4Exercise = () => {
                 key:'cell-name',
                 x:center.end.x-cellSize/2,
                 y:center.end.y+cellSize/2*0.7,
-                fill:'yellow',
+                fill:color??'yellow',
                 fontSize:cellSize+'px'
             },
             state[s.CURR_CELL].name
@@ -254,20 +256,71 @@ const X4Exercise = () => {
         if (event.keyCode == ENTER_KEY_CODE){
             setState(old => nextState({state:old, enterPressed:true}))
         }
+
+        if (event.keyCode == SPACE_KEY_CODE){
+            setState(old => old.set(s.SPACE_IS_DOWN, true))
+        }
     }
 
     function onKeyUp(event) {
         setState(old => old.set(s.KEY_IS_DOWN, false))
+        if (event.keyCode == SPACE_KEY_CODE){
+            setState(old => old.set(s.SPACE_IS_DOWN, false))
+        }
+    }
+
+    function renderSvgContent() {
+        if (state[s.SPACE_IS_DOWN]) {
+            return [
+                background,
+                svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
+                // ...renderIslands(),
+                ...renderCells({
+                    key:'cell-border',
+                    props: borderCellProps,
+                    propsFunc: cell => ({
+                        fillOpacity:1,
+                        fill:(cell.x+cell.y)%2==0?'rgb(181,136,99)' : 'rgb(240,217,181)',
+                        strokeOpacity:state[s.FOCUSED_CELL].idx == cell.idx ? 1 : 0
+                    })
+                }),
+                !state[s.USER_CLICK_CORRECT]?renderCurrCellName({}):null,
+                ...(state[s.USER_SELECTED_CELL]
+                        ? [
+                            state[s.USER_CLICK_CORRECT]?renderCell({
+                                key:'user-selected-cell',
+                                cellNum:state[s.USER_SELECTED_CELL].idx,
+                                props:{strokeWidth:0,fill:getCellColor({cell:state[s.USER_SELECTED_CELL]})}
+                            }):null,
+                            renderCell({
+                                key:'cell-border-clicked',
+                                cellNum:state[s.USER_SELECTED_CELL].idx,
+                                props:{
+                                    ...borderCellProps,
+                                    strokeOpacity:1,
+                                    stroke: state[s.USER_CLICK_CORRECT]?'yellow':'red'
+                                }
+                            })
+                        ]
+                        : []
+                ),
+                state[s.USER_CLICK_CORRECT]?renderCurrCellName({}):null,
+            ]
+        } else {
+            return [
+                renderCurrCellName({color:'black'}),
+            ]
+        }
     }
 
     const borderCellProps = {fillOpacity:0, strokeWidth:cellSize*0.04, stroke:'cyan', strokeOpacity:0, className:'cell-border'};
     return RE.Container.col.top.center({style:{marginTop:'50px'}},{style:{marginBottom:'10px'}},
-        renderValueSelector({
+        1==2?renderValueSelector({
             label:'Voice',
             value: voiceUriStore,
             values:availableVoiceUris,
             onChange: newVoiceUri => setVoiceUriStore(newVoiceUri)
-        }),
+        }):null,
         RE.svg2(
             {
                 width: viewWidth,
@@ -277,39 +330,7 @@ const X4Exercise = () => {
                 onKeyDown,
                 props: {style:{cursor:'crosshair'}}
             },
-            background,
-            svgPolygon({key: 'field', points: fieldCorners, props: {fill:'green', strokeWidth: 0}}),
-            // ...renderIslands(),
-            ...renderCells({
-                key:'cell-border',
-                props: borderCellProps,
-                propsFunc: cell => ({
-                    fillOpacity:1,
-                    fill:(cell.x+cell.y)%2==0?'rgb(181,136,99)' : 'rgb(240,217,181)',
-                    strokeOpacity:state[s.FOCUSED_CELL].idx == cell.idx ? 1 : 0
-                })
-            }),
-            !state[s.USER_CLICK_CORRECT]?renderCurrCellName():null,
-            ...(state[s.USER_SELECTED_CELL]
-                    ? [
-                        state[s.USER_CLICK_CORRECT]?renderCell({
-                            key:'user-selected-cell',
-                            cellNum:state[s.USER_SELECTED_CELL].idx,
-                            props:{strokeWidth:0,fill:getCellColor({cell:state[s.USER_SELECTED_CELL]})}
-                        }):null,
-                        renderCell({
-                            key:'cell-border-clicked',
-                            cellNum:state[s.USER_SELECTED_CELL].idx,
-                            props:{
-                                ...borderCellProps,
-                                strokeOpacity:1,
-                                stroke: state[s.USER_CLICK_CORRECT]?'yellow':'red'
-                            }
-                        })
-                    ]
-                    : []
-            ),
-            state[s.USER_CLICK_CORRECT]?renderCurrCellName():null,
+            renderSvgContent()
         )
     )
 }
