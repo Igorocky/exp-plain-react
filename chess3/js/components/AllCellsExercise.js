@@ -59,7 +59,10 @@ const AllCellsExercise = () => {
 
                     if (MORSE.n.sym === sym) {
                         const minCnt = prevState[s.CELL_IDX_COUNTS].min()
-                        const idxsWithMinCnt = prevState[s.CELL_IDX_COUNTS].filter(cnt => cnt == minCnt).map((cnt,idx) => idx)
+                        const idxsWithMinCnt = prevState[s.CELL_IDX_COUNTS]
+                            .map((cnt,idx) => ({cnt,idx}))
+                            .filter(({cnt, idx}) => cnt == minCnt)
+                            .map(({cnt, idx}) => idx)
                         const selectedNextIdx = idxsWithMinCnt[randomInt(0,idxsWithMinCnt.length-1)]
                         nextStateHolder.set(s.CURR_CELL_IDX,selectedNextIdx)
                         nextStateHolder.set(s.CELL_IDX_COUNTS, inc(prevState[s.CELL_IDX_COUNTS], selectedNextIdx))
