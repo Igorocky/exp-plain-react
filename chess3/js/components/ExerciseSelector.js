@@ -6,6 +6,7 @@ const AVAILABLE_EXERCISES = [
     {name:"ConnectionsExercise", component: ConnectionsExercise},
     {name:"X4Exercise", component: X4Exercise},
     {name:"MorseExercise", component: X4Exercise},
+    {name:"AllCellsExercise", component: AllCellsExercise},
 ]
 
 const ExerciseSelector = ({}) => {
