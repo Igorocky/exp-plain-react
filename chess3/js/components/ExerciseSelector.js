@@ -7,10 +7,14 @@ const AVAILABLE_EXERCISES = [
     {name:"X4Exercise", component: X4Exercise},
     {name:"MorseExercise", component: X4Exercise},
     {name:"AllCellsExercise", component: AllCellsExercise},
+    {name:"TypeExercise", component: TypeExercise},
 ]
 
 const ExerciseSelector = ({}) => {
+    // const [selectedExercise, setSelectedExercise] = useState({component: MorseExercise})
     // const [selectedExercise, setSelectedExercise] = useState({component: X4Exercise})
+    // const [selectedExercise, setSelectedExercise] = useState({component: AllCellsExercise})
+    // const [selectedExercise, setSelectedExercise] = useState({component: TypeExercise})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {

@@ -151,3 +151,17 @@ function readFromLocalStorage(localStorageKey, defaultValue) {
     const item = window.localStorage.getItem(localStorageKey)
     return hasValue(item) ? JSON.parse(item) : defaultValue
 }
+
+function createParamsGetter({prevState, params}) {
+    return (name,defValue) => {
+        const fromParams = params?.[name]
+        if (fromParams !== undefined) {
+            return fromParams
+        }
+        const fromPrevState = prevState?.[name]
+        if (fromPrevState !== undefined) {
+            return fromPrevState
+        }
+        return defValue
+    }
+}
