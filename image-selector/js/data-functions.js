@@ -67,12 +67,18 @@ Array.prototype.rest = function() {
     return this.filter((e,idx) => 0 < idx)
 }
 
-function inc(arr, idx) {
+Array.prototype.inc = function(idx) {
     return modifyAtIdx(arr, idx, i => i+1)
 }
 
-function modifyAtIdx(arr, idx, modifier) {
-    return arr.map((e,i) => i==idx?modifier(e):e)
+Array.prototype.modifyAtIdx = function(idx, modifier) {
+    return this.map((e,i) => i==idx?modifier(e):e)
+}
+
+Array.prototype.removeAtIdx = function (idx) {
+    const res = this[idx]
+    this.splice(idx,1)
+    return res
 }
 
 function nextRandomElem({allElems,counts}) {

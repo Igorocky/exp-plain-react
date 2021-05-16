@@ -65,6 +65,34 @@ class SvgBoundaries {
     height() {
         return this.maxY-this.minY
     }
+
+    includesPoint(point) {
+        return this.minX <= point.x && point.x <= this.maxX && this.minY <= point.y && point.y <= this.maxY
+    }
+
+    getPoints() {
+        return [
+            new Point(this.maxX, this.maxY),
+            new Point(this.maxX, this.minY),
+            new Point(this.minX, this.minY),
+            new Point(this.minX, this.maxY),
+        ]
+    }
+
+
+    /**
+     * @param {SvgBoundaries} other
+     */
+    noOverlap(other) {
+        return this.maxX <= other.minX || other.maxX <= this.minX || this.maxY <= other.minY || other.maxY <= this.minY
+    }
+
+    /**
+     * @param {SvgBoundaries} other
+     */
+    intersectsWith(other) {
+        return !this.noOverlap(other)
+    }
 }
 
 class Point {
