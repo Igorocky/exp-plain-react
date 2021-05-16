@@ -123,11 +123,7 @@ const ImageSelector = () => {
             ys.sort((a,b) => a < b ? -1 : a > b ? 1 : 0)
             for (let xi = 0; xi < 3; xi++) {
                 for (let yi = 0; yi < 3; yi++) {
-                    const b = SvgBoundaries.fromPoints(
-                        new Point(xs[xi],ys[yi]),
-                        new Point(xs[xi+1],ys[yi+1])
-                    )
-                    const mid = new Point((b.minX+b.maxX)/2,(b.minY+b.maxY)/2)
+                    const mid = new Point((xs[xi]+xs[xi+1])/2,(ys[yi]+ys[yi+1])/2)
                     if (b1.includesPoint(mid) || b2.includesPoint(mid)) {
                         resultF[xi][yi] = true
                     }
