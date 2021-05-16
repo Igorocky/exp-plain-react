@@ -51,7 +51,6 @@ const ImageSelector = () => {
             }
         }
 
-        const result = []
         let boundaries = state[s.SELECTED_BOUNDARIES]
         if (displayMode !== dm.OVERLAPPING_RECTANGLES) {
             boundaries = normalizeBoundaries(boundaries)
@@ -70,37 +69,34 @@ const ImageSelector = () => {
             })
         }
 
-        function createRect2({boundaries, id, color}) {
-            if (displayMode != dm.CLIPPED_INFO) {
-                return [createRect({boundaries, id, color})]
-            } else {
-                return [
-                    re('clipPath', {key:`clipPath-${id}`, id},
-                        createRect({boundaries, id, color})
-                    ),
-                    renderImage({clipPath:`url(#${id})`, id})
-                ]
-            }
-        }
-
+        const rectangles = []
         for (let i = 0; i < numOfRects; i++) {
             const b = boundaries[i]
             const id = `${displayMode}-${i}-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`
             const color = getNextColor()
-            result.push(
-                ...createRect2({boundaries:boundaries[i], id, color})
-            )
+            rectangles.push(createRect({boundaries:boundaries[i], id, color}))
         }
+        const rectBoundaries = boundaries.length == 0 ? null : boundaries.reduce((a,b) => mergeSvgBoundaries(a,b))
+        const result = []
         if (displayMode === dm.CLIPPED_INFO) {
             result.push(
-                boundaries.reduce((a,b) => mergeSvgBoundaries(a,b)).toRect({
-                    key: `overall-boundary`,
-                    color: 'lightgrey',
-                    strokeWidth: 1,
-                })
+                re('clipPath', {key:`clip-path-boundaries`, id: 'clip-path-boundaries'},
+                    rectangles
+                )
             )
+            if (hasValue(rectBoundaries)) {
+                result.push(
+                    rectBoundaries.toRect({
+                        key: `overall-boundary`,
+                        color: 'lightgrey',
+                        strokeWidth: 1,
+                    })
+                )
+            }
+        } else {
+            result.push(...rectangles)
         }
-        return result
+        return {svgRectangles:result, rectBoundaries}
     }
 
     function renderDots() {
@@ -115,21 +111,25 @@ const ImageSelector = () => {
     }
 
     function processClick({clickedPoint}) {
-        if (hasNoValue(state[s.SELECTED_POINT])) {
-            setState(state.set(s.SELECTED_POINT, clickedPoint));
+        if (state[s.DISPLAY_MODE] === dm.CLIPPED_INFO) {
+            return
         } else {
-            const firstPoint = state[s.SELECTED_POINT]
-            setState(
-                state
-                    .set(s.SELECTED_POINT, null)
-                    .set(
-                        s.SELECTED_BOUNDARIES,
-                        [
-                            ...state[s.SELECTED_BOUNDARIES],
-                            SvgBoundaries.fromPoints(firstPoint, clickedPoint)
-                        ]
-                    )
-            )
+            if (hasNoValue(state[s.SELECTED_POINT])) {
+                setState(state.set(s.SELECTED_POINT, clickedPoint));
+            } else {
+                const firstPoint = state[s.SELECTED_POINT]
+                setState(
+                    state
+                        .set(s.SELECTED_POINT, null)
+                        .set(
+                            s.SELECTED_BOUNDARIES,
+                            [
+                                ...state[s.SELECTED_BOUNDARIES],
+                                SvgBoundaries.fromPoints(firstPoint, clickedPoint)
+                            ]
+                        )
+                )
+            }
         }
     }
 
@@ -311,12 +311,8 @@ const ImageSelector = () => {
         })
     }
 
-    const imgPath = '/img/book/p1.png'
-    const imgWidth = 1122
-    const imgHeight = 767
-
-    return RE.Container.col.top.center({},{},
-        RE.RadioGroup({
+    function renderModeSelector() {
+        return RE.RadioGroup({
                 row: true,
                 value: state[s.DISPLAY_MODE],
                 onChange: (event,newValue) => {
@@ -331,21 +327,38 @@ const ImageSelector = () => {
                 control: RE.Radio({})}),
             RE.FormControlLabel({label: dm.CLIPPED_INFO, value: dm.CLIPPED_INFO,
                 control: RE.Radio({})}),
-        ),
+        )
+    }
+
+    const imgPath = '/img/book/p1.png'
+    const imgWidth = 1122
+    const imgHeight = 767
+
+    const isClippedDisplayMode = state[s.DISPLAY_MODE] === dm.CLIPPED_INFO
+
+    const {svgRectangles, rectBoundaries} = renderRectangles()
+
+    const svgBoundaries = !isClippedDisplayMode
+        ? new SvgBoundaries(0, imgWidth, 0, imgHeight)
+        : rectBoundaries.addAbsoluteMargin(5)
+
+
+    return RE.Container.col.top.center({},{},
+        renderModeSelector(),
         RE.svg(
             {
-                width: imgWidth,
-                height: imgHeight,
-                boundaries: new SvgBoundaries(0, imgWidth, 0, imgHeight),
+                width: svgBoundaries.width(),
+                height: svgBoundaries.height(),
+                boundaries: svgBoundaries,
                 onClick: (clickImageX, clickImageY, nativeEvent) => {
                     if (nativeEvent.type === 'mouseup') {
                         processClick({clickedPoint: {x:clickImageX,y:clickImageY}})
                     }
                 }
             },
-            state[s.DISPLAY_MODE] !== dm.CLIPPED_INFO ? renderImage({}) : null,
+            renderImage({clipPath: isClippedDisplayMode ? `url(#clip-path-boundaries)` : undefined}),
             ...renderDots(),
-            ...renderRectangles(),
+            ...svgRectangles,
         )
     )
 }
