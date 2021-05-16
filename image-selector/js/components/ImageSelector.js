@@ -96,21 +96,44 @@ const ImageSelector = () => {
         return undefined
     }
 
+    function intersects(b1,b2) {
+        function noOverlap(b1,b2) {
+            return b1.maxX < b2.minX || b2.maxX < b1.minX || b1.maxY < b2.minY || b2.maxY < b1.minY
+        }
+        return !noOverlap(b1,b2)
+    }
+
+    function canCombineVert(b1, b2) {
+        return intersects(b1,b2) && b1.minX === b2.minX && b1.maxX === b2.maxX
+    }
+
+    function combineVert(b1, b2) {
+        return SvgBoundaries.fromPoints(
+            new Point(b1.minX, Math.min(b1.minY, b2.minY)),
+            new Point(b1.maxX, Math.max(b1.maxY, b2.maxY)),
+        )
+    }
+
+    function canCombineHor(b1, b2) {
+        return intersects(b1,b2) && b1.minY === b2.minY && b1.maxY === b2.maxY
+    }
+
+    function combineHor(b1, b2) {
+        return SvgBoundaries.fromPoints(
+            new Point(Math.min(b1.minX, b2.minX), b1.minY),
+            new Point(Math.max(b1.maxX, b2.maxX), b1.maxY),
+        )
+    }
+
     function normalize(b1, b2) {
         if (b1.getPoints().every(p => b2.includesPoint(p))) {
             return [b2]
         } else if (b2.getPoints().every(p => b1.includesPoint(p))) {
             return [b1]
-        } else if (b1.minX === b2.minX && b1.maxX === b2.maxX) {
-            return [SvgBoundaries.fromPoints(
-                new Point(b1.minX, Math.min(b1.minY, b2.minY)),
-                new Point(b1.maxX, Math.max(b1.maxY, b2.maxY)),
-            )]
-        } else if (b1.minY === b2.minY && b1.maxY === b2.maxY) {
-            return [SvgBoundaries.fromPoints(
-                new Point(Math.min(b1.minX, b2.minX), b1.minY),
-                new Point(Math.max(b1.maxX, b2.maxX), b1.maxY),
-            )]
+        } else if (canCombineVert(b1, b2)) {
+            return [combineVert(b1, b2)]
+        } else if (canCombineHor(b1, b2)) {
+            return [combineHor(b1, b2)]
         } else {
             const resultF = [
                 [false,false,false],
@@ -188,19 +211,43 @@ const ImageSelector = () => {
         }
     }
 
+    function combine(boundaries, canCombine, doCombine) {
+        function findBoundariesToCombine() {
+            for (let i = 0; i < boundaries.length-1; i++) {
+                for (let j = i+1; j < boundaries.length; j++) {
+                    const b1 = boundaries[i]
+                    const b2 = boundaries[j]
+                    if (canCombine(b1,b2)) {
+                        return [i,j]
+                    }
+                }
+            }
+            return undefined
+        }
+        let ij = findBoundariesToCombine(boundaries)
+        while (hasValue(ij)) {
+            const b1 = boundaries.removeAtIdx(ij[0])
+            const b2 = boundaries.removeAtIdx(ij[1]-1)
+            boundaries.push(doCombine(b1,b2))
+            ij = findBoundariesToCombine(boundaries)
+        }
+    }
+
     function normalizeBoundaries(allBoundaries) {
         allBoundaries = [...allBoundaries]
         removeSmallBoundaries(allBoundaries)
-        let ii = findIntersectingBoundaries(allBoundaries)
+        let ij = findIntersectingBoundaries(allBoundaries)
         let cnt = 0
-        while (hasValue(ii)) {
+        while (hasValue(ij)) {
             cnt++
-            const b1 = allBoundaries.removeAtIdx(Math.min(ii[0],ii[1]))
-            const b2 = allBoundaries.removeAtIdx(Math.max(ii[0],ii[1])-1)
+            const b1 = allBoundaries.removeAtIdx(ij[0])
+            const b2 = allBoundaries.removeAtIdx(ij[1]-1)
             allBoundaries.push(...normalize(b1,b2))
             removeSmallBoundaries(allBoundaries)
-            ii = findIntersectingBoundaries(allBoundaries)
+            ij = findIntersectingBoundaries(allBoundaries)
         }
+        combine(allBoundaries, canCombineVert, combineVert)
+        combine(allBoundaries, canCombineHor, combineHor)
         return allBoundaries
     }
 
