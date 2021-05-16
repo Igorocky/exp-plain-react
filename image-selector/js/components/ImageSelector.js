@@ -36,10 +36,8 @@ const ImageSelector = () => {
         }
 
         const result = []
-        console.log(`state[s.SELECTED_BOUNDARIES].length = ${state[s.SELECTED_BOUNDARIES].length}`)
         const boundaries = normalizeBoundaries(state[s.SELECTED_BOUNDARIES])
         const numOfRects = boundaries.length
-        console.log(`numOfRects = ${numOfRects}`)
         for (let i = 0; i < numOfRects; i++) {
             const color = getNextColor()
             result.push(
@@ -103,6 +101,16 @@ const ImageSelector = () => {
             return [b2]
         } else if (b2.getPoints().every(p => b1.includesPoint(p))) {
             return [b1]
+        } else if (b1.minX === b2.minX && b1.maxX === b2.maxX) {
+            return [SvgBoundaries.fromPoints(
+                new Point(b1.minX, Math.min(b1.minY, b2.minY)),
+                new Point(b1.maxX, Math.max(b1.maxY, b2.maxY)),
+            )]
+        } else if (b1.minY === b2.minY && b1.maxY === b2.maxY) {
+            return [SvgBoundaries.fromPoints(
+                new Point(Math.min(b1.minX, b2.minX), b1.minY),
+                new Point(Math.max(b1.maxX, b2.maxX), b1.maxY),
+            )]
         } else {
             const resultF = [
                 [false,false,false],
@@ -110,9 +118,9 @@ const ImageSelector = () => {
                 [false,false,false],
             ]
             const xs = [b1.minX,b2.minX,b1.maxX,b2.maxX]
-            xs.sort()
+            xs.sort((a,b) => a < b ? -1 : a > b ? 1 : 0)
             const ys = [b1.minY,b2.minY,b1.maxY,b2.maxY]
-            ys.sort()
+            ys.sort((a,b) => a < b ? -1 : a > b ? 1 : 0)
             for (let xi = 0; xi < 3; xi++) {
                 for (let yi = 0; yi < 3; yi++) {
                     const b = SvgBoundaries.fromPoints(
