@@ -5,6 +5,14 @@ const ImageSelector = () => {
     const s = {
         SELECTED_POINT: 'SELECTED_POINT',
         SELECTED_BOUNDARIES: 'SELECTED_BOUNDARIES',
+        DISPLAY_MODE: 'DISPLAY_MODE',
+    }
+
+    const dm = {
+        OVERLAPPING_RECTANGLES: 'OVERLAPPING_RECTANGLES',
+        MERGED_RECTANGLES: 'MERGED_RECTANGLES',
+        COLORED_MERGED_RECTANGLES: 'COLORED_MERGED_RECTANGLES',
+        CLIPPED_INFO: 'CLIPPED_INFO',
     }
 
     const [state, setState] = useState(() => createState({}))
@@ -15,6 +23,7 @@ const ImageSelector = () => {
         return createObj({
             [s.SELECTED_POINT]: null,
             [s.SELECTED_BOUNDARIES]: [],
+            [s.DISPLAY_MODE]: dm.OVERLAPPING_RECTANGLES,
         })
     }
 
@@ -30,25 +39,64 @@ const ImageSelector = () => {
             'purple',
             'deeppink',
         ]
+        const displayMode = state[s.DISPLAY_MODE]
         let ci = 0
         function getNextColor() {
-            return colors[ci++ % colors.length]
+            if (displayMode === dm.OVERLAPPING_RECTANGLES) {
+                return 'green'
+            } else if (displayMode === dm.COLORED_MERGED_RECTANGLES) {
+                return colors[ci++ % colors.length]
+            } else if (displayMode === dm.MERGED_RECTANGLES) {
+                return 'green'
+            }
         }
 
         const result = []
-        const boundaries = normalizeBoundaries(state[s.SELECTED_BOUNDARIES])
+        let boundaries = state[s.SELECTED_BOUNDARIES]
+        if (displayMode !== dm.OVERLAPPING_RECTANGLES) {
+            boundaries = normalizeBoundaries(boundaries)
+        }
         const numOfRects = boundaries.length
+
+        function createRect({boundaries, id, color}) {
+            return boundaries.toRect({
+                key: `rect-${id}`,
+                color: color,
+                strokeWidth: 0,
+                props: {
+                    fill: color,
+                    fillOpacity: 0.5
+                }
+            })
+        }
+
+        function createRect2({boundaries, id, color}) {
+            if (displayMode != dm.CLIPPED_INFO) {
+                return [createRect({boundaries, id, color})]
+            } else {
+                return [
+                    re('clipPath', {key:`clipPath-${id}`, id},
+                        createRect({boundaries, id, color})
+                    ),
+                    renderImage({clipPath:`url(#${id})`, id})
+                ]
+            }
+        }
+
         for (let i = 0; i < numOfRects; i++) {
+            const b = boundaries[i]
+            const id = `${displayMode}-${i}-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`
             const color = getNextColor()
             result.push(
-                boundaries[i].toRect({
-                    key: `rect-${i}`,
-                    color: color,
-                    strokeWidth: 0,
-                    props: {
-                        fill: color,
-                        fillOpacity: 0.5
-                    }
+                ...createRect2({boundaries:boundaries[i], id, color})
+            )
+        }
+        if (displayMode === dm.CLIPPED_INFO) {
+            result.push(
+                boundaries.reduce((a,b) => mergeSvgBoundaries(a,b)).toRect({
+                    key: `overall-boundary`,
+                    color: 'lightgrey',
+                    strokeWidth: 1,
                 })
             )
         }
@@ -251,30 +299,53 @@ const ImageSelector = () => {
         return allBoundaries
     }
 
-    const imgPath = '/img/book/p1.png'
-    const imgWidth = 1122
-    const imgHeight = 767
-
-    return RE.svg(
-        {
-            width: imgWidth,
-            height: imgHeight,
-            boundaries: new SvgBoundaries(0, imgWidth, 0, imgHeight),
-            onClick: (clickImageX, clickImageY, nativeEvent) => {
-                if (nativeEvent.type === 'mouseup') {
-                    processClick({clickedPoint: {x:clickImageX,y:clickImageY}})
-                }
-            }
-        },
-        re('image', {
-            key: 'bgrd-img',
+    function renderImage({clipPath, id}) {
+        return re('image', {
+            key: `bgrd-img-${id}`,
             x: 0,
             y: 0,
             width: imgWidth,
             height: imgHeight,
-            href: 'img/p1.png'
-        }),
-        ...renderDots(),
-        ...renderRectangles(),
+            href: 'img/p1.png',
+            clipPath
+        })
+    }
+
+    const imgPath = '/img/book/p1.png'
+    const imgWidth = 1122
+    const imgHeight = 767
+
+    return RE.Container.col.top.center({},{},
+        RE.RadioGroup({
+                row: true,
+                value: state[s.DISPLAY_MODE],
+                onChange: (event,newValue) => {
+                    setState(prev => prev.set(s.DISPLAY_MODE, newValue))
+                }
+            },
+            RE.FormControlLabel({label: dm.OVERLAPPING_RECTANGLES, value: dm.OVERLAPPING_RECTANGLES,
+                control: RE.Radio({})}),
+            RE.FormControlLabel({label: dm.COLORED_MERGED_RECTANGLES, value: dm.COLORED_MERGED_RECTANGLES,
+                control: RE.Radio({})}),
+            RE.FormControlLabel({label: dm.MERGED_RECTANGLES, value: dm.MERGED_RECTANGLES,
+                control: RE.Radio({})}),
+            RE.FormControlLabel({label: dm.CLIPPED_INFO, value: dm.CLIPPED_INFO,
+                control: RE.Radio({})}),
+        ),
+        RE.svg(
+            {
+                width: imgWidth,
+                height: imgHeight,
+                boundaries: new SvgBoundaries(0, imgWidth, 0, imgHeight),
+                onClick: (clickImageX, clickImageY, nativeEvent) => {
+                    if (nativeEvent.type === 'mouseup') {
+                        processClick({clickedPoint: {x:clickImageX,y:clickImageY}})
+                    }
+                }
+            },
+            state[s.DISPLAY_MODE] !== dm.CLIPPED_INFO ? renderImage({}) : null,
+            ...renderDots(),
+            ...renderRectangles(),
+        )
     )
 }
