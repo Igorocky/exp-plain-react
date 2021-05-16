@@ -93,6 +93,24 @@ class SvgBoundaries {
     intersectsWith(other) {
         return !this.noOverlap(other)
     }
+
+    /**
+     * @param {Vector} [vec]
+     * @param {number} [dist]
+     * @returns {Vector}
+     */
+    translate(vec, dist) {
+        let delta = vec.end.minus(vec.start)
+        if (hasValue(dist)) {
+            delta = delta.scale(dist)
+        }
+        return new SvgBoundaries(
+            this.minX + delta.x,
+            this.maxX + delta.x,
+            this.minY + delta.y,
+            this.maxY + delta.y,
+        )
+    }
 }
 
 class Point {

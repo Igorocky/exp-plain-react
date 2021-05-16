@@ -76,9 +76,14 @@ Array.prototype.modifyAtIdx = function(idx, modifier) {
 }
 
 Array.prototype.removeAtIdx = function (idx) {
-    const res = this[idx]
-    this.splice(idx,1)
+    return this.filter((e,i) => i!==idx)
+}
+
+function removeAtIdx(arr,idx) {
+    const res = arr[idx]
+    arr.splice(idx,1)
     return res
+
 }
 
 function nextRandomElem({allElems,counts}) {
