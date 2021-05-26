@@ -168,16 +168,18 @@ function describePgn(pgn) {
 
     return {
         board: positionDescription,
-        move: firstMove
+        move: firstMove,
+        fen: fenFromPgn.fen
     }
 }
 
 function describePuzzle(puzzle) {
-    const {board, move} = describePgn(puzzle.pgn)
+    const {board, move, fen} = describePgn(puzzle.pgn)
     console.table([
         ...board,
         '-----------------------',
-        move
+        move,
+        fen
     ])
 }
 
