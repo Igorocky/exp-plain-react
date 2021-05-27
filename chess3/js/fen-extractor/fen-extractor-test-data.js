@@ -28,7 +28,6 @@ const PGN_TEST_1 = {
     expectedInitialPosition: '2kr3r/1p3pp1/2p5/5q2/4R1P1/8/PPP1QP2/R5K1 b',
 }
 
-
 const PGN_TEST_2 = {
     pgn: '[Event "Quick (?) start, slow games (5) - Round 1"]\n' +
             '[Site "Chess.com"]\n' +
@@ -95,7 +94,31 @@ const PGN_TEST_2 = {
     expectedInitialPosition: '1r2k1nr/3bppb1/1q1p2pp/2p5/4P3/NpP1BP2/P2QN1PP/RR4K1 b',
 }
 
-const testData = [PGN_TEST_1, PGN_TEST_2]
+const PGN_TEST_3 = {
+    pgn: '[Event "?"]\n' +
+        '[Site "?"]\n' +
+        '[Date "????.??.??"]\n' +
+        '[Round "?"]\n' +
+        '[White "?"]\n' +
+        '[Black "?"]\n' +
+        '[Result "1-0"]\n' +
+        '[SetUp "1"]\n' +
+        '[FEN "r1b1r2k/ppp3pB/8/4pp2/3n3Q/2q2P2/P5PP/3R3K b - - 1 21"]\n' +
+        '[Puzzle_Length "3"]\n' +
+        '[Tactic_line "Bg6+ Kg8 Qd8+ Re8 Qxe8#"]\n' +
+        '\n' +
+        '21... Re6 22. dsdsdd ({-9.72} 22. Bxf5+ Kg8 23. Qh7+ Kf7 24. Qh5+ Ke7 25. Qg5+ Kf8\n' +
+        '26. Bxe6 Nxe6 −+) 22... Kg8 23. Qd8+ ({-10.19} 23. Qh7+ Kf8 24. Qh8+ Ke7 25.\n' +
+        'Qxg7+ Kd6 26. Bxf5 Re8 27. Bg6 Rd8 −+) ({-11.88} 23. Qh5 Qc2 24. Qh7+ Kf8 25.\n' +
+        'Qh8+ Ke7 26. Qxg7+ Kd6 27. Rg1 Kc6 −+) 23... Re8 24. Qxe8# ({0.00} 24. Bxe8 Ne6\n' +
+        '25. Qe7 Kh7 26. Qh4+ Kg8 27. Qe7 =) ({-11.82} 24. Qh4 Be6 25. Bxe8 Rxe8 26. Qe1\n' +
+        'Qxe1+ 27. Rxe1 Bd5 28. Kg1 b5 −+) 1-0',
+    expectedFenPos: 'r1b1r2k/ppp3pB/8/4pp2/3n3Q/2q2P2/P5PP/3R3K',
+    expectedFirstColorToMove: 'b',
+    expectedFirstMove: 'Re6',
+}
+
+const testData = [PGN_TEST_1, PGN_TEST_2, PGN_TEST_3]
 
 function assert(testCaseName, iteration, expected, actual) {
     if (expected !== actual) {

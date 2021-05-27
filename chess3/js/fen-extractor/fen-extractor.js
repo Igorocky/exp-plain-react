@@ -45,7 +45,8 @@ function extractFirstMoveFromPgn({pgn,colorToMove}) {
         .filter(s => s.length)
         .filter(s => s.charAt(0) != '[')[0]
 
-    const match = firstLine.match(/\d+\.\s+(\S+)(\s+(\S+))?.*/);
+    let match = firstLine.match(/^\d+\.\s+(\S+)(\s+(\S+))?.*$/)
+    if (!match) match = firstLine.match(/^\d+(\.\.\.+)(\s+(\S+)).*$/)
 
     return colorToMove === 'w' ? match[1] : match[3]
 }
@@ -60,6 +61,19 @@ function calcMoveCoords({board,colorToMove,move}) {
     }
 
     let match = move.match(/([abcdefgh])x([abcdefgh])([0-9])/)
+    if (match) {
+        console.log({match})
+        const endX = charXToNum(match[2])
+        const endY = charYToNum(match[3])
+        const startX = charXToNum(match[1])
+        const startY = colorToMove === 'w' ? endY - 1 : endY + 1
+        return {
+            from:{x:startX,y:startY},
+            to:{x:endX,y:endY},
+        }
+    }
+
+    match = move.match(/([KQRBK])x?([abcdefgh])([0-9])/)
     if (match) {
         console.log({match})
         const endX = charXToNum(match[2])
@@ -184,7 +198,7 @@ function describePuzzle(puzzle) {
 }
 
 testData.forEach(({pgn}) => {
-    const fenFromPgn = extractFenFromPgn(pgn)
+    // const fenFromPgn = extractFenFromPgn(pgn)
     // console.log({fenFromPgn})
     // const board = fenToBoard(fenFromPgn.fen)
     // console.log(printBoard(board))
@@ -193,9 +207,9 @@ testData.forEach(({pgn}) => {
     // console.log({firstMove})
     // console.log({calcMoveCoords:calcMoveCoords({board,colorToMove:fenFromPgn.colorToMove,move:firstMove})})
 
-    console.log({describePgn:describePgn(pgn)})
+    // console.log({describePgn:describePgn(pgn)})
 
-    console.log('--------------------------------------------------------------------------')
+    // console.log('--------------------------------------------------------------------------')
 })
 
 runTests({
