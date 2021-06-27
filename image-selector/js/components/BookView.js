@@ -40,7 +40,7 @@ const BookView = () => {
         return createObj({
             [s.BOOK]: BOOK1,
             [s.VIEW_CURR_Y]: getParam(s.VIEW_CURR_Y, 0),
-            [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1700),
+            [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
         })
     }
@@ -101,6 +101,11 @@ const BookView = () => {
                 width: page.width,
                 clipPath:'url(#viewableContent)'
             }))
+            svgContent.push(createRect({
+                key:`page-delimiter-${page.y1}`,
+                boundaries: new SvgBoundaries(0,page.width,page.y2-1,page.y2+2),
+                color: 'black'
+            }))
             boundaries = boundaries.addPoints(new Point(page.width,minY))
         }
 
@@ -132,10 +137,10 @@ const BookView = () => {
         }
 
         const buttons = [[
-            {icon:RE.Icon({style:{transform: "rotate(90deg)"}}, "skip_previous"), onClick: () => null},
+            {icon:RE.Icon({style:{transform: "rotate(90deg)"}}, "skip_previous"), onClick: () => setState(state.set(s.VIEW_CURR_Y, 0))},
             {iconName:"expand_less", style:{}, onClick: () => scroll({dy:-1*scrollSpeed})},
             {iconName:"expand_more", style:{}, onClick: () => scroll({dy:scrollSpeed})},
-            {icon:RE.Icon({style:{transform: "rotate(-90deg)"}}, "skip_previous"), onClick: () => null},
+            {icon:RE.Icon({style:{transform: "rotate(-90deg)"}}, "skip_previous"), onClick: () => setState(state.set(s.VIEW_CURR_Y, state[s.VIEW_MAX_Y]))},
             {symbol:"1x", style:{backgroundColor:getSpeedButtonColor(ss.SPEED_1)}, onClick: () => setState(state.set(s.SCROLL_SPEED, ss.SPEED_1))},
             {symbol:"2x", style:{backgroundColor:getSpeedButtonColor(ss.SPEED_2)}, onClick: () => setState(state.set(s.SCROLL_SPEED, ss.SPEED_2))},
             {symbol:"3x", style:{backgroundColor:getSpeedButtonColor(ss.SPEED_3)}, onClick: () => setState(state.set(s.SCROLL_SPEED, ss.SPEED_3))},
@@ -145,6 +150,17 @@ const BookView = () => {
             componentKey: "book-controlButtons",
             keys: buttons,
             variant: "outlined",
+        })
+    }
+
+    function renderPagination() {
+        const pages = state[s.BOOK].pages
+        const currY = state[s.VIEW_CURR_Y]
+        const midY = currY + state[s.VIEW_HEIGHT]/2
+        return re(Pagination,{
+            numOfPages: pages.length,
+            curPage:pages.map((p,i)=>({p,i})).find(({p,i}) => p.y1 <= midY && midY <= p.y2).i+1,
+            onChange: newPage => setState(state.set(s.VIEW_CURR_Y, pages[newPage-1].y1))
         })
     }
 
@@ -158,10 +174,10 @@ const BookView = () => {
         const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
 
         return RE.Container.col.top.center({},{},
-            renderControlButtons(),
+            renderPagination(),
             RE.svg(
                 {
-                    width: 800,
+                    width: 1000,
                     height: 800,
                     boundaries: viewableContentBoundaries,
                     onWheel
@@ -174,6 +190,7 @@ const BookView = () => {
                     key: 'book-view-boarder'
                 })
             ),
+            renderControlButtons(),
         )
     }
 }
