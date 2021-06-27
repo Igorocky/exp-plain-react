@@ -57,7 +57,7 @@ function svgOnClick({nativeEvent, onClick, width, height, boundaries}) {
 
 const RE = {
     div: reFactory('div'),
-    svg: ({width, height, boundaries, onClick, onKeyDown, props}, ...children) => re('svg',
+    svg: ({width, height, boundaries, onClick, onWheel, onKeyDown, props}, ...children) => re('svg',
         {
             width,
             height,
@@ -65,6 +65,7 @@ const RE = {
             onMouseDown: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
             onMouseUp: clickEvent => svgOnClick({nativeEvent: clickEvent.nativeEvent, onClick, width, height, boundaries}),
             onKeyDown: event => onKeyDown?.(event),
+            onWheel,
             ...(props??{})
         },
         children

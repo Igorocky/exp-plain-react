@@ -22,18 +22,16 @@ const BookView = () => {
     const [ready, setReady] = useState(false)
 
     useEffect(() => {
-        if (!ready) {
-            const book = state[s.BOOK]
-            let y = 0
-            for (let page of book.pages) {
-                page.y1 = y
-                y += page.height
-                page.y2 = y
-            }
-            book.maxY = y
-            setState(state.set(s.VIEW_MAX_Y, book.maxY-state[s.VIEW_HEIGHT]))
-            setReady(true)
+        const book = state[s.BOOK]
+        let y = 0
+        for (let page of book.pages) {
+            page.y1 = y
+            y += page.height
+            page.y2 = y
         }
+        book.maxY = y
+        setState(state.set(s.VIEW_MAX_Y, book.maxY-state[s.VIEW_HEIGHT]))
+        setReady(true)
     }, [])
 
     function createState({prevState, params}) {
@@ -115,9 +113,14 @@ const BookView = () => {
         }
     }
 
-    function renderControlButtons() {
+    function scroll({dy}) {
         const viewMaxY = state[s.VIEW_MAX_Y]
         const viewCurrY = state[s.VIEW_CURR_Y]
+        setState(state.set(s.VIEW_CURR_Y, Math.max(0, Math.min(viewMaxY, viewCurrY+dy))))
+    }
+
+    function renderControlButtons() {
+
         const viewHeight = state[s.VIEW_HEIGHT]
         const scrollSpeed = state[s.SCROLL_SPEED] == ss.SPEED_1 ? viewHeight*0.05
                 : state[s.SCROLL_SPEED] == ss.SPEED_2 ? viewHeight*0.5
@@ -128,14 +131,10 @@ const BookView = () => {
             return state[s.SCROLL_SPEED] === speed ? 'rgb(150,150,255)' : undefined
         }
 
-        function scroll({dir = +1, dy}) {
-            setState(state.set(s.VIEW_CURR_Y, Math.max(0, Math.min(viewMaxY, viewCurrY+dir*dy))))
-        }
-
         const buttons = [[
             {icon:RE.Icon({style:{transform: "rotate(90deg)"}}, "skip_previous"), onClick: () => null},
-            {iconName:"expand_less", style:{}, onClick: () => scroll({dir:-1,dy:scrollSpeed})},
-            {iconName:"expand_more", style:{}, onClick: () => scroll({dir:1,dy:scrollSpeed})},
+            {iconName:"expand_less", style:{}, onClick: () => scroll({dy:-1*scrollSpeed})},
+            {iconName:"expand_more", style:{}, onClick: () => scroll({dy:scrollSpeed})},
             {icon:RE.Icon({style:{transform: "rotate(-90deg)"}}, "skip_previous"), onClick: () => null},
             {symbol:"1x", style:{backgroundColor:getSpeedButtonColor(ss.SPEED_1)}, onClick: () => setState(state.set(s.SCROLL_SPEED, ss.SPEED_1))},
             {symbol:"2x", style:{backgroundColor:getSpeedButtonColor(ss.SPEED_2)}, onClick: () => setState(state.set(s.SCROLL_SPEED, ss.SPEED_2))},
@@ -147,6 +146,10 @@ const BookView = () => {
             keys: buttons,
             variant: "outlined",
         })
+    }
+
+    function onWheel({nativeEvent}) {
+        scroll({dy:nativeEvent.deltaY})
     }
 
     if (!ready) {
@@ -161,13 +164,14 @@ const BookView = () => {
                     width: 800,
                     height: 800,
                     boundaries: viewableContentBoundaries,
+                    onWheel
                 },
                 ...viewableContentSvgContent,
                 createRect({
                     boundaries:viewableContentBoundaries,
                     opacity:0,
-                    borderColor:'red',
-                    key: 'ddadsasdas'
+                    borderColor:'black',
+                    key: 'book-view-boarder'
                 })
             ),
         )
