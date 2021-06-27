@@ -9,7 +9,7 @@ const ImageSelector = () => {
         DISPLAY_MODE: 'DISPLAY_MODE',
         SELECTED_RECT_IDX: 'SELECTED_RECT_IDX',
         EDIT_MODE: 'EDIT_MODE',
-        MOVE_SPEED: 'MOVE_SPEED',
+        SCROLL_SPEED: 'SCROLL_SPEED',
         SHOW_LOCAL_BOUNDARIES: 'SHOW_LOCAL_BOUNDARIES',
     }
 
@@ -47,7 +47,7 @@ const ImageSelector = () => {
             [s.DISPLAY_MODE]: dm.EDIT_SELECTION,
             [s.SELECTED_RECT_IDX]: 0,
             [s.EDIT_MODE]: em.ADD_SELECTION,
-            [s.MOVE_SPEED]: ms.SPEED_1,
+            [s.SCROLL_SPEED]: ms.SPEED_1,
             [s.SHOW_LOCAL_BOUNDARIES]: false,
         })
     }

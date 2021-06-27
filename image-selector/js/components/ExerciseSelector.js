@@ -5,8 +5,9 @@ const AVAILABLE_EXERCISES = [
 ]
 
 const ExerciseSelector = ({}) => {
-    const [selectedExercise, setSelectedExercise] = useState({component: ImageSelector})
     // const [selectedExercise, setSelectedExercise] = useState(null)
+    // const [selectedExercise, setSelectedExercise] = useState({component: ImageSelector})
+    const [selectedExercise, setSelectedExercise] = useState({component: BookView})
 
     if (!selectedExercise) {
         return RE.List({component:"nav"},
