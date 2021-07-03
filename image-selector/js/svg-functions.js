@@ -1,7 +1,7 @@
 "use strict";
 
 class SvgBoundaries {
-    constructor(minX, maxX, minY, maxY) {
+    constructor({minX, maxX, minY, maxY}) {
         this.minX = minX
         this.maxX = maxX
         this.minY = minY
@@ -26,17 +26,17 @@ class SvgBoundaries {
                     Math.max(res[3], point.y)
                 ]
             }
-            return new SvgBoundaries(...res)
+            return new SvgBoundaries({minX:res[0], maxX:res[1], minY:res[2], maxY:res[3]})
         }
     }
 
     addAbsoluteMargin(margin) {
-        return new SvgBoundaries(
-            this.minX - margin,
-            this.maxX + margin,
-            this.minY - margin,
-            this.maxY + margin,
-        )
+        return new SvgBoundaries({
+            minX:this.minX - margin,
+            maxX:this.maxX + margin,
+            minY:this.minY - margin,
+            maxY:this.maxY + margin
+        })
     }
 
     /**
@@ -104,12 +104,12 @@ class SvgBoundaries {
         if (hasValue(dist)) {
             delta = delta.scale(dist)
         }
-        return new SvgBoundaries(
-            this.minX + delta.x,
-            this.maxX + delta.x,
-            this.minY + delta.y,
-            this.maxY + delta.y,
-        )
+        return new SvgBoundaries({
+            minX:this.minX + delta.x,
+            maxX:this.maxX + delta.x,
+            minY:this.minY + delta.y,
+            maxY:this.maxY + delta.y
+        })
     }
 }
 
@@ -281,12 +281,12 @@ function degToRad(deg) {
  * @param {SvgBoundaries} boundariesList
  */
 function mergeSvgBoundaries(...boundariesList) {
-    return boundariesList.reduce((prev, curr) => !hasValue(prev) ? curr : !hasValue(curr) ? prev : new SvgBoundaries(
-        Math.min(prev.minX, curr.minX),
-        Math.max(prev.maxX, curr.maxX),
-        Math.min(prev.minY, curr.minY),
-        Math.max(prev.maxY, curr.maxY),
-    ))
+    return boundariesList.reduce((prev, curr) => !hasValue(prev) ? curr : !hasValue(curr) ? prev : new SvgBoundaries({
+        minX:Math.min(prev.minX, curr.minX),
+        maxX:Math.max(prev.maxX, curr.maxX),
+        minY:Math.min(prev.minY, curr.minY),
+        maxY:Math.max(prev.maxY, curr.maxY),
+    }))
 }
 
 /**

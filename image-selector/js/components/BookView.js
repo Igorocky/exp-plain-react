@@ -1,6 +1,7 @@
 "use strict";
 
 const BookView = () => {
+    const {renderSelectedArea} = SelectedAreaRenderer()
 
     //state props
     const s = {
@@ -10,6 +11,8 @@ const BookView = () => {
         VIEW_HEIGHT: 'VIEW_HEIGHT',
         SCROLL_SPEED: 'SCROLL_SPEED',
         SELECTIONS: 'SELECTIONS',
+        FOCUSED_SELECTION_IDX: 'FOCUSED_SELECTION_IDX',
+        EDIT_MODE: 'EDIT_MODE',
     }
 
     //scroll speed
@@ -19,8 +22,47 @@ const BookView = () => {
         SPEED_3: 'SPEED_3',
     }
 
+    //edit mode
+    const em = {
+        RENAME: 'RENAME',
+        MODIFY_BOUNDARIES: 'MODIFY_BOUNDARIES',
+    }
+
     const [state, setState] = useState(() => createState({}))
     const [ready, setReady] = useState(false)
+    const [openConfirmActionDialog, closeConfirmActionDialog, renderConfirmActionDialog] = useConfirmActionDialog()
+    const {
+        getCursorType,
+        renderControlButtons: renderControlButtonsOfImageSelector,
+        renderSelectedArea:renderEditedSelectedArea,
+        renderDots,
+        clickHandler: imageSelectorClickHandler,
+        renderDisplayModeSelector,
+        state:imageSelectorState,
+        stateAttrs: imageSelectorStateAttrs,
+        displayModes: imageSelectorDisplayModes,
+        renderSettings,
+        setSelections: setSelectionsForImageSelector
+    } = useImageSelector({
+        onCancel: () => setState(prev=>prev.set(s.EDIT_MODE,null)),
+        onSave: newParts => setState(prev=>{
+            const newState = objectHolder(prev)
+            const newSelections = sortBy(
+                prev[s.SELECTIONS].modifyAtIdx(
+                    prev[s.FOCUSED_SELECTION_IDX],
+                    s => ({
+                        ...s,
+                        parts:newParts,
+                        overallBoundaries: newParts.length?mergeSvgBoundaries(...newParts):null
+                    })
+                ),
+                e => (e.overallBoundaries?.minY) ?? -1
+            )
+            newState.set(s.SELECTIONS, newSelections)
+            newState.set(s.EDIT_MODE, null)
+            return newState.get()
+        })
+    })
 
     useEffect(() => {
         const book = state[s.BOOK]
@@ -43,7 +85,27 @@ const BookView = () => {
             [s.VIEW_CURR_Y]: getParam(s.VIEW_CURR_Y, 0),
             [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
-            [s.SELECTIONS]: getParam(s.SELECTIONS, []),
+            [s.FOCUSED_SELECTION_IDX]: getParam(s.FOCUSED_SELECTION_IDX, 0),
+            [s.SELECTIONS]: getParam(s.SELECTIONS, [
+                {
+                    id:1,
+                    title:'selection 1',
+                    parts:[],
+                    overallBoundaries: null,
+                },
+                {
+                    id:2,
+                    title:'selection 2',
+                    parts:[],
+                    overallBoundaries: null,
+                },
+                {
+                    id:3,
+                    title:'selection 3',
+                    parts:[],
+                    overallBoundaries: null,
+                },
+            ]),
         })
     }
 
@@ -89,7 +151,7 @@ const BookView = () => {
         const maxY = minY + state[s.VIEW_HEIGHT]
 
         const svgContent = []
-        let boundaries = new SvgBoundaries(0,0,minY,maxY)
+        let boundaries = new SvgBoundaries({minX:0, maxX:0, minY, maxY})
         const book = state[s.BOOK]
         const pagesToRender = state[s.BOOK].pages.filter(p => rangesIntersect({r1:{y1:p.y1,y2:p.y2}, r2:{y1:minY,y2:maxY}}))
 
@@ -101,21 +163,32 @@ const BookView = () => {
                 y:page.y1,
                 height: page.height,
                 width: page.width,
-                clipPath:'url(#viewableContent)'
             }))
             svgContent.push(createRect({
                 key:`page-delimiter-${page.y1}`,
-                boundaries: new SvgBoundaries(0,page.width,page.y2-1,page.y2+2),
+                boundaries: new SvgBoundaries({minX:0, maxX:page.width, minY:page.y2-1, maxY:page.y2+2}),
                 color: 'black'
             }))
             boundaries = boundaries.addPoints(new Point(page.width,minY))
         }
 
+        const selectionsToRender = state[s.SELECTIONS]
+            .filter(s => hasValue(s.overallBoundaries))
+            .filter(s => rangesIntersect({
+                r1:{y1:s.overallBoundaries.minY,y2:s.overallBoundaries.maxY},
+                r2:{y1:minY,y2:maxY}
+            }))
+        for (let selection of selectionsToRender) {
+            svgContent.push(renderSelectedArea({
+                key:`selection-${selection.id}`,
+                clipPathId:`selection-clipPath-${selection.id}`,
+                color:'yellow',
+                svgBoundaries: selection.parts,
+            }).svgContent)
+        }
+
         return {
-            svgContent:[
-                createClipPath({id:'viewableContent', boundaries}),
-                ...svgContent
-            ],
+            svgContent,
             boundaries
         }
     }
@@ -170,31 +243,113 @@ const BookView = () => {
         scroll({dy:nativeEvent.deltaY})
     }
 
-    function renderSelectionsInfo() {
-        return RE.Container.col.top.left({},{},
-            sortBy(state[s.SELECTIONS], 'minY').map((selection,idx) => RE.Paper({key:`selection-${idx}-${selection.minY}`},
-                `${selection.title} [${selection.parts?.length??0}]`
-            ))
-        )
-
-        return sele
+    function deleteSelection() {
+        openConfirmActionDialog({
+            confirmText: `Delete '${state[s.SELECTIONS][state[s.FOCUSED_SELECTION_IDX]].title}'?`,
+            onCancel: closeConfirmActionDialog,
+            startActionBtnText: "Delete",
+            startAction: ({updateInProgressText,onDone}) => {
+                setState(old => {
+                    const newState = objectHolder(old)
+                    const idx = old[s.FOCUSED_SELECTION_IDX];
+                    newState.set(s.SELECTIONS, old[s.SELECTIONS].removeAtIdx(idx))
+                    if (idx >= newState.get(s.SELECTIONS).length) {
+                        newState.set(s.FOCUSED_SELECTION_IDX, newState.get(s.SELECTIONS).length-1)
+                    }
+                    return newState.get()
+                })
+                closeConfirmActionDialog()
+            },
+        })
     }
 
-    if (!ready) {
-        return "Loading..."
-    } else {
+    function addNewSelection() {
+        setState(old => old.set(
+            s.SELECTIONS,
+            [
+                {
+                    id: old[s.SELECTIONS].map(e=>e.id).max()+1,
+                    title: 'New selection',
+                    parts: []
+                },
+                ...old[s.SELECTIONS]
+            ]
+        ))
+    }
+
+    function modifyBoundariesOfSelection() {
+        setState(old=>old.set(s.EDIT_MODE, em.MODIFY_BOUNDARIES))
+        const parts = state[s.SELECTIONS][state[s.FOCUSED_SELECTION_IDX]].parts;
+        setSelectionsForImageSelector({selections: parts})
+        setState(old=>old.set(s.VIEW_CURR_Y, parts.length?parts.map(p=>p.minY).min():old[s.VIEW_CURR_Y]))
+    }
+
+    function renderSelectionsList() {
+        const buttons = [[
+            {iconName:"add", style:{}, onClick: addNewSelection},
+            {iconName:"edit", style:{}, disabled: !state[s.SELECTIONS].length, onClick: modifyBoundariesOfSelection},
+            {iconName:"delete_forever", style:{}, disabled: !state[s.SELECTIONS].length, onClick: deleteSelection},
+        ]]
+
+        return RE.Container.col.top.left({style:{padding: '5px'}},{style:{marginBottom:'2px'}},
+            re(KeyPad, {
+                componentKey: "book-selectionList-controlButtons",
+                keys: buttons,
+                variant: "outlined",
+            }),
+            state[s.SELECTIONS].map((selection,idx) => RE.Paper(
+                {
+                    key:`selection-${selection.id}-${selection.overallBoundaries?.minY??0}`,
+                    style:{
+                        backgroundColor:state[s.FOCUSED_SELECTION_IDX] == idx ? 'yellow' : undefined,
+                        padding:'5px',
+                        cursor: 'pointer',
+                    },
+                    onClick: () => {
+                        if (hasNoValue(state[s.EDIT_MODE])) {
+                            setState(old => old.set(s.FOCUSED_SELECTION_IDX, idx))
+                        }
+                    }
+                },
+                `${selection.title} | [${selection.parts?.length??0}]`
+            ))
+        )
+    }
+
+    function renderPages() {
         const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
 
+        const CLIP_PATH_ID = 'clip-path-boundaries'
+
+        let editedSelectedAreaSvgContent = []
+        if (state[s.EDIT_MODE] == em.MODIFY_BOUNDARIES) {
+            const {svgContent, overallBoundaries} = renderEditedSelectedArea({
+                renderSelections: true,
+                clipPathId: CLIP_PATH_ID
+            })
+            editedSelectedAreaSvgContent = [
+                svgContent,
+                ...renderDots()
+            ]
+        }
+
+        const height = 800
+        const width = height * (viewableContentBoundaries.width()/viewableContentBoundaries.height())
         return RE.Container.col.top.left({},{},
             renderPagination(),
+            state[s.EDIT_MODE]===em.MODIFY_BOUNDARIES
+                ? renderControlButtonsOfImageSelector()
+                :null,
             RE.svg(
                 {
-                    width: 1000,
-                    height: 800,
+                    width,
+                    height,
                     boundaries: viewableContentBoundaries,
+                    onClick: imageSelectorClickHandler,
                     onWheel
                 },
                 ...viewableContentSvgContent,
+                ...editedSelectedAreaSvgContent,
                 createRect({
                     boundaries:viewableContentBoundaries,
                     opacity:0,
@@ -203,6 +358,16 @@ const BookView = () => {
                 })
             ),
             renderControlButtons(),
+        )
+    }
+
+    if (!ready) {
+        return "Loading..."
+    } else {
+        return RE.Container.row.left.top({},{},
+            renderPages(),
+            renderSelectionsList(),
+            renderConfirmActionDialog()
         )
     }
 }

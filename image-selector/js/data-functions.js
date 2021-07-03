@@ -12,6 +12,10 @@ function isObject(obj) {
     return typeof obj === 'object' && !Array.isArray(obj)
 }
 
+function isFunction(obj) {
+    return typeof obj === 'function'
+}
+
 function randomInt(min, max) {
     return min + Math.floor(Math.random()*((max-min)+1))
 }
@@ -36,23 +40,24 @@ function prod(...arrays) {
 }
 
 function sortBy(arr, attr) {
+    const isFunc = isFunction(attr)
     return [...arr].sort((a,b) => {
-        const aAttr = a[attr]
-        const bAttr = b[attr]
+        const aAttr = isFunc?attr(a):a[attr]
+        const bAttr = isFunc?attr(b):b[attr]
         return aAttr < bAttr ? -1 : aAttr == bAttr ? 0 : 1
     })
 }
 
 Array.prototype.min = function () {
-    return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b)
+    return this.length?this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b):undefined
 }
 
 Array.prototype.max = function () {
-    return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.max(a,b)):a):b)
+    return this.length?this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.max(a,b)):a):b):undefined
 }
 
 Array.prototype.sum = function () {
-    return this.reduce((a,b) => a+b, 0)
+    return this.length?this.reduce((a,b) => a+b, 0):undefined
 }
 
 Array.prototype.attr = function(...attrs) {

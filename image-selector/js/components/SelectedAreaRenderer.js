@@ -26,7 +26,7 @@ function SelectedAreaRenderer() {
         return re('clipPath', {key:id, id}, rectangles)
     }
 
-    function renderSelectedArea({key, svgBoundaries, focusedIdx, color, clipPathId, renderSelections, renderLocalBoundaries}) {
+    function renderSelectedArea({key, svgBoundaries, focusedIdx = -1, color, clipPathId, renderSelections = true, renderLocalBoundaries = false}) {
         if (svgBoundaries.length) {
             const svgContent = []
             const overallBoundaries = svgBoundaries.reduce((a, b) => mergeSvgBoundaries(a,b))
@@ -50,7 +50,6 @@ function SelectedAreaRenderer() {
                     }))
                 )
             }
-            console.log("focusedIdx = " + focusedIdx);
             if ((focusedIdx??-1) >= 0) {
                 const b = svgBoundaries[focusedIdx];
                 svgContent.push(

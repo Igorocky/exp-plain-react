@@ -81,6 +81,8 @@ const RE = {
     CircularProgress: reFactory(MaterialUI.CircularProgress),
     Checkbox: reFactory(MaterialUI.Checkbox),
     Dialog: reFactory(MaterialUI.Dialog),
+    DialogContent: reFactory(MaterialUI.DialogContent),
+    DialogActions: reFactory(MaterialUI.DialogActions),
     FormControlLabel: reFactory(MaterialUI.FormControlLabel),
     FormControl: reFactory(MaterialUI.FormControl),
     FormLabel: reFactory(MaterialUI.FormLabel),
@@ -294,3 +296,24 @@ function useStateFromLocalStorageBoolean({key, defaultValue, nullable}) {
     })
 }
 
+function useConfirmActionDialog() {
+    const [confirmActionDialogData, setConfirmActionDialogData] = useState(null)
+
+    function renderConfirmActionDialog() {
+        if (confirmActionDialogData) {
+            return re(ConfirmActionDialog, confirmActionDialogData)
+        } else {
+            return null;
+        }
+    }
+
+    function openConfirmActionDialog(dialogParams) {
+        setConfirmActionDialogData(dialogParams)
+    }
+
+    function closeConfirmActionDialog() {
+        setConfirmActionDialogData(null)
+    }
+
+    return [openConfirmActionDialog, closeConfirmActionDialog, renderConfirmActionDialog]
+}

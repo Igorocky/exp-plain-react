@@ -1,7 +1,7 @@
 "use strict";
 
-
-const ImageSelector = () => {
+function useImageSelector({onCancel, onSave}) {
+    const {renderSelectedArea} = SelectedAreaRenderer()
 
     //state props
     const s = {
@@ -51,74 +51,6 @@ const ImageSelector = () => {
             [s.MOVE_SPEED]: ms.SPEED_1,
             [s.SHOW_LOCAL_BOUNDARIES]: false,
         })
-    }
-
-    function createRect({boundaries, id, color, opacity, borderColor, clipPath}) {
-        return boundaries.toRect({
-            key: `rect-${id}`,
-            props: {
-                fill: color,
-                fillOpacity: opacity,
-                strokeWidth: borderColor ? 1 : 0,
-                stroke: borderColor,
-                clipPath
-            }
-        })
-    }
-
-    function createClipPath({id}) {
-        const boundaries = state[s.SELECTED_BOUNDARIES]
-        const rectangles = []
-        for (let i = 0; i < boundaries.length; i++) {
-            const b = boundaries[i]
-            const id = `${i}-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`
-            rectangles.push(
-                createRect({boundaries:b, id, color:'yellow'})
-            )
-        }
-        return re('clipPath', {key:`clip-path-boundaries`, id}, rectangles)
-    }
-
-    function renderSelectedArea({opacity = 0.5, renderLocalBoundaries = false}) {
-        const boundaries = state[s.SELECTED_BOUNDARIES]
-        if (boundaries.length) {
-            const overallBoundaries = boundaries.reduce((a, b) => mergeSvgBoundaries(a,b));
-            const svgContent = [
-                createClipPath({id:'clip-path-boundaries'}),
-                createRect({
-                    id: 'selectedArea',
-                    boundaries: overallBoundaries,
-                    color: 'yellow',
-                    opacity: opacity,
-                    clipPath: `url(#clip-path-boundaries)`,
-                })
-            ]
-            if (renderLocalBoundaries) {
-                svgContent.push(
-                    ...boundaries.map(b => createRect({
-                        id: `localSelection-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
-                        boundaries: b,
-                        color: 'yellow',
-                        borderColor: 'lightgrey',
-                        opacity:0
-                    }))
-                )
-            }
-            if (state[s.DISPLAY_MODE] === dm.EDIT_SELECTION && state[s.EDIT_MODE] !== em.ADD_SELECTION) {
-                const b = boundaries[state[s.SELECTED_RECT_IDX]]
-                svgContent.push(
-                    createRect({
-                        id: `selected-rect-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
-                        boundaries: b,
-                        borderColor: 'blue',
-                        opacity:0
-                    })
-                )
-            }
-            return {svgContent, overallBoundaries}
-        } else {
-            return {svgContent:[]}
-        }
     }
 
     function renderDots() {
@@ -173,19 +105,6 @@ const ImageSelector = () => {
         }
     }
 
-
-    function renderImage({imgPath, clipPath, id}) {
-        return re('image', {
-            key: `bgrd-img-${id}`,
-            x: 0,
-            y: 0,
-            width: imgWidth,
-            height: imgHeight,
-            href: imgPath,
-            clipPath
-        })
-    }
-
     function renderSettings() {
         return RE.FormGroup({row:true},
             RE.FormControlLabel({
@@ -226,16 +145,20 @@ const ImageSelector = () => {
             setState(state.set(s.SELECTED_BOUNDARIES, state[s.SELECTED_BOUNDARIES].modifyAtIdx(state[s.SELECTED_RECT_IDX], b => b.translate(dir,moveSpeed))))
         }
 
+        function createSvgBoundaries(minX, maxX, minY, maxY) {
+            return new SvgBoundaries({minX, maxX, minY, maxY})
+        }
+
         function resize({dir}) {
             function resizeInner({dir,boundaries}) {
                 if (state[s.EDIT_MODE] == em.RESIZE_LEFT) {
-                    return new SvgBoundaries(boundaries.minX + dir.end.x, boundaries.maxX, boundaries.minY, boundaries.maxY)
+                    return createSvgBoundaries(boundaries.minX + dir.end.x, boundaries.maxX, boundaries.minY, boundaries.maxY)
                 } else if (state[s.EDIT_MODE] == em.RESIZE_RIGHT) {
-                    return new SvgBoundaries(boundaries.minX, boundaries.maxX + dir.end.x, boundaries.minY, boundaries.maxY)
+                    return createSvgBoundaries(boundaries.minX, boundaries.maxX + dir.end.x, boundaries.minY, boundaries.maxY)
                 } else if (state[s.EDIT_MODE] == em.RESIZE_TOP) {
-                    return new SvgBoundaries(boundaries.minX, boundaries.maxX, boundaries.minY + dir.end.y, boundaries.maxY)
+                    return createSvgBoundaries(boundaries.minX, boundaries.maxX, boundaries.minY + dir.end.y, boundaries.maxY)
                 } else if (state[s.EDIT_MODE] == em.RESIZE_BOTTOM) {
-                    return new SvgBoundaries(boundaries.minX, boundaries.maxX, boundaries.minY, boundaries.maxY + dir.end.y)
+                    return createSvgBoundaries(boundaries.minX, boundaries.maxX, boundaries.minY, boundaries.maxY + dir.end.y)
                 }
             }
 
@@ -303,7 +226,9 @@ const ImageSelector = () => {
             {symbol:"1x", style:{backgroundColor:getSpeedButtonColor(ms.SPEED_1)}, onClick: () => setState(state.set(s.MOVE_SPEED, ms.SPEED_1))},
             {symbol:"2x", style:{backgroundColor:getSpeedButtonColor(ms.SPEED_2)}, onClick: () => setState(state.set(s.MOVE_SPEED, ms.SPEED_2))},
             {symbol:"3x", style:{backgroundColor:getSpeedButtonColor(ms.SPEED_3)}, onClick: () => setState(state.set(s.MOVE_SPEED, ms.SPEED_3))},
-            {iconName:"delete_forever", onClick: remove},
+            {iconName:"delete_forever", style:{color:'red'}, onClick: remove},
+            {iconName:"cancel", onClick: () => onCancel?.()},
+            {iconName:"save", style:{color:'blue'}, onClick: () => onSave?.(state[s.SELECTED_BOUNDARIES])},
         ]]
 
         return re(KeyPad, {
@@ -313,21 +238,80 @@ const ImageSelector = () => {
         })
     }
 
+    return {
+        renderControlButtons,
+        renderDisplayModeSelector,
+        renderSelectedArea: ({renderSelections, clipPathId}) => renderSelectedArea({
+            key: 'selectedArea',
+            svgBoundaries: state[s.SELECTED_BOUNDARIES],
+            focusedIdx: state[s.EDIT_MODE] !== em.ADD_SELECTION ? state[s.SELECTED_RECT_IDX] : -1,
+            color: 'yellow',
+            clipPathId: clipPathId,
+            renderSelections,
+            renderLocalBoundaries: state[s.SHOW_LOCAL_BOUNDARIES]
+        }),
+        clickHandler: (clickImageX, clickImageY, nativeEvent) => {
+            if (nativeEvent.type === 'mouseup') {
+                processClick({clickedPoint: new Point(clickImageX,clickImageY)})
+            }
+        },
+        getCursorType,
+        renderDots,
+        state,
+        stateAttrs: s,
+        displayModes: dm,
+        renderSettings,
+        setSelections({selections}) {
+            setState(prev=>prev
+                .set(s.SELECTED_BOUNDARIES, selections)
+                .set(s.SELECTED_POINT, null)
+                .set(s.EDIT_MODE, em.ADD_SELECTION)
+            )
+        }
+    }
+}
+
+const ImageSelector = () => {
+    const {
+        getCursorType,
+        renderControlButtons,
+        renderSelectedArea,
+        renderDots,
+        clickHandler,
+        renderDisplayModeSelector,
+        state,
+        stateAttrs: s,
+        displayModes: dm,
+        renderSettings,
+    } = useImageSelector({})
+
+    function renderImage({imgPath, clipPath, id}) {
+        return re('image', {
+            key: `bgrd-img-${id}`,
+            x: 0,
+            y: 0,
+            width: imgWidth,
+            height: imgHeight,
+            href: imgPath,
+            clipPath
+        })
+    }
+
     const imgPath = 'img/p1.png'
     const imgWidth = 1122
     const imgHeight = 767
 
     const isClippedDisplayMode = state[s.DISPLAY_MODE] === dm.CLIPPED_INFO
+    const CLIP_PATH_ID = 'clip-path-boundaries'
 
     const {svgContent: selectedAreaSvgContent, overallBoundaries: selectedAreaOverallBoundaries} = renderSelectedArea({
-        opacity: isClippedDisplayMode ? 0 : 0.5,
-        renderLocalBoundaries:!isClippedDisplayMode && state[s.SHOW_LOCAL_BOUNDARIES]
+        renderSelections: !isClippedDisplayMode,
+        clipPathId: CLIP_PATH_ID
     })
 
     const svgBoundaries = !isClippedDisplayMode
-        ? new SvgBoundaries(0, imgWidth, 0, imgHeight)
-        : selectedAreaOverallBoundaries?.addAbsoluteMargin(5)??new SvgBoundaries(0, imgWidth, 0, imgHeight)
-
+        ? new SvgBoundaries({minX:0, maxX:imgWidth, minY:0, maxY:imgHeight})
+        : selectedAreaOverallBoundaries?.addAbsoluteMargin(5)??new SvgBoundaries({minX:0, maxX:imgWidth, minY:0, maxY:imgHeight})
 
     return RE.Container.col.top.center({},{},
         renderDisplayModeSelector(),
@@ -336,16 +320,12 @@ const ImageSelector = () => {
                 width: svgBoundaries.width(),
                 height: svgBoundaries.height(),
                 boundaries: svgBoundaries,
-                onClick: (clickImageX, clickImageY, nativeEvent) => {
-                    if (nativeEvent.type === 'mouseup') {
-                        processClick({clickedPoint: new Point(clickImageX,clickImageY)})
-                    }
-                },
+                onClick: clickHandler,
                 props: {
                     style: {cursor: getCursorType()}
                 }
             },
-            renderImage({imgPath, clipPath: isClippedDisplayMode ? `url(#clip-path-boundaries)` : undefined}),
+            renderImage({imgPath, clipPath: isClippedDisplayMode ? `url(#${CLIP_PATH_ID})` : undefined}),
             ...renderDots(),
             ...selectedAreaSvgContent,
         ),
@@ -354,4 +334,5 @@ const ImageSelector = () => {
             renderControlButtons()
         ) : null
     )
+
 }
