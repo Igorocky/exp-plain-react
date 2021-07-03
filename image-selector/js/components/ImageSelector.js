@@ -245,7 +245,7 @@ function useImageSelector({onCancel, onSave}) {
             key: 'selectedArea',
             svgBoundaries: state[s.SELECTED_BOUNDARIES],
             focusedIdx: state[s.EDIT_MODE] !== em.ADD_SELECTION ? state[s.SELECTED_RECT_IDX] : -1,
-            color: 'yellow',
+            color: 'cyan',
             clipPathId: clipPathId,
             renderSelections,
             renderOverallBoundaries,

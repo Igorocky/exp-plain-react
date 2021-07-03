@@ -9,6 +9,7 @@ const BookView = () => {
         VIEW_CURR_Y: 'VIEW_CURR_Y',
         VIEW_MAX_Y: 'VIEW_MAX_Y',
         VIEW_HEIGHT: 'VIEW_HEIGHT',
+        PAGE_HEIGHT_PX: 'PAGE_HEIGHT_PX',
         SCROLL_SPEED: 'SCROLL_SPEED',
         SELECTIONS: 'SELECTIONS',
         FOCUSED_SELECTION_ID: 'FOCUSED_SELECTION_ID',
@@ -87,6 +88,7 @@ const BookView = () => {
             [s.BOOK]: BOOK1,
             [s.VIEW_CURR_Y]: getParam(s.VIEW_CURR_Y, 0),
             [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
+            [s.PAGE_HEIGHT_PX]: getParam(s.PAGE_HEIGHT_PX, 800),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
             [s.FOCUSED_SELECTION_ID]: getParam(s.FOCUSED_SELECTION_ID, 1),
             [s.SELECTIONS]: getParam(
@@ -97,7 +99,7 @@ const BookView = () => {
                         "id": 1,
                         "title": "selection 1",
                         "parts": [new SvgBoundaries({"minX": 732.875, "maxX": 1394.25, "minY": 502.125, "maxY": 640.25})],
-                        "overallBoundaries": {"minX": 732.875, "maxX": 1394.25, "minY": 502.125, "maxY": 640.25}
+                        "overallBoundaries": new SvgBoundaries({"minX": 732.875, "maxX": 1394.25, "minY": 502.125, "maxY": 640.25})
                     },
                     {
                         "id": 2,
@@ -106,10 +108,23 @@ const BookView = () => {
                             new SvgBoundaries({"minX": 277.875, "maxX": 1386.125, "minY": 858, "maxY": 1067.625}),
                             new SvgBoundaries({"minX": 635.375, "maxX": 1385.5, "minY": 1051.375, "maxY": 1280.625})
                         ],
-                        "overallBoundaries": {"minX": 277.875, "maxX": 1386.125, "minY": 858, "maxY": 1280.625}
+                        "overallBoundaries": new SvgBoundaries({"minX": 277.875, "maxX": 1386.125, "minY": 858, "maxY": 1280.625})
                     }
                 ]
             ),
+            getFocusedSelection() {
+                const focusedId = this[s.FOCUSED_SELECTION_ID]
+                return this[s.SELECTIONS].find(s=>s.id==focusedId)
+            },
+            getIndexOfFocusedSelection() {
+                const focusedId = this[s.FOCUSED_SELECTION_ID]
+                const selections = this[s.SELECTIONS]
+                for (let i = 0; i < selections.length; i++) {
+                    if (selections[i].id == focusedId) {
+                        return i
+                    }
+                }
+            }
         })
     }
 
@@ -143,57 +158,73 @@ const BookView = () => {
         })
     }
 
-    function renderViewableContent() {
-        function rangesDontIntersect({r1:{y1:a,y2:b}, r2:{y1:c,y2:d}}) {
-            return b <= c || d <= a
-        }
-        function rangesIntersect(args) {
-            return !rangesDontIntersect(args)
-        }
+    function rangesDontIntersect({r1:{y1:a,y2:b}, r2:{y1:c,y2:d}}) {
+        return b <= c || d <= a
+    }
 
-        const minY = state[s.VIEW_CURR_Y]
-        const maxY = minY + state[s.VIEW_HEIGHT]
+    function rangesIntersect(args) {
+        return !rangesDontIntersect(args)
+    }
+
+    function getPagesToRender({book,minY,maxY}) {
+        return book.pages.filter(p => rangesIntersect({r1:{y1:p.y1,y2:p.y2}, r2:{y1:minY,y2:maxY}}))
+    }
+
+    function renderViewableContent({
+                                       key = 'page',
+                                       book = state[s.BOOK],
+                                       selections = state[s.SELECTIONS],
+                                       minY = state[s.VIEW_CURR_Y],
+                                       maxY = minY + state[s.VIEW_HEIGHT],
+                                       singleSelectionMode = false,
+                                   }) {
+        function getClipPathIdForSelection(selection) {
+            return `${key}-selection-clipPath-${selection.id}`
+        }
 
         const svgContent = []
-        let boundaries = new SvgBoundaries({minX:0, maxX:0, minY, maxY})
-        const book = state[s.BOOK]
-        const pagesToRender = state[s.BOOK].pages.filter(p => rangesIntersect({r1:{y1:p.y1,y2:p.y2}, r2:{y1:minY,y2:maxY}}))
+        let boundaries = new SvgBoundaries({minX: 0, maxX: 0, minY, maxY})
+        const pagesToRender = getPagesToRender({book, minY, maxY})
 
         for (let page of pagesToRender) {
             svgContent.push(renderImage({
                 imgPath: `${book.basePath}/${page.fileName}`,
-                key: `page-img-${page.y1}`,
-                x:0,
-                y:page.y1,
+                key: `${key}-img-${page.y1}`,
+                x: 0,
+                y: page.y1,
                 height: page.height,
                 width: page.width,
+                clipPath: singleSelectionMode?`url(#${getClipPathIdForSelection(selections[0])})`:undefined
             }))
-            svgContent.push(createRect({
-                key:`page-delimiter-${page.y1}`,
-                boundaries: new SvgBoundaries({minX:0, maxX:page.width, minY:page.y2-1, maxY:page.y2+2}),
-                color: 'black'
-            }))
-            boundaries = boundaries.addPoints(new Point(page.width,minY))
+            if (!singleSelectionMode) {
+                svgContent.push(createRect({
+                    key: `${key}-delimiter-${page.y1}`,
+                    boundaries: new SvgBoundaries({minX: 0, maxX: page.width, minY: page.y2 - 1, maxY: page.y2 + 2}),
+                    color: 'black'
+                }))
+            }
+            boundaries = boundaries.addPoints(new Point(page.width, minY))
         }
 
-        const selectionIdToHide = state[s.EDIT_MODE]===em.MODIFY_BOUNDARIES?state[s.FOCUSED_SELECTION_ID]:null
-        const selectionsToRender = state[s.SELECTIONS]
+        const selectionIdToHide = !singleSelectionMode && state[s.EDIT_MODE] === em.MODIFY_BOUNDARIES ? state[s.FOCUSED_SELECTION_ID] : null
+        const selectionsToRender = singleSelectionMode ? selections : selections
             .filter(s => hasValue(s.overallBoundaries))
             .filter(s => s.id != selectionIdToHide)
             .filter(s => rangesIntersect({
-                r1:{y1:s.overallBoundaries.minY,y2:s.overallBoundaries.maxY},
-                r2:{y1:minY,y2:maxY}
+                r1: {y1: s.overallBoundaries.minY, y2: s.overallBoundaries.maxY},
+                r2: {y1: minY, y2: maxY}
             }))
         for (let selection of selectionsToRender) {
             svgContent.push(renderSelectedArea({
-                key:`selection-${selection.id}`,
-                clipPathId:`selection-clipPath-${selection.id}`,
-                color:state[s.FOCUSED_SELECTION_ID] === selection.id ? 'yellow' : 'cyan',
+                key: `${key}-selection-${selection.id}`,
+                clipPathId: getClipPathIdForSelection(selection),
+                color: state[s.FOCUSED_SELECTION_ID] === selection.id ? 'cyan' : 'yellow',
                 svgBoundaries: selection.parts,
+                renderSelections: !singleSelectionMode
             }).svgContent)
         }
 
-        if (state[s.EDIT_MODE] === em.MODIFY_BOUNDARIES) {
+        if (!singleSelectionMode && state[s.EDIT_MODE] === em.MODIFY_BOUNDARIES) {
             svgContent.push(
                 renderEditedSelectedArea({
                     renderSelections: true,
@@ -264,16 +295,18 @@ const BookView = () => {
 
     function deleteSelection() {
         openConfirmActionDialog({
-            confirmText: `Delete '${state[s.SELECTIONS][state[s.FOCUSED_SELECTION_IDX]].title}'?`,
+            confirmText: `Delete '${state.getFocusedSelection().title}'?`,
             onCancel: closeConfirmActionDialog,
             startActionBtnText: "Delete",
             startAction: ({updateInProgressText,onDone}) => {
-                setState(old => {
-                    const newState = objectHolder(old)
-                    const idx = old[s.FOCUSED_SELECTION_IDX];
-                    newState.set(s.SELECTIONS, old[s.SELECTIONS].removeAtIdx(idx))
+                setState(prev => {
+                    const newState = objectHolder(prev)
+                    const idx = prev.getIndexOfFocusedSelection()
+                    newState.set(s.SELECTIONS, prev[s.SELECTIONS].removeAtIdx(idx))
                     if (idx >= newState.get(s.SELECTIONS).length) {
-                        newState.set(s.FOCUSED_SELECTION_IDX, newState.get(s.SELECTIONS).length-1)
+                        newState.set(s.FOCUSED_SELECTION_ID, newState.get(s.SELECTIONS).last().id)
+                    } else {
+                        newState.set(s.FOCUSED_SELECTION_ID, newState.get(s.SELECTIONS)[idx].id)
                     }
                     return newState.get()
                 })
@@ -283,15 +316,15 @@ const BookView = () => {
     }
 
     function addNewSelection() {
-        setState(old => old.set(
+        setState(prev => prev.set(
             s.SELECTIONS,
             [
                 {
-                    id: old[s.SELECTIONS].map(e=>e.id).max()+1,
+                    id: prev[s.SELECTIONS].map(e=>e.id).max()+1,
                     title: 'New selection',
                     parts: []
                 },
-                ...old[s.SELECTIONS]
+                ...prev[s.SELECTIONS]
             ]
         ))
     }
@@ -325,7 +358,7 @@ const BookView = () => {
     function renderSelectionsList() {
         const buttons = [[
             {iconName:"add", style:{}, onClick: addNewSelection},
-            {iconName:"edit", style:{}, disabled: !state[s.SELECTIONS].length, onClick: modifyBoundariesOfSelection},
+            {iconName:"picture_in_picture", style:{}, disabled: !state[s.SELECTIONS].length, onClick: modifyBoundariesOfSelection},
             {iconName:"settings", style:{}, disabled: !state[s.SELECTIONS].length, onClick: openSelectionPropsDialog},
             {iconName:"delete_forever", style:{}, disabled: !state[s.SELECTIONS].length, onClick: deleteSelection},
         ]]
@@ -340,7 +373,7 @@ const BookView = () => {
                 {
                     key:`selection-${selection.id}-${selection.overallBoundaries?.minY??0}`,
                     style:{
-                        backgroundColor:state[s.FOCUSED_SELECTION_ID] == selection.id ? 'yellow' : undefined,
+                        backgroundColor:state[s.FOCUSED_SELECTION_ID] == selection.id ? 'cyan' : undefined,
                         padding:'5px',
                         cursor: 'pointer',
                     },
@@ -383,8 +416,8 @@ const BookView = () => {
     function renderSelectionParamsDialog() {
         if (state[s.EDIT_MODE] === em.EDIT_PROPS) {
             const tdStyle = {padding:'10px'}
-            const inputElemsWidth = '200px'
-            return RE.Dialog({open: true},
+            const inputElemsWidth = '800px'
+            return RE.Dialog({open:true, maxWidth:'xl'},
                 RE.DialogTitle({}, 'Selection properties'),
                 RE.DialogContent({dividers:true},
                     RE.table({},
@@ -405,6 +438,11 @@ const BookView = () => {
                                             value: state[s.EDITED_SELECTION_PROPS].title
                                         }
                                     )
+                                )
+                            ),
+                            RE.tr({},
+                                RE.td({style: tdStyle},
+                                    renderSingleSelection({selection:state.getFocusedSelection()})
                                 )
                             ),
                         )
@@ -437,10 +475,37 @@ const BookView = () => {
         }
     }
 
-    function renderPages() {
-        const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
+    function renderSingleSelection({selection}) {
+        const selectionBoundaries = selection.overallBoundaries
+        if (!selectionBoundaries) {
+            return
+        }
+        const {svgContent} = renderViewableContent({
+            key:'singleSelection',
+            singleSelectionMode: true,
+            selections: [selection],
+            book: state[s.BOOK],
+            minY: selectionBoundaries.minY,
+            maxY: selectionBoundaries.maxY,
+        })
 
-        const height = 800
+        const scaleFactor = state[s.PAGE_HEIGHT_PX]/state[s.VIEW_HEIGHT]
+        const height = selectionBoundaries.height()*scaleFactor
+        const width = selectionBoundaries.width()*scaleFactor
+        return RE.svg(
+            {
+                width,
+                height,
+                boundaries: selectionBoundaries,
+            },
+            ...svgContent,
+        )
+    }
+
+    function renderPages() {
+        const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent({})
+
+        const height = state[s.PAGE_HEIGHT_PX]
         const width = height * (viewableContentBoundaries.width()/viewableContentBoundaries.height())
         return RE.Container.col.top.left({},{},
             renderPagination(),
