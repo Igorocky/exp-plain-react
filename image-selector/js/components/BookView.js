@@ -11,7 +11,7 @@ const BookView = () => {
         VIEW_HEIGHT: 'VIEW_HEIGHT',
         SCROLL_SPEED: 'SCROLL_SPEED',
         SELECTIONS: 'SELECTIONS',
-        FOCUSED_SELECTION_IDX: 'FOCUSED_SELECTION_IDX',
+        FOCUSED_SELECTION_ID: 'FOCUSED_SELECTION_ID',
         EDIT_MODE: 'EDIT_MODE',
     }
 
@@ -32,7 +32,7 @@ const BookView = () => {
     const [ready, setReady] = useState(false)
     const [openConfirmActionDialog, closeConfirmActionDialog, renderConfirmActionDialog] = useConfirmActionDialog()
     const {
-        getCursorType,
+        getCursorType:getCursorTypeForImageSelector,
         renderControlButtons: renderControlButtonsOfImageSelector,
         renderSelectedArea:renderEditedSelectedArea,
         renderDots,
@@ -47,9 +47,11 @@ const BookView = () => {
         onCancel: () => setState(prev=>prev.set(s.EDIT_MODE,null)),
         onSave: newParts => setState(prev=>{
             const newState = objectHolder(prev)
+            const focusedId = prev[s.FOCUSED_SELECTION_ID]
+            const idxToModify = prev[s.SELECTIONS].map((s,idx) => ({id: s.id, idx})).find(s => s.id == focusedId).idx
             const newSelections = sortBy(
                 prev[s.SELECTIONS].modifyAtIdx(
-                    prev[s.FOCUSED_SELECTION_IDX],
+                    idxToModify,
                     s => ({
                         ...s,
                         parts:newParts,
@@ -85,7 +87,7 @@ const BookView = () => {
             [s.VIEW_CURR_Y]: getParam(s.VIEW_CURR_Y, 0),
             [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
-            [s.FOCUSED_SELECTION_IDX]: getParam(s.FOCUSED_SELECTION_IDX, 0),
+            [s.FOCUSED_SELECTION_ID]: getParam(s.FOCUSED_SELECTION_ID, 1),
             [s.SELECTIONS]: getParam(s.SELECTIONS, [
                 {
                     id:1,
@@ -172,8 +174,10 @@ const BookView = () => {
             boundaries = boundaries.addPoints(new Point(page.width,minY))
         }
 
+        const selectionIdToHide = state[s.EDIT_MODE]===em.MODIFY_BOUNDARIES?state[s.FOCUSED_SELECTION_ID]:null
         const selectionsToRender = state[s.SELECTIONS]
             .filter(s => hasValue(s.overallBoundaries))
+            .filter(s => s.id != selectionIdToHide)
             .filter(s => rangesIntersect({
                 r1:{y1:s.overallBoundaries.minY,y2:s.overallBoundaries.maxY},
                 r2:{y1:minY,y2:maxY}
@@ -185,6 +189,18 @@ const BookView = () => {
                 color:'yellow',
                 svgBoundaries: selection.parts,
             }).svgContent)
+        }
+
+        if (state[s.EDIT_MODE] === em.MODIFY_BOUNDARIES) {
+            svgContent.push(
+                renderEditedSelectedArea({
+                    renderSelections: true,
+                    clipPathId: 'clip-path-boundaries'
+                }).svgContent
+            )
+            svgContent.push(
+                ...renderDots()
+            )
         }
 
         return {
@@ -278,10 +294,11 @@ const BookView = () => {
     }
 
     function modifyBoundariesOfSelection() {
-        setState(old=>old.set(s.EDIT_MODE, em.MODIFY_BOUNDARIES))
-        const parts = state[s.SELECTIONS][state[s.FOCUSED_SELECTION_IDX]].parts;
+        setState(prev=>prev.set(s.EDIT_MODE, em.MODIFY_BOUNDARIES))
+        const focusedSelectionId = state[s.FOCUSED_SELECTION_ID]
+        const parts = state[s.SELECTIONS].find(s=> s.id == focusedSelectionId).parts
         setSelectionsForImageSelector({selections: parts})
-        setState(old=>old.set(s.VIEW_CURR_Y, parts.length?parts.map(p=>p.minY).min():old[s.VIEW_CURR_Y]))
+        setState(prev=>prev.set(s.VIEW_CURR_Y, parts.length?parts.map(p=>p.minY).min():prev[s.VIEW_CURR_Y]))
     }
 
     function renderSelectionsList() {
@@ -301,13 +318,13 @@ const BookView = () => {
                 {
                     key:`selection-${selection.id}-${selection.overallBoundaries?.minY??0}`,
                     style:{
-                        backgroundColor:state[s.FOCUSED_SELECTION_IDX] == idx ? 'yellow' : undefined,
+                        backgroundColor:state[s.FOCUSED_SELECTION_ID] == selection.id ? 'yellow' : undefined,
                         padding:'5px',
                         cursor: 'pointer',
                     },
                     onClick: () => {
                         if (hasNoValue(state[s.EDIT_MODE])) {
-                            setState(old => old.set(s.FOCUSED_SELECTION_IDX, idx))
+                            setState(old => old.set(s.FOCUSED_SELECTION_ID, selection.id))
                         }
                     }
                 },
@@ -316,22 +333,16 @@ const BookView = () => {
         )
     }
 
+    function getCursorType() {
+        if (hasNoValue(state[s.EDIT_MODE])) {
+            return 'grab'
+        } else {
+            return getCursorTypeForImageSelector()
+        }
+    }
+
     function renderPages() {
         const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
-
-        const CLIP_PATH_ID = 'clip-path-boundaries'
-
-        let editedSelectedAreaSvgContent = []
-        if (state[s.EDIT_MODE] == em.MODIFY_BOUNDARIES) {
-            const {svgContent, overallBoundaries} = renderEditedSelectedArea({
-                renderSelections: true,
-                clipPathId: CLIP_PATH_ID
-            })
-            editedSelectedAreaSvgContent = [
-                svgContent,
-                ...renderDots()
-            ]
-        }
 
         const height = 800
         const width = height * (viewableContentBoundaries.width()/viewableContentBoundaries.height())
@@ -346,10 +357,12 @@ const BookView = () => {
                     height,
                     boundaries: viewableContentBoundaries,
                     onClick: imageSelectorClickHandler,
-                    onWheel
+                    onWheel,
+                    props: {
+                        style: {cursor: getCursorType()}
+                    }
                 },
                 ...viewableContentSvgContent,
-                ...editedSelectedAreaSvgContent,
                 createRect({
                     boundaries:viewableContentBoundaries,
                     opacity:0,
