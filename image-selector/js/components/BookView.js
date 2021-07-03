@@ -9,6 +9,7 @@ const BookView = () => {
         VIEW_MAX_Y: 'VIEW_MAX_Y',
         VIEW_HEIGHT: 'VIEW_HEIGHT',
         SCROLL_SPEED: 'SCROLL_SPEED',
+        SELECTIONS: 'SELECTIONS',
     }
 
     //scroll speed
@@ -42,6 +43,7 @@ const BookView = () => {
             [s.VIEW_CURR_Y]: getParam(s.VIEW_CURR_Y, 0),
             [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
+            [s.SELECTIONS]: getParam(s.SELECTIONS, []),
         })
     }
 
@@ -168,12 +170,22 @@ const BookView = () => {
         scroll({dy:nativeEvent.deltaY})
     }
 
+    function renderSelectionsInfo() {
+        return RE.Container.col.top.left({},{},
+            sortBy(state[s.SELECTIONS], 'minY').map((selection,idx) => RE.Paper({key:`selection-${idx}-${selection.minY}`},
+                `${selection.title} [${selection.parts?.length??0}]`
+            ))
+        )
+
+        return sele
+    }
+
     if (!ready) {
         return "Loading..."
     } else {
         const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
 
-        return RE.Container.col.top.center({},{},
+        return RE.Container.col.top.left({},{},
             renderPagination(),
             RE.svg(
                 {

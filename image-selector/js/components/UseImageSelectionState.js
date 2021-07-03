@@ -1,23 +1,16 @@
 "use strict";
 
 
-const ImageSelector = () => {
+const UseImageSelectionState = ({onSave}) => {
 
     //state props
     const s = {
         SELECTED_POINT: 'SELECTED_POINT',
         SELECTED_BOUNDARIES: 'SELECTED_BOUNDARIES',
-        DISPLAY_MODE: 'DISPLAY_MODE',
         SELECTED_RECT_IDX: 'SELECTED_RECT_IDX',
         EDIT_MODE: 'EDIT_MODE',
         MOVE_SPEED: 'MOVE_SPEED',
         SHOW_LOCAL_BOUNDARIES: 'SHOW_LOCAL_BOUNDARIES',
-    }
-
-    //display mode
-    const dm = {
-        EDIT_SELECTION: 'EDIT_SELECTION',
-        CLIPPED_INFO: 'CLIPPED_INFO',
     }
 
     //edit mode
@@ -45,7 +38,6 @@ const ImageSelector = () => {
         return createObj({
             [s.SELECTED_POINT]: null,
             [s.SELECTED_BOUNDARIES]: [],
-            [s.DISPLAY_MODE]: dm.EDIT_SELECTION,
             [s.SELECTED_RECT_IDX]: 0,
             [s.EDIT_MODE]: em.ADD_SELECTION,
             [s.MOVE_SPEED]: ms.SPEED_1,
@@ -53,114 +45,33 @@ const ImageSelector = () => {
         })
     }
 
-    function createRect({boundaries, id, color, opacity, borderColor, clipPath}) {
-        return boundaries.toRect({
-            key: `rect-${id}`,
-            props: {
-                fill: color,
-                fillOpacity: opacity,
-                strokeWidth: borderColor ? 1 : 0,
-                stroke: borderColor,
-                clipPath
-            }
-        })
-    }
-
-    function createClipPath({id}) {
-        const boundaries = state[s.SELECTED_BOUNDARIES]
-        const rectangles = []
-        for (let i = 0; i < boundaries.length; i++) {
-            const b = boundaries[i]
-            const id = `${i}-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`
-            rectangles.push(
-                createRect({boundaries:b, id, color:'yellow'})
-            )
-        }
-        return re('clipPath', {key:`clip-path-boundaries`, id}, rectangles)
-    }
-
-    function renderSelectedArea({opacity = 0.5, renderLocalBoundaries = false}) {
-        const boundaries = state[s.SELECTED_BOUNDARIES]
-        if (boundaries.length) {
-            const overallBoundaries = boundaries.reduce((a, b) => mergeSvgBoundaries(a,b));
-            const svgContent = [
-                createClipPath({id:'clip-path-boundaries'}),
-                createRect({
-                    id: 'selectedArea',
-                    boundaries: overallBoundaries,
-                    color: 'yellow',
-                    opacity: opacity,
-                    clipPath: `url(#clip-path-boundaries)`,
-                })
-            ]
-            if (renderLocalBoundaries) {
-                svgContent.push(
-                    ...boundaries.map(b => createRect({
-                        id: `localSelection-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
-                        boundaries: b,
-                        color: 'yellow',
-                        borderColor: 'lightgrey',
-                        opacity:0
-                    }))
-                )
-            }
-            if (state[s.DISPLAY_MODE] === dm.EDIT_SELECTION && state[s.EDIT_MODE] !== em.ADD_SELECTION) {
-                const b = boundaries[state[s.SELECTED_RECT_IDX]]
-                svgContent.push(
-                    createRect({
-                        id: `selected-rect-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
-                        boundaries: b,
-                        borderColor: 'blue',
-                        opacity:0
-                    })
-                )
-            }
-            return {svgContent, overallBoundaries}
-        } else {
-            return {svgContent:[]}
-        }
-    }
-
-    function renderDots() {
-        const point = state[s.SELECTED_POINT]
-        if (hasNoValue(point)) {
-            return []
-        } else {
-            return [
-                svgCircle({key:`point`, c: new Point(point.x, point.y), r:3, props:{fill:'orange'}})
-            ]
-        }
-    }
-
     function processClick({clickedPoint}) {
-        if (state[s.DISPLAY_MODE] === dm.EDIT_SELECTION) {
-            if (state[s.EDIT_MODE] === em.ADD_SELECTION) {
-                if (hasNoValue(state[s.SELECTED_POINT])) {
-                    setState(state.set(s.SELECTED_POINT, clickedPoint));
-                } else {
-                    const firstPoint = state[s.SELECTED_POINT]
-                    setState(
-                        state
-                            .set(s.SELECTED_POINT, null)
-                            .set(
-                                s.SELECTED_BOUNDARIES,
-                                [
-                                    ...state[s.SELECTED_BOUNDARIES],
-                                    SvgBoundaries.fromPoints(firstPoint, clickedPoint)
-                                ]
-                            )
-                    )
-                }
+        if (state[s.EDIT_MODE] === em.ADD_SELECTION) {
+            if (hasNoValue(state[s.SELECTED_POINT])) {
+                setState(state.set(s.SELECTED_POINT, clickedPoint));
             } else {
-                const found = state[s.SELECTED_BOUNDARIES]
-                    .map((b,i) => ({boundaries:b,idx:i}))
-                    .find(({boundaries,idx}) => boundaries.includesPoint(clickedPoint))
-                if (hasValue(found)) {
-                    setState(state.set(
-                        s.SELECTED_RECT_IDX,
-                        found.idx
-                    ))
-                }
+                const firstPoint = state[s.SELECTED_POINT]
+                setState(
+                    state
+                        .set(s.SELECTED_POINT, null)
+                        .set(
+                            s.SELECTED_BOUNDARIES,
+                            [
+                                ...state[s.SELECTED_BOUNDARIES],
+                                SvgBoundaries.fromPoints(firstPoint, clickedPoint)
+                            ]
+                        )
+                )
+            }
+        } else {
+            const found = state[s.SELECTED_BOUNDARIES]
+                .map((b,i) => ({boundaries:b,idx:i}))
+                .find(({boundaries,idx}) => boundaries.includesPoint(clickedPoint))
+            if (hasValue(found)) {
+                setState(state.set(
+                    s.SELECTED_RECT_IDX,
+                    found.idx
+                ))
             }
         }
     }
@@ -174,18 +85,6 @@ const ImageSelector = () => {
     }
 
 
-    function renderImage({imgPath, clipPath, id}) {
-        return re('image', {
-            key: `bgrd-img-${id}`,
-            x: 0,
-            y: 0,
-            width: imgWidth,
-            height: imgHeight,
-            href: imgPath,
-            clipPath
-        })
-    }
-
     function renderSettings() {
         return RE.FormGroup({row:true},
             RE.FormControlLabel({
@@ -197,21 +96,6 @@ const ImageSelector = () => {
                 }),
                 label:s.SHOW_LOCAL_BOUNDARIES
             })
-        )
-    }
-
-    function renderDisplayModeSelector() {
-        return RE.RadioGroup({
-                row: true,
-                value: state[s.DISPLAY_MODE],
-                onChange: (event,newValue) => {
-                    setState(prev => prev.set(s.DISPLAY_MODE, newValue))
-                }
-            },
-            RE.FormControlLabel({label: dm.EDIT_SELECTION, value: dm.EDIT_SELECTION,
-                control: RE.Radio({})}),
-            RE.FormControlLabel({label: dm.CLIPPED_INFO, value: dm.CLIPPED_INFO,
-                control: RE.Radio({})}),
         )
     }
 
@@ -313,20 +197,6 @@ const ImageSelector = () => {
         })
     }
 
-    const imgPath = 'img/p1.png'
-    const imgWidth = 1122
-    const imgHeight = 767
-
-    const isClippedDisplayMode = state[s.DISPLAY_MODE] === dm.CLIPPED_INFO
-
-    const {svgContent: selectedAreaSvgContent, overallBoundaries: selectedAreaOverallBoundaries} = renderSelectedArea({
-        opacity: isClippedDisplayMode ? 0 : 0.5,
-        renderLocalBoundaries:!isClippedDisplayMode && state[s.SHOW_LOCAL_BOUNDARIES]
-    })
-
-    const svgBoundaries = !isClippedDisplayMode
-        ? new SvgBoundaries(0, imgWidth, 0, imgHeight)
-        : selectedAreaOverallBoundaries?.addAbsoluteMargin(5)??new SvgBoundaries(0, imgWidth, 0, imgHeight)
 
 
     return RE.Container.col.top.center({},{},
@@ -354,4 +224,9 @@ const ImageSelector = () => {
             renderControlButtons()
         ) : null
     )
+
+    return {
+        renderControlButtons,
+        render
+    }
 }

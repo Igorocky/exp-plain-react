@@ -35,6 +35,14 @@ function prod(...arrays) {
     }
 }
 
+function sortBy(arr, attr) {
+    return [...arr].sort((a,b) => {
+        const aAttr = a[attr]
+        const bAttr = b[attr]
+        return aAttr < bAttr ? -1 : aAttr == bAttr ? 0 : 1
+    })
+}
+
 Array.prototype.min = function () {
     return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b)
 }
