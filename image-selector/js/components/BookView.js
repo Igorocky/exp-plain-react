@@ -182,6 +182,10 @@ const BookView = () => {
             return `${key}-selection-clipPath-${selection.id}`
         }
 
+        function getColorForSelection(selection) {
+            return state[s.FOCUSED_SELECTION_ID] === selection.id ? 'cyan' : selection.isMarkup ? 'magenta' : 'yellow'
+        }
+
         const svgContent = []
         let boundaries = new SvgBoundaries({minX: 0, maxX: 0, minY, maxY})
         const pagesToRender = getPagesToRender({book, minY, maxY})
@@ -218,7 +222,7 @@ const BookView = () => {
             svgContent.push(renderSelectedArea({
                 key: `${key}-selection-${selection.id}`,
                 clipPathId: getClipPathIdForSelection(selection),
-                color: state[s.FOCUSED_SELECTION_ID] === selection.id ? 'cyan' : 'yellow',
+                color: getColorForSelection(selection),
                 svgBoundaries: selection.parts,
                 renderSelections: !singleSelectionMode
             }).svgContent)
@@ -351,7 +355,7 @@ const BookView = () => {
             }
             return prev
                 .set(s.EDIT_MODE, em.EDIT_PROPS)
-                .set(s.EDITED_SELECTION_PROPS, {idx: editedSelectionIdx, title: editedSelection.title})
+                .set(s.EDITED_SELECTION_PROPS, {idx: editedSelectionIdx, title: editedSelection.title, isMarkup: editedSelection.isMarkup})
         })
     }
 
@@ -386,7 +390,7 @@ const BookView = () => {
                         }
                     }
                 },
-                `${selection.title} | [${selection.parts?.length??0}]`
+                `${!selection.parts?.length?'[empty] ':''}${selection.title}`
             ))
         )
     }
@@ -414,6 +418,22 @@ const BookView = () => {
     }
 
     function renderSelectionParamsDialog() {
+        function saveProps() {
+            setState(prev => {
+                    const newProps = {
+                        title: prev[s.EDITED_SELECTION_PROPS].title,
+                        isMarkup: prev[s.EDITED_SELECTION_PROPS].isMarkup,
+                    }
+                    return prev
+                        .set(
+                            s.SELECTIONS,
+                            prev[s.SELECTIONS].modifyAtIdx(prev[s.EDITED_SELECTION_PROPS].idx, e => ({...e, ...newProps}))
+                        )
+                        .set(s.EDIT_MODE, null)
+                }
+            )
+        }
+
         if (state[s.EDIT_MODE] === em.EDIT_PROPS) {
             const tdStyle = {padding:'10px'}
             const inputElemsWidth = '800px'
@@ -428,6 +448,7 @@ const BookView = () => {
                                         {
                                             variant: 'outlined', label: 'Title',
                                             style: {width: inputElemsWidth},
+                                            autoFocus: true,
                                             onChange: event => {
                                                 const newTitle = event.nativeEvent.target.value
                                                 setState(prev => prev.set(
@@ -435,9 +456,23 @@ const BookView = () => {
                                                     {...prev[s.EDITED_SELECTION_PROPS], title:newTitle}
                                                 ))
                                             },
+                                            onKeyUp: event => event.nativeEvent.keyCode == 13 ? saveProps() : null,
                                             value: state[s.EDITED_SELECTION_PROPS].title
                                         }
                                     )
+                                )
+                            ),
+                            RE.tr({},
+                                RE.td({style: tdStyle},
+                                    RE.FormControlLabel({
+                                        control: RE.Checkbox({
+                                            checked: state[s.EDITED_SELECTION_PROPS].isMarkup?true:false,
+                                            onChange: (event,newValue) => {
+                                                setState(prev => prev.set(s.EDITED_SELECTION_PROPS, {...prev[s.EDITED_SELECTION_PROPS], isMarkup:newValue}))
+                                            }
+                                        }),
+                                        label:'markup'
+                                    })
                                 )
                             ),
                             RE.tr({},
@@ -450,26 +485,7 @@ const BookView = () => {
                 ),
                 RE.DialogActions({},
                     RE.Button({color:'primary', onClick: () => setState(prev => prev.set(s.EDIT_MODE, null))}, 'Cancel'),
-                    RE.Button(
-                        {
-                            variant: "contained",
-                            color: 'primary',
-                            onClick: () =>
-                                setState(prev => {
-                                        const newProps = {
-                                            title: prev[s.EDITED_SELECTION_PROPS].title
-                                        }
-                                        return prev
-                                            .set(
-                                                s.SELECTIONS,
-                                                prev[s.SELECTIONS].modifyAtIdx(prev[s.EDITED_SELECTION_PROPS].idx, e => ({...e, ...newProps}))
-                                            )
-                                            .set(s.EDIT_MODE, null)
-                                    }
-                                )
-                        },
-                        'Save'
-                    ),
+                    RE.Button({variant: "contained", color: 'primary', onClick: saveProps}, 'Save'),
                 ),
             )
         }
@@ -538,9 +554,19 @@ const BookView = () => {
     if (!ready) {
         return "Loading..."
     } else {
-        return RE.Container.row.left.top({},{},
-            renderPages(),
-            renderSelectionsList(),
+        return RE.Container.col.top.left({},{},
+            RE.table({},
+                RE.tbody({},
+                    RE.tr({},
+                        RE.td({valign:'top'},
+                            renderPages(),
+                        ),
+                        RE.td({valign:'top'},
+                            renderSelectionsList(),
+                        )
+                    ),
+                )
+            ),
             renderConfirmActionDialog(),
             renderSelectionParamsDialog()
         )
