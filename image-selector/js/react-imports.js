@@ -82,6 +82,7 @@ const RE = {
     Checkbox: reFactory(MaterialUI.Checkbox),
     Dialog: reFactory(MaterialUI.Dialog),
     DialogContent: reFactory(MaterialUI.DialogContent),
+    DialogTitle: reFactory(MaterialUI.DialogTitle),
     DialogActions: reFactory(MaterialUI.DialogActions),
     FormControlLabel: reFactory(MaterialUI.FormControlLabel),
     FormControl: reFactory(MaterialUI.FormControl),

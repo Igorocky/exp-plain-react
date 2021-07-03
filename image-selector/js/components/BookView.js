@@ -13,6 +13,7 @@ const BookView = () => {
         SELECTIONS: 'SELECTIONS',
         FOCUSED_SELECTION_ID: 'FOCUSED_SELECTION_ID',
         EDIT_MODE: 'EDIT_MODE',
+        EDITED_SELECTION_PROPS: 'EDITED_SELECTION_PROPS',
     }
 
     //scroll speed
@@ -24,7 +25,7 @@ const BookView = () => {
 
     //edit mode
     const em = {
-        RENAME: 'RENAME',
+        EDIT_PROPS: 'EDIT_PROPS',
         MODIFY_BOUNDARIES: 'MODIFY_BOUNDARIES',
     }
 
@@ -303,10 +304,29 @@ const BookView = () => {
         setState(prev=>prev.set(s.VIEW_CURR_Y, parts.length?parts.map(p=>p.minY).min():prev[s.VIEW_CURR_Y]))
     }
 
+    function openSelectionPropsDialog() {
+        setState(prev => {
+            let editedSelection
+            let editedSelectionIdx
+            const selections = prev[s.SELECTIONS]
+            const focusedId = prev[s.FOCUSED_SELECTION_ID]
+            for (let i = 0; i < selections.length; i++) {
+                if (selections[i].id === focusedId) {
+                    editedSelection = selections[i]
+                    editedSelectionIdx = i
+                }
+            }
+            return prev
+                .set(s.EDIT_MODE, em.EDIT_PROPS)
+                .set(s.EDITED_SELECTION_PROPS, {idx: editedSelectionIdx, title: editedSelection.title})
+        })
+    }
+
     function renderSelectionsList() {
         const buttons = [[
             {iconName:"add", style:{}, onClick: addNewSelection},
             {iconName:"edit", style:{}, disabled: !state[s.SELECTIONS].length, onClick: modifyBoundariesOfSelection},
+            {iconName:"settings", style:{}, disabled: !state[s.SELECTIONS].length, onClick: openSelectionPropsDialog},
             {iconName:"delete_forever", style:{}, disabled: !state[s.SELECTIONS].length, onClick: deleteSelection},
         ]]
 
@@ -360,6 +380,63 @@ const BookView = () => {
         }
     }
 
+    function renderSelectionParamsDialog() {
+        if (state[s.EDIT_MODE] === em.EDIT_PROPS) {
+            const tdStyle = {padding:'10px'}
+            const inputElemsWidth = '200px'
+            return RE.Dialog({open: true},
+                RE.DialogTitle({}, 'Selection properties'),
+                RE.DialogContent({dividers:true},
+                    RE.table({},
+                        RE.tbody({},
+                            RE.tr({},
+                                RE.td({style: tdStyle},
+                                    RE.TextField(
+                                        {
+                                            variant: 'outlined', label: 'Title',
+                                            style: {width: inputElemsWidth},
+                                            onChange: event => {
+                                                const newTitle = event.nativeEvent.target.value
+                                                setState(prev => prev.set(
+                                                    s.EDITED_SELECTION_PROPS,
+                                                    {...prev[s.EDITED_SELECTION_PROPS], title:newTitle}
+                                                ))
+                                            },
+                                            value: state[s.EDITED_SELECTION_PROPS].title
+                                        }
+                                    )
+                                )
+                            ),
+                        )
+                    )
+                ),
+                RE.DialogActions({},
+                    RE.Button({color:'primary', onClick: () => setState(prev => prev.set(s.EDIT_MODE, null))}, 'Cancel'),
+                    RE.Button(
+                        {
+                            variant: "contained",
+                            color: 'primary',
+                            onClick: () =>
+                                setState(prev => {
+                                        const newProps = {
+                                            title: prev[s.EDITED_SELECTION_PROPS].title
+                                        }
+                                        return prev
+                                            .set(
+                                                s.SELECTIONS,
+                                                prev[s.SELECTIONS].modifyAtIdx(prev[s.EDITED_SELECTION_PROPS].idx, e => ({...e, ...newProps}))
+                                            )
+                                            .set(s.EDIT_MODE, null)
+                                    }
+                                )
+                        },
+                        'Save'
+                    ),
+                ),
+            )
+        }
+    }
+
     function renderPages() {
         const {svgContent:viewableContentSvgContent, boundaries:viewableContentBoundaries} = renderViewableContent()
 
@@ -399,7 +476,8 @@ const BookView = () => {
         return RE.Container.row.left.top({},{},
             renderPages(),
             renderSelectionsList(),
-            renderConfirmActionDialog()
+            renderConfirmActionDialog(),
+            renderSelectionParamsDialog()
         )
     }
 }
