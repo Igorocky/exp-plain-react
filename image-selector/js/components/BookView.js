@@ -88,26 +88,27 @@ const BookView = () => {
             [s.VIEW_HEIGHT]: getParam(s.VIEW_HEIGHT, 1300),
             [s.SCROLL_SPEED]: getParam(s.SCROLL_SPEED, ss.SPEED_1),
             [s.FOCUSED_SELECTION_ID]: getParam(s.FOCUSED_SELECTION_ID, 1),
-            [s.SELECTIONS]: getParam(s.SELECTIONS, [
-                {
-                    id:1,
-                    title:'selection 1',
-                    parts:[],
-                    overallBoundaries: null,
-                },
-                {
-                    id:2,
-                    title:'selection 2',
-                    parts:[],
-                    overallBoundaries: null,
-                },
-                {
-                    id:3,
-                    title:'selection 3',
-                    parts:[],
-                    overallBoundaries: null,
-                },
-            ]),
+            [s.SELECTIONS]: getParam(
+                s.SELECTIONS,
+                [
+                    {"id": 3, "title": "selection 3", "parts": [], "overallBoundaries": null},
+                    {
+                        "id": 1,
+                        "title": "selection 1",
+                        "parts": [new SvgBoundaries({"minX": 732.875, "maxX": 1394.25, "minY": 502.125, "maxY": 640.25})],
+                        "overallBoundaries": {"minX": 732.875, "maxX": 1394.25, "minY": 502.125, "maxY": 640.25}
+                    },
+                    {
+                        "id": 2,
+                        "title": "selection 2",
+                        "parts": [
+                            new SvgBoundaries({"minX": 277.875, "maxX": 1386.125, "minY": 858, "maxY": 1067.625}),
+                            new SvgBoundaries({"minX": 635.375, "maxX": 1385.5, "minY": 1051.375, "maxY": 1280.625})
+                        ],
+                        "overallBoundaries": {"minX": 277.875, "maxX": 1386.125, "minY": 858, "maxY": 1280.625}
+                    }
+                ]
+            ),
         })
     }
 
@@ -186,7 +187,7 @@ const BookView = () => {
             svgContent.push(renderSelectedArea({
                 key:`selection-${selection.id}`,
                 clipPathId:`selection-clipPath-${selection.id}`,
-                color:'yellow',
+                color:state[s.FOCUSED_SELECTION_ID] === selection.id ? 'yellow' : 'cyan',
                 svgBoundaries: selection.parts,
             }).svgContent)
         }
@@ -195,7 +196,8 @@ const BookView = () => {
             svgContent.push(
                 renderEditedSelectedArea({
                     renderSelections: true,
-                    clipPathId: 'clip-path-boundaries'
+                    clipPathId: 'clip-path-boundaries',
+                    renderOverallBoundaries: true
                 }).svgContent
             )
             svgContent.push(
@@ -324,7 +326,10 @@ const BookView = () => {
                     },
                     onClick: () => {
                         if (hasNoValue(state[s.EDIT_MODE])) {
-                            setState(old => old.set(s.FOCUSED_SELECTION_ID, selection.id))
+                            setState(prev => prev
+                                .set(s.FOCUSED_SELECTION_ID, selection.id)
+                                .set(s.VIEW_CURR_Y, Math.min(prev[s.VIEW_MAX_Y], selection.overallBoundaries?.minY??prev[s.VIEW_CURR_Y]))
+                            )
                         }
                     }
                 },
@@ -338,6 +343,20 @@ const BookView = () => {
             return 'grab'
         } else {
             return getCursorTypeForImageSelector()
+        }
+    }
+
+    function clickHandler(clickImageX, clickImageY, nativeEvent) {
+        if (hasNoValue(state[s.EDIT_MODE])) {
+            if (nativeEvent.type === 'mouseup') {
+                const clickedPoint = new Point(clickImageX,clickImageY)
+                const clickedSelection = state[s.SELECTIONS].find(sel => sel.parts?.some(p => p.includesPoint(clickedPoint)))
+                if (clickedSelection) {
+                    setState(prev => prev.set(s.FOCUSED_SELECTION_ID, clickedSelection.id))
+                }
+            }
+        } else {
+            imageSelectorClickHandler(clickImageX, clickImageY, nativeEvent)
         }
     }
 
@@ -356,7 +375,7 @@ const BookView = () => {
                     width,
                     height,
                     boundaries: viewableContentBoundaries,
-                    onClick: imageSelectorClickHandler,
+                    onClick: clickHandler,
                     onWheel,
                     props: {
                         style: {cursor: getCursorType()}

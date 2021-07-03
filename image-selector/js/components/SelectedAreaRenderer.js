@@ -26,7 +26,10 @@ function SelectedAreaRenderer() {
         return re('clipPath', {key:id, id}, rectangles)
     }
 
-    function renderSelectedArea({key, svgBoundaries, focusedIdx = -1, color, clipPathId, renderSelections = true, renderLocalBoundaries = false}) {
+    function renderSelectedArea({
+                                    key, svgBoundaries, focusedIdx = -1, color, clipPathId,
+                                    renderSelections = true, renderLocalBoundaries = false,
+                                renderOverallBoundaries = false}) {
         if (svgBoundaries.length) {
             const svgContent = []
             const overallBoundaries = svgBoundaries.reduce((a, b) => mergeSvgBoundaries(a,b))
@@ -36,7 +39,7 @@ function SelectedAreaRenderer() {
                     key: `${key}-selectedArea`,
                     boundaries: overallBoundaries,
                     color,
-                    opacity: 0.5,
+                    opacity: 0.3,
                     clipPath: `url(#${clipPathId})`,
                 }))
             }
@@ -57,6 +60,17 @@ function SelectedAreaRenderer() {
                         key: `${key}-focusedLocalBoundaries-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
                         boundaries: b,
                         borderColor: 'blue',
+                        opacity:0
+                    })
+                )
+            }
+            if (renderOverallBoundaries) {
+                const b = overallBoundaries
+                svgContent.push(
+                    createRect({
+                        key: `${key}-overallBoundaries-${b.minX}-${b.minY}-${b.maxX}-${b.maxY}`,
+                        boundaries: b,
+                        borderColor: 'red',
                         opacity:0
                     })
                 )

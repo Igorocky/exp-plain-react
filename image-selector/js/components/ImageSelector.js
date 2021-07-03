@@ -241,13 +241,14 @@ function useImageSelector({onCancel, onSave}) {
     return {
         renderControlButtons,
         renderDisplayModeSelector,
-        renderSelectedArea: ({renderSelections, clipPathId}) => renderSelectedArea({
+        renderSelectedArea: ({renderSelections, clipPathId, renderOverallBoundaries}) => renderSelectedArea({
             key: 'selectedArea',
             svgBoundaries: state[s.SELECTED_BOUNDARIES],
             focusedIdx: state[s.EDIT_MODE] !== em.ADD_SELECTION ? state[s.SELECTED_RECT_IDX] : -1,
             color: 'yellow',
             clipPathId: clipPathId,
             renderSelections,
+            renderOverallBoundaries,
             renderLocalBoundaries: state[s.SHOW_LOCAL_BOUNDARIES]
         }),
         clickHandler: (clickImageX, clickImageY, nativeEvent) => {
