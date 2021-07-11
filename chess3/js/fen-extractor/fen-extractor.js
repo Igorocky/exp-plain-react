@@ -1,4 +1,4 @@
-const {testData, runTests} = require('./fen-extractor-test-data')
+"use strict";
 
 function extractFenFromPgn(pgn) {
 
@@ -22,7 +22,7 @@ function fenToBoard(fen) {
     let cellPointer = 0;
     let charPointer = 0;
     while (cellPointer < 64) {
-        chCode = fen.charCodeAt(charPointer)
+        const chCode = fen.charCodeAt(charPointer)
         if (48 <= chCode && chCode <= 57) {
             cellPointer += chCode - 48
         } else if (chCode == 47/*"/"*/) {
@@ -189,12 +189,12 @@ function describePgn(pgn) {
 
 function describePuzzle(puzzle) {
     const {board, move, fen} = describePgn(puzzle.pgn)
-    console.table([
+    return [
         ...board,
         '-----------------------',
         move,
         fen
-    ])
+    ]
 }
 
 testData.forEach(({pgn}) => {

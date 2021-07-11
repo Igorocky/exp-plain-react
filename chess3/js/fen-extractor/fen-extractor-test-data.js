@@ -1,3 +1,5 @@
+"use strict";
+
 const PGN_TEST_1 = {
     pgn:'[Event "?"]\n' +
             '[Site "?"]\n' +
@@ -136,5 +138,3 @@ function runTests({extractFenPosFromPgn,extractFirstColorToMoveFromPgn,extractFi
     }
     console.log('ALL TESTS PASSED')
 }
-
-module.exports = {testData, runTests}
