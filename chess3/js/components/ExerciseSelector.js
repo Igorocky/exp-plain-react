@@ -12,10 +12,10 @@ const AVAILABLE_EXERCISES = [
 
 const ExerciseSelector = ({}) => {
     // const [selectedExercise, setSelectedExercise] = useState({component: MorseExercise})
-    // const [selectedExercise, setSelectedExercise] = useState({component: X4Exercise})
+    const [selectedExercise, setSelectedExercise] = useState({component: X4ExerciseV2})
     // const [selectedExercise, setSelectedExercise] = useState({component: AllCellsExercise})
     // const [selectedExercise, setSelectedExercise] = useState({component: TypeExercise})
-    const [selectedExercise, setSelectedExercise] = useState(null)
+    // const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {
         return RE.List({component:"nav"},
