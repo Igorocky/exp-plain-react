@@ -124,7 +124,7 @@ const X4ExerciseV2 = () => {
                     state = proceedToNextQuestion({state})
                 }
             } else {
-                playAudio(ERROR_SOUND)
+                // playAudio(ERROR_SOUND)
             }
         } else {
             state = proceedToNextQuestion({state})
