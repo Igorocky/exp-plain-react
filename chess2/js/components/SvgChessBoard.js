@@ -134,10 +134,10 @@ const SvgChessBoard = ({cellSize, pieces, cellsWithDots, wPlayer, bPlayer, flipp
     function renderCenterAxes() {
         const axesColor = "grey";
         return RE.Fragment({},
-            SVG.circle({
-                cx:xCoordFromChessboardToSvg(4, cellSize), cy:yCoordFromChessboardToSvg(3, cellSize), r:cellSize*0.1,
-                style:{fill:"grey", fillOpacity:"0.5"},
-            }),
+            // SVG.circle({
+            //     cx:xCoordFromChessboardToSvg(4, cellSize), cy:yCoordFromChessboardToSvg(3, cellSize), r:cellSize*0.1,
+            //     style:{fill:"grey", fillOpacity:"0.5"},
+            // }),
             // SVG.line({
             //     x1: xCoordFromChessboardToSvg(3, cellSize),
             //     y1: yCoordFromChessboardToSvg(3, cellSize),

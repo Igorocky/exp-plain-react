@@ -301,18 +301,6 @@ const X4ExerciseV2 = () => {
                         strokeWidth:isIslandCell(cell.idx)?0.3:0.02
                     })
                 }),
-                // ...renderIslands(),
-                // ...renderCells({
-                //     key:'cell-border--',
-                //     props: borderCellProps,
-                //     propsFunc: cell => ({
-                //         fillOpacity:state[s.FOCUSED_CELL].idx == cell.idx ? 1 : 0,
-                //         // fill:(cell.x+cell.y)%2==0?'rgb(181,136,99)' : 'rgb(240,217,181)',
-                //         fill:'white',
-                //         // strokeOpacity:state[s.FOCUSED_CELL].idx == cell.idx ? 1 : 0
-                //         strokeOpacity:0
-                //     })
-                // }),
                 ...(state[s.USER_SELECTED_CELL]
                         ? [
                             state[s.USER_CLICK_CORRECT]?renderCell({

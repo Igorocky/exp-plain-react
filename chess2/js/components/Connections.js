@@ -11,7 +11,8 @@ const Connections = ({configName}) => {
                 const type = getConnectionType(i)
 
                 // return type.diagonal && type.length > 1 || type.horizontal || type.vertical
-                return type.diagonal && type.length > 1 || type.knight
+                // return type.diagonal && type.length > 1 || type.knight
+                return type.knight
                 // return type.horizontal || type.vertical
                 // return type.vertical
                 // return type.horizontal

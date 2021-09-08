@@ -4,7 +4,7 @@ const AVAILABLE_EXERCISES = [
     {name:"Img To Coords", component: ImgToCoordsExercise},
     {name:"CellColorsExercise", component: CellColorsExercise},
     {name:"Vision", component: VisionExercise},
-    {name:"Connections", component: Connections},
+    {name:"Connections++", component: Connections},
     {name:"ConnectionsAudio", component: ConnectionsAudio},
     {name:"Movements2Exercise", component: Movements2Exercise},
     {name:"MorseExercise", component: MorseExercise},
@@ -23,6 +23,7 @@ const AVAILABLE_EXERCISES = [
 const ExerciseSelector = ({}) => {
     // const [selectedExercise, setSelectedExercise] = useState({name:"MorseStateViewExplorer", component: MorseStateViewExplorer})
     // const [selectedExercise, setSelectedExercise] = useState({name:"ConnectionsAudio", component: ConnectionsAudio})
+    // const [selectedExercise, setSelectedExercise] = useState({name:"Connections", component: Connections})
     // const [selectedExercise, setSelectedExercise] = useState({name:"Vision", component: VisionExercise})
     const [selectedExercise, setSelectedExercise] = useState(null)
 
