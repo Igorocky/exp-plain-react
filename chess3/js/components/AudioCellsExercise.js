@@ -53,7 +53,7 @@ const AudioCellsExercise = () => {
             if (hasValue(st.get(s.WAKEUP_TIMEOUT_HANDLE))) {
                 clearTimeout(st.get(s.WAKEUP_TIMEOUT_HANDLE))
             }
-            st.set(s.WAKEUP_TIMEOUT_HANDLE, setTimeout(() => playAudio('on-go-to-start3.mp3'), 4.5*60*1000))
+            st.set(s.WAKEUP_TIMEOUT_HANDLE, setTimeout(() => playAudio('on-go-to-start.mp3'), 4.5*60*1000))
 
             return st.get()
         })
