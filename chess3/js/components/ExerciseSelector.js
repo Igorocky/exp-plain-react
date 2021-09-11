@@ -7,6 +7,7 @@ const AVAILABLE_EXERCISES = [
     {name:"X4Exercise", component: X4Exercise},
     {name:"X4ExerciseV2", component: X4ExerciseV2},
     {name:"MorseExercise", component: MorseExercise},
+    {name:"MorseExerciseCells", component: MorseExerciseCells},
     {name:"AllCellsExercise", component: AllCellsExercise},
     {name:"TypeExercise", component: TypeExercise},
 ]
@@ -16,7 +17,8 @@ const ExerciseSelector = ({}) => {
     // const [selectedExercise, setSelectedExercise] = useState({component: X4ExerciseV2})
     // const [selectedExercise, setSelectedExercise] = useState({component: AllCellsExercise})
     // const [selectedExercise, setSelectedExercise] = useState({component: TypeExercise})
-    const [selectedExercise, setSelectedExercise] = useState(null)
+    const [selectedExercise, setSelectedExercise] = useState({component: MorseExerciseCells})
+    // const [selectedExercise, setSelectedExercise] = useState(null)
 
     if (!selectedExercise) {
         return RE.List({component:"nav"},
