@@ -9,6 +9,7 @@ const MorseExerciseCells = () => {
         CARD_COUNTS: 'CARD_COUNTS',
         DOT_DURATION: 'DOT_DURATION',
         ALL_CARDS: 'ALL_CARDS',
+        WAKEUP_TIMEOUT_HANDLE: 'WAKEUP_TIMEOUT_HANDLE',
     }
 
     const [dotDurationStore, setDotDurationStore] = useStateFromLocalStorageNumber({
@@ -51,7 +52,7 @@ const MorseExerciseCells = () => {
             const st = objectHolder(state)
 
             if (MORSE.e.sym === symOrCode) {
-                sayCard(state[s.CURR_CARD])
+                sayCard(st.get(s.CURR_CARD))
             } else if (MORSE.i.sym === symOrCode) {
                 const nextCard = nextRandomElem({allElems: st.get(s.ALL_CARDS), counts: st.get(s.CARD_COUNTS)});
                 st.set(s.CURR_CARD, nextCard)
@@ -60,6 +61,11 @@ const MorseExerciseCells = () => {
             } else {
                 playAudio(ERROR_SOUND)
             }
+
+            if (hasValue(st.get(s.WAKEUP_TIMEOUT_HANDLE))) {
+                clearTimeout(st.get(s.WAKEUP_TIMEOUT_HANDLE))
+            }
+            st.set(s.WAKEUP_TIMEOUT_HANDLE, setTimeout(() => playAudio('on-go-to-start3.mp3'), 4.5*60*1000))
 
             return st.get()
         })
