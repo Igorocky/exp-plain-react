@@ -20,6 +20,8 @@ const KEY_CODE_H = 72
 const KEY_CODE_J = 74
 const KEY_CODE_K = 75
 const KEY_CODE_L = 76
+const PAGE_DOWN_KEY_CODE = 34
+const PAGE_UP_KEY_CODE = 33
 
 const KEYDOWN_LISTENER_NAME = 'keydown'
 const MOUSEDOWN_LISTENER_NAME = 'mousedown'

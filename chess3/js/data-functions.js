@@ -12,8 +12,65 @@ function isObject(obj) {
     return typeof obj === 'object' && !Array.isArray(obj)
 }
 
+function isFunction(obj) {
+    return typeof obj === 'function'
+}
+
+function arraysAreEqualAsSets(a,b) {
+    if (hasNoValue(a) && hasNoValue(b)) {
+        return true
+    } else if (hasNoValue(a) || hasNoValue(b)) {
+        return false
+    } else {
+        return a.every(e => b.includes(e)) && b.every(e => a.includes(e))
+    }
+}
+
+function xor(a,b) {
+    if (hasValue(a) && hasValue(b)) {
+        return a && !b || !a && b
+    }
+}
+
 function randomInt(min, max) {
     return min + Math.floor(Math.random()*((max-min)+1))
+}
+
+const RND_CHARS = 'QWERTYUIOP{}|":LKJHGFDSAZXCVBNM<>?1234567890qwertyuioplkjhgfdsazxcvbnm'
+function randomChar() {
+    return RND_CHARS.charAt(randomInt(0,RND_CHARS.length))
+}
+
+const RND_ALPH_NUM_CHARS = 'QWERTYUIOPLKJHGFDSAZXCVBNM1234567890qwertyuioplkjhgfdsazxcvbnm'
+function randomAlphaNumChar() {
+    return RND_ALPH_NUM_CHARS.charAt(randomInt(0,RND_ALPH_NUM_CHARS.length))
+}
+
+function randomAlphaNumString({minLength = 0, maxLength = 100}) {
+    const length = randomInt(minLength, maxLength)
+    const res = []
+    for (let i = 0; i < length; i++) {
+        res.push(randomAlphaNumChar())
+    }
+    return res.join('')
+}
+
+function randomString({minLength = 0, maxLength = 100}) {
+    const length = randomInt(minLength, maxLength)
+    const res = []
+    for (let i = 0; i < length; i++) {
+        res.push(randomChar())
+    }
+    return res.join('')
+}
+
+function randomSentence({minLength = 1, maxLength = 10}) {
+    const length = randomInt(minLength, maxLength)
+    const res = []
+    for (let i = 0; i < length; i++) {
+        res.push(randomAlphaNumString({minLength:1,maxLength:8}))
+    }
+    return res.join(' ')
 }
 
 function ints(start, end) {
@@ -35,16 +92,29 @@ function prod(...arrays) {
     }
 }
 
+function sortBy(arr, attr) {
+    const isFunc = isFunction(attr)
+    return [...arr].sort((a,b) => {
+        const aAttr = isFunc?attr(a):a[attr]
+        const bAttr = isFunc?attr(b):b[attr]
+        return aAttr < bAttr ? -1 : aAttr == bAttr ? 0 : 1
+    })
+}
+
+Array.prototype.sortBy = function (attr) {
+    return sortBy(this, attr)
+}
+
 Array.prototype.min = function () {
-    return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b)
+    return this.length?this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.min(a,b)):a):b):undefined
 }
 
 Array.prototype.max = function () {
-    return this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.max(a,b)):a):b)
+    return this.length?this.reduce((a,b) => hasValue(a)?(hasValue(b)?(Math.max(a,b)):a):b):undefined
 }
 
 Array.prototype.sum = function () {
-    return this.reduce((a,b) => a+b, 0)
+    return this.length?this.reduce((a,b) => a+b, 0):undefined
 }
 
 Array.prototype.attr = function(...attrs) {
@@ -59,6 +129,10 @@ Array.prototype.first = function() {
     return this[0]
 }
 
+Array.prototype.last = function() {
+    return this[this.length-1]
+}
+
 Array.prototype.rest = function() {
     return this.filter((e,idx) => 0 < idx)
 }
@@ -69,6 +143,28 @@ function inc(arr, idx) {
 
 function modifyAtIdx(arr, idx, modifier) {
     return arr.map((e,i) => i==idx?modifier(e):e)
+}
+
+function removeAtIdx(arr,idx) {
+    const res = arr[idx]
+    arr.splice(idx,1)
+    return res
+}
+
+function removeIf(arr,predicate) {
+    if (Array.isArray(arr)) {
+        let removedCnt = 0
+        for (let i = 0; i < arr.length; i++) {
+            if (predicate(arr[i])) {
+                removeAtIdx(arr,i)
+                removedCnt++
+                i--
+            }
+        }
+        return removedCnt
+    } else {
+        return 0
+    }
 }
 
 function nextRandomElem({allElems,counts}) {

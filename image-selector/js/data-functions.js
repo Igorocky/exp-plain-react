@@ -96,7 +96,6 @@ function removeAtIdx(arr,idx) {
     const res = arr[idx]
     arr.splice(idx,1)
     return res
-
 }
 
 function nextRandomElem({allElems,counts}) {
