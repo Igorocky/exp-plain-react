@@ -7,6 +7,7 @@ const FenExtractorUi = () => {
         PHASE: 'PHASE',
         NEXT_OUTPUT: 'NEXT_OUTPUT',
         POSITION_DESCRIPTION: 'POSITION_DESCRIPTION',
+        TIMER_HANDLE: 'TIMER_HANDLE',
     }
 
     //phases
@@ -30,6 +31,18 @@ const FenExtractorUi = () => {
                 .set(s.PHASE, p.SHOW_POSITION_DESCRIPTION)
                 .set(s.POSITION_DESCRIPTION, describePuzzle(JSON.parse(state[s.NEXT_OUTPUT])))
         )
+        scheduleSound()
+    }
+
+    function scheduleSound() {
+        setState(prev=>{
+            if (prev[s.TIMER_HANDLE]) {
+                clearTimeout(prev[s.TIMER_HANDLE])
+            }
+            return prev.set(s.TIMER_HANDLE, setTimeout(() => {
+                playAudio('on-go-to-start3.mp3')
+            }, 4.5*60*1000))
+        })
     }
 
     function renderButtons() {
@@ -39,15 +52,21 @@ const FenExtractorUi = () => {
                 color:"primary"
             },"Show position")
         } else {
-            return RE.Button({
-                onClick: () => {
-                    setState(
-                        state
-                            .set(s.PHASE, p.EDIT_NEXT_OUTPUT)
-                    )
-                },
-                color:"primary"
-            },"Edit")
+            return [
+                RE.Button({
+                    onClick: () => {
+                        setState(
+                            state
+                                .set(s.PHASE, p.EDIT_NEXT_OUTPUT)
+                        )
+                    },
+                    color: "primary"
+                }, "Edit"),
+                RE.Button({
+                    onClick: scheduleSound,
+                    color: "primary"
+                }, "Sound")
+            ]
         }
     }
 
