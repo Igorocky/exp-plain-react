@@ -93,7 +93,17 @@ const FenExtractorUi = () => {
             return RE.table({style:{fontSize:'30px', fontFamily:'courier', fontWeight:'bold'}},
                 RE.tbody({},
                     state[s.POSITION_DESCRIPTION].map((line,idx) => RE.tr({key:idx},
-                        RE.td({},line)
+                        RE.td(
+                            {
+                                style: {cursor:idx == state[s.POSITION_DESCRIPTION].length-1 ? 'pointer' : undefined},
+                                onClick: () => {
+                                    if (idx == state[s.POSITION_DESCRIPTION].length-1) {
+                                        window.open('https://lichess.org/analysis/standard/' + line.replaceAll(' ', '_'))
+                                    }
+                                }
+                            },
+                            line
+                        )
                     ))
                 )
             )
