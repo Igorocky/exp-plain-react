@@ -157,20 +157,20 @@ function describePosition({board,orientation}) {
     }
 
     const myPawns = listPawns(getMyPiece)
-    const myKQR = listPieces(getMyPiece, ['k','q','r'])
-    const myBN = listPieces(getMyPiece, ['b','n'])
+    const myKQ = listPieces(getMyPiece, ['k','q'])
+    const myRBN = listPieces(getMyPiece, ['r','b','n'])
 
     const opponentPawns = listPawns(getOpponentPiece)
-    const opponentKQR = listPieces(getOpponentPiece, ['k','q','r'])
-    const opponentBN = listPieces(getOpponentPiece, ['b','n'])
+    const opponentKQ = listPieces(getOpponentPiece, ['k','q'])
+    const opponentRBN = listPieces(getOpponentPiece, ['r','b','n'])
 
     return [
         myPawns,
-        myKQR,
-        myBN,
+        myKQ,
+        myRBN,
         opponentPawns,
-        opponentKQR,
-        opponentBN,
+        opponentKQ,
+        opponentRBN,
     ]
 }
 
